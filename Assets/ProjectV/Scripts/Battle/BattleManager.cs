@@ -113,13 +113,46 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         resultText.text = $"Monster Damage: {totalDamage}"; // 마물 공격 결과 표시
         UpdateBattleUI(); // 공격 결과 UI 갱신
     } // 메서드 끝
+    private void ResolveHeroineAttack() // 히로인 공격 대상 결정
+    { // 메서드 시작
+        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
+
+        if (fieldMonsters.Count > 0) // 필드 마물 존재 확인
+        { // 조건문 시작
+            AttackFirstMonster(); // 가장 먼저 소환된 마물 공격
+            return; // 플레이어 공격 차단
+        } // 조건문 끝
+
+        AttackPlayer(); // 플레이어 직접 공격
+    } // 메서드 끝
+
+    private void AttackFirstMonster() // 첫 번째 필드 마물 공격
+    { // 메서드 시작
+        MonsterUnit targetMonster = fieldMonsters[0]; // 가장 먼저 소환된 마물 선택
+        string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
+
+        targetMonster.TakeDamage(heroineAttackDamage); // 마물 피해 적용
+        resultText.text = $"{targetName} Takes {heroineAttackDamage} Damage"; // 마물 피해 결과 표시
+
+        if (targetMonster.IsDead) // 마물 사망 확인
+        { // 조건문 시작
+            fieldMonsters.RemoveAt(0); // 필드 목록에서 마물 제거
+            Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
+            resultText.text = $"{targetName} Defeated"; // 마물 사망 결과 표시
+        } // 조건문 끝
+    } // 메서드 끝
+    private void AttackPlayer() // 플레이어 직접 공격
+    { // 메서드 시작
+        playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
+        resultText.text = $"Player Takes {heroineAttackDamage} Damage"; // 플레이어 피해 결과 표시
+    } // 메서드 끝
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     { // 코루틴 시작
         yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
 
-        playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
-        UpdateBattleUI(); // 피해 결과 표시
+        ResolveHeroineAttack(); // 히로인 공격 대상 처리
+        UpdateBattleUI(); // 히로인 공격 결과 갱신
 
         if (playerCurrentHp <= 0) // 플레이어 사망 확인
         { // 조건문 시작
