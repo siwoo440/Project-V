@@ -15,4 +15,4 @@ MonoBehaviour:
   cardId: C001
   cardName: Slime Strike
   manaCost: 1
-  damage: 4
+  summonMonster: {fileID: 11400000, guid: 6573435d329bf1045bf430248212723c, type: 2}

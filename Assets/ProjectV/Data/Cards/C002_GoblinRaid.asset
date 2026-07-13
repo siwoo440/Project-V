@@ -15,4 +15,4 @@ MonoBehaviour:
   cardId: C002
   cardName: Goblin Raid
   manaCost: 2
-  damage: 7
+  summonMonster: {fileID: 11400000, guid: eb5f6d17d7e8ffc4fb2a4f1bb7e6e4b0, type: 2}

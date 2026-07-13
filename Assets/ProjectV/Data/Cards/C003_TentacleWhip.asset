@@ -15,4 +15,4 @@ MonoBehaviour:
   cardId: C003
   cardName: Tentacle Whip
   manaCost: 3
-  damage: 10
+  summonMonster: {fileID: 11400000, guid: 0582fa6d199557b4eac0cd937caf454a, type: 2}

@@ -15,4 +15,4 @@ MonoBehaviour:
   cardId: C005
   cardName: Skeleton Slash
   manaCost: 2
-  damage: 6
+  summonMonster: {fileID: 11400000, guid: 56e235bb1120a1f4b900276e9bec3781, type: 2}

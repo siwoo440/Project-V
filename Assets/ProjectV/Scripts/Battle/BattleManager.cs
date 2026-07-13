@@ -20,6 +20,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private Transform handPanel; // 손패 카드 배치 영역
     [SerializeField] private Button cardButtonPrefab; // 카드 버튼 프리팹
 
+    [Header("Monster Field")] // 마물 필드 구분
+    [SerializeField] private Transform monsterFieldContainer; // 마물 배치 영역
+    [SerializeField] private MonsterUnit monsterUnitPrefab; // 마물 UI 프리팹
+    [SerializeField] private int maxFieldMonsterCount = 8; // 최대 필드 마물 수
+
     [Header("Deck Settings")] // 덱 설정 구분
     [SerializeField] private List<CardData> deckCards = new List<CardData>(); // 전투 시작 덱 목록
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
@@ -34,6 +39,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<CardData> drawPile = new List<CardData>(); // 드로우 더미
     private readonly List<CardData> discardPile = new List<CardData>(); // 버린 카드 더미
     private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
+    private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private int playerCurrentHp; // 플레이어 현재 체력
     private int heroineCurrentHp; // 히로인 현재 체력
     private int heroineLust; // 히로인 현재 성욕
@@ -62,6 +68,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
         ClearHand(); // 기존 손패 초기화
+        ClearMonsterField(); // 기존 마물 필드 초기화
         drawPile.AddRange(deckCards); // 덱 카드 드로우 더미 등록
         DrawCards(startingHandCount); // 시작 손패 드로우
         ShowPlayerTurn(); // 플레이어 턴 표시
@@ -78,8 +85,33 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         isPlayerTurn = false; // 플레이어 턴 종료
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
+        ResolveMonsterAttacks(); // 필드 마물 공격 처리
+
+        if (heroineCurrentHp <= 0) // 히로인 사망 확인
+        { // 조건문 시작
+            EndBattle("Victory"); // 승리 처리
+            return; // 히로인 턴 차단
+        } // 조건문 끝
+
         turnText.text = "Heroine Turn"; // 히로인 턴 표시
         StartCoroutine(HeroineTurnRoutine()); // 히로인 행동 시작
+    } // 메서드 끝
+
+    private void ResolveMonsterAttacks() // 필드 마물 공격 처리
+    { // 메서드 시작
+        int totalDamage = 0; // 총 공격력 초기화
+
+        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
+        { // 반복문 시작
+            if (monsterUnit != null) // 마물 존재 확인
+            { // 조건문 시작
+                totalDamage += monsterUnit.Attack; // 마물 공격력 합산
+            } // 조건문 끝
+        } // 반복문 끝
+
+        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - totalDamage); // 히로인 총 피해 적용
+        resultText.text = $"Monster Damage: {totalDamage}"; // 마물 공격 결과 표시
+        UpdateBattleUI(); // 공격 결과 UI 갱신
     } // 메서드 끝
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
@@ -150,8 +182,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     { // 메서드 시작
         Button newCardButton = Instantiate(cardButtonPrefab, handPanel); // 카드 버튼 복제
         TMP_Text cardText = newCardButton.GetComponentInChildren<TMP_Text>(); // 카드 버튼 텍스트 검색
+        string monsterName = cardData.SummonMonster != null ? cardData.SummonMonster.MonsterName : "None"; // 소환 마물 이름 확인
 
-        cardText.text = $"{cardData.CardName}\nCost: {cardData.ManaCost}\nDamage: {cardData.Damage}"; // 카드 정보 표시
+        cardText.text = $"{cardData.CardName}\nCost: {cardData.ManaCost}\nSummon: {monsterName}"; // 카드 정보 표시
         newCardButton.onClick.RemoveAllListeners(); // 기존 버튼 연결 초기화
         newCardButton.onClick.AddListener(() => TryPlayCard(cardData, newCardButton)); // 카드 사용 함수 연결
         handButtons.Add(newCardButton); // 손패 버튼 목록 등록
@@ -164,6 +197,18 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // 중복 사용 차단
         } // 조건문 끝
 
+        if (cardData.SummonMonster == null) // 마물 데이터 누락 확인
+        { // 조건문 시작
+            resultText.text = "Missing Monster Data"; // 데이터 누락 안내
+            return; // 카드 사용 차단
+        } // 조건문 끝
+
+        if (fieldMonsters.Count >= maxFieldMonsterCount) // 필드 최대 수 확인
+        { // 조건문 시작
+            resultText.text = "Field Full"; // 필드 초과 안내
+            return; // 카드 사용 차단
+        } // 조건문 끝
+
         if (currentMana < cardData.ManaCost) // 마나 부족 확인
         { // 조건문 시작
             resultText.text = "Not Enough Mana"; // 마나 부족 안내
@@ -171,17 +216,19 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         } // 조건문 끝
 
         currentMana -= cardData.ManaCost; // 카드 비용 차감
-        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - cardData.Damage); // 히로인 피해 적용
+        SummonMonster(cardData.SummonMonster); // 마물 필드 소환
         discardPile.Add(cardData); // 사용 카드 버린 더미 이동
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         Destroy(cardButton.gameObject); // 카드 버튼 제거
         resultText.text = string.Empty; // 안내 텍스트 초기화
         UpdateBattleUI(); // 카드 사용 결과 표시
+    } // 메서드 끝
 
-        if (heroineCurrentHp <= 0) // 히로인 사망 확인
-        { // 조건문 시작
-            EndBattle("Victory"); // 승리 처리
-        } // 조건문 끝
+    private void SummonMonster(MonsterData monsterData) // 마물 필드 소환
+    { // 메서드 시작
+        MonsterUnit newMonsterUnit = Instantiate(monsterUnitPrefab, monsterFieldContainer); // 마물 UI 복제
+        newMonsterUnit.Initialize(monsterData); // 마물 데이터 초기화
+        fieldMonsters.Add(newMonsterUnit); // 필드 마물 목록 등록
     } // 메서드 끝
 
     private void SetHandInteractable(bool isInteractable) // 손패 버튼 활성 상태 변경
@@ -206,6 +253,19 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         } // 반복문 끝
 
         handButtons.Clear(); // 손패 버튼 목록 초기화
+    } // 메서드 끝
+
+    private void ClearMonsterField() // 마물 필드 전체 제거
+    { // 메서드 시작
+        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
+        { // 반복문 시작
+            if (monsterUnit != null) // 마물 존재 확인
+            { // 조건문 시작
+                Destroy(monsterUnit.gameObject); // 마물 UI 제거
+            } // 조건문 끝
+        } // 반복문 끝
+
+        fieldMonsters.Clear(); // 필드 마물 목록 초기화
     } // 메서드 끝
 
     private void UpdateBattleUI() // 전투 수치 UI 갱신

@@ -15,4 +15,4 @@ MonoBehaviour:
   cardId: C004
   cardName: Imp Bolt
   manaCost: 1
-  damage: 3
+  summonMonster: {fileID: 11400000, guid: 456c1123496133c4fa45c66eee51423e, type: 2}
