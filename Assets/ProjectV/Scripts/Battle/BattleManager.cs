@@ -15,6 +15,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text lustText; // 성욕 게이지 텍스트
     [SerializeField] private TMP_Text resultText; // 전투 결과 텍스트
     [SerializeField] private Button endTurnButton; // 턴 종료 버튼
+    [SerializeField] private Button monsterAttackButton; // 마물 공격 버튼
 
     [Header("Card UI")] // 카드 UI 구분
     [SerializeField] private Transform handPanel; // 손패 카드 배치 영역
@@ -40,6 +41,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<CardData> discardPile = new List<CardData>(); // 버린 카드 더미
     private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
+    private MonsterUnit selectedMonster; // 현재 선택 마물
     private int playerCurrentHp; // 플레이어 현재 체력
     private int heroineCurrentHp; // 히로인 현재 체력
     private int heroineLust; // 히로인 현재 성욕
@@ -64,7 +66,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         currentMana = maximumMana; // 현재 마나 충전
         isPlayerTurn = true; // 플레이어 턴 설정
         isBattleEnded = false; // 전투 진행 상태 설정
+        selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
+        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
         ClearHand(); // 기존 손패 초기화
@@ -83,68 +87,42 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         } // 조건문 끝
 
         isPlayerTurn = false; // 플레이어 턴 종료
+        ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
+        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
-        ResolveMonsterAttacks(); // 필드 마물 공격 처리
-
-        if (heroineCurrentHp <= 0) // 히로인 사망 확인
-        { // 조건문 시작
-            EndBattle("Victory"); // 승리 처리
-            return; // 히로인 턴 차단
-        } // 조건문 끝
-
+        SetMonsterInteractable(false); // 마물 선택 비활성화
         turnText.text = "Heroine Turn"; // 히로인 턴 표시
         StartCoroutine(HeroineTurnRoutine()); // 히로인 행동 시작
     } // 메서드 끝
 
-    private void ResolveMonsterAttacks() // 필드 마물 공격 처리
+    public void AttackWithSelectedMonster() // 선택 마물 공격 처리
     { // 메서드 시작
-        int totalDamage = 0; // 총 공격력 초기화
-
-        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
-        { // 반복문 시작
-            if (monsterUnit != null) // 마물 존재 확인
-            { // 조건문 시작
-                totalDamage += monsterUnit.Attack; // 마물 공격력 합산
-            } // 조건문 끝
-        } // 반복문 끝
-
-        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - totalDamage); // 히로인 총 피해 적용
-        resultText.text = $"Monster Damage: {totalDamage}"; // 마물 공격 결과 표시
-        UpdateBattleUI(); // 공격 결과 UI 갱신
-    } // 메서드 끝
-    private void ResolveHeroineAttack() // 히로인 공격 대상 결정
-    { // 메서드 시작
-        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
-
-        if (fieldMonsters.Count > 0) // 필드 마물 존재 확인
+        if (!isPlayerTurn || isBattleEnded) // 공격 불가 전투 상태
         { // 조건문 시작
-            AttackFirstMonster(); // 가장 먼저 소환된 마물 공격
-            return; // 플레이어 공격 차단
+            return; // 공격 차단
         } // 조건문 끝
 
-        AttackPlayer(); // 플레이어 직접 공격
-    } // 메서드 끝
-
-    private void AttackFirstMonster() // 첫 번째 필드 마물 공격
-    { // 메서드 시작
-        MonsterUnit targetMonster = fieldMonsters[0]; // 가장 먼저 소환된 마물 선택
-        string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
-
-        targetMonster.TakeDamage(heroineAttackDamage); // 마물 피해 적용
-        resultText.text = $"{targetName} Takes {heroineAttackDamage} Damage"; // 마물 피해 결과 표시
-
-        if (targetMonster.IsDead) // 마물 사망 확인
+        if (selectedMonster == null || !selectedMonster.CanAttack) // 선택 마물 상태 확인
         { // 조건문 시작
-            fieldMonsters.RemoveAt(0); // 필드 목록에서 마물 제거
-            Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
-            resultText.text = $"{targetName} Defeated"; // 마물 사망 결과 표시
+            resultText.text = "Select Ready Monster"; // 마물 선택 안내
+            return; // 공격 차단
         } // 조건문 끝
-    } // 메서드 끝
-    private void AttackPlayer() // 플레이어 직접 공격
-    { // 메서드 시작
-        playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
-        resultText.text = $"Player Takes {heroineAttackDamage} Damage"; // 플레이어 피해 결과 표시
+
+        MonsterUnit attackingMonster = selectedMonster; // 공격 마물 저장
+        string attackerName = attackingMonster.MonsterName; // 공격 마물 이름 저장
+        int attackDamage = attackingMonster.Attack; // 공격 피해량 저장
+
+        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - attackDamage); // 히로인 피해 적용
+        attackingMonster.MarkActed(); // 마물 행동 완료 처리
+        ClearMonsterSelection(); // 마물 선택 해제
+        resultText.text = $"{attackerName} Deals {attackDamage} Damage"; // 공격 결과 표시
+        UpdateBattleUI(); // 전투 UI 갱신
+
+        if (heroineCurrentHp <= 0) // 히로인 사망 확인
+        { // 조건문 시작
+            EndBattle("Victory"); // 승리 처리
+        } // 조건문 끝
     } // 메서드 끝
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
@@ -164,6 +142,46 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     } // 코루틴 끝
 
+    private void ResolveHeroineAttack() // 히로인 공격 대상 결정
+    { // 메서드 시작
+        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
+
+        if (fieldMonsters.Count > 0) // 필드 마물 존재 확인
+        { // 조건문 시작
+            AttackFirstMonster(); // 첫 번째 마물 공격
+            return; // 플레이어 공격 차단
+        } // 조건문 끝
+
+        AttackPlayer(); // 플레이어 직접 공격
+    } // 메서드 끝
+
+    private void AttackFirstMonster() // 첫 번째 필드 마물 공격
+    { // 메서드 시작
+        MonsterUnit targetMonster = fieldMonsters[0]; // 가장 먼저 소환된 마물 선택
+        string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
+
+        targetMonster.TakeDamage(heroineAttackDamage); // 마물 피해 적용
+        resultText.text = $"{targetName} Takes {heroineAttackDamage} Damage"; // 피해 결과 표시
+
+        if (targetMonster.IsDead) // 마물 사망 확인
+        { // 조건문 시작
+            if (selectedMonster == targetMonster) // 선택 마물 사망 확인
+            { // 조건문 시작
+                ClearMonsterSelection(); // 선택 상태 해제
+            } // 조건문 끝
+
+            fieldMonsters.RemoveAt(0); // 필드 목록에서 마물 제거
+            Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
+            resultText.text = $"{targetName} Defeated"; // 마물 사망 결과 표시
+        } // 조건문 끝
+    } // 메서드 끝
+
+    private void AttackPlayer() // 플레이어 직접 공격
+    { // 메서드 시작
+        playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
+        resultText.text = $"Player Takes {heroineAttackDamage} Damage"; // 플레이어 피해 결과 표시
+    } // 메서드 끝
+
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     { // 메서드 시작
         turnNumber += 1; // 턴 번호 증가
@@ -172,15 +190,64 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         resultText.text = string.Empty; // 안내 텍스트 초기화
         DrawCards(turnDrawCount); // 턴 시작 카드 드로우
         isPlayerTurn = true; // 플레이어 턴 설정
+        PrepareMonstersForNewTurn(); // 마물 공격 상태 준비
         ShowPlayerTurn(); // 플레이어 턴 표시
         UpdateBattleUI(); // 전체 UI 갱신
+    } // 메서드 끝
+
+    private void PrepareMonstersForNewTurn() // 필드 마물 새 턴 준비
+    { // 메서드 시작
+        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
+        { // 반복문 시작
+            if (monsterUnit != null) // 마물 존재 확인
+            { // 조건문 시작
+                monsterUnit.PrepareForNewTurn(); // 공격 가능 상태 적용
+            } // 조건문 끝
+        } // 반복문 끝
     } // 메서드 끝
 
     private void ShowPlayerTurn() // 플레이어 턴 UI 표시
     { // 메서드 시작
         turnText.text = "Player Turn"; // 플레이어 턴 문구 설정
         endTurnButton.interactable = true; // 턴 종료 버튼 활성화
+        monsterAttackButton.interactable = false; // 공격 버튼 초기 비활성화
         SetHandInteractable(true); // 손패 버튼 활성화
+        SetMonsterInteractable(true); // 공격 가능 마물 선택 활성화
+    } // 메서드 끝
+
+    private void SelectMonster(MonsterUnit monsterUnit) // 공격 마물 선택
+    { // 메서드 시작
+        if (!isPlayerTurn || isBattleEnded || monsterUnit == null) // 선택 불가 상태
+        { // 조건문 시작
+            return; // 선택 차단
+        } // 조건문 끝
+
+        if (!monsterUnit.CanAttack) // 마물 공격 가능 여부 확인
+        { // 조건문 시작
+            resultText.text = "Monster Cannot Attack"; // 공격 불가 안내
+            return; // 선택 차단
+        } // 조건문 끝
+
+        if (selectedMonster != null) // 기존 선택 마물 확인
+        { // 조건문 시작
+            selectedMonster.SetSelected(false); // 기존 선택 표시 해제
+        } // 조건문 끝
+
+        selectedMonster = monsterUnit; // 새로운 마물 선택
+        selectedMonster.SetSelected(true); // 선택 색상 표시
+        monsterAttackButton.interactable = true; // 공격 버튼 활성화
+        resultText.text = $"{selectedMonster.MonsterName} Selected"; // 선택 결과 표시
+    } // 메서드 끝
+
+    private void ClearMonsterSelection() // 선택 마물 초기화
+    { // 메서드 시작
+        if (selectedMonster != null) // 선택 마물 존재 확인
+        { // 조건문 시작
+            selectedMonster.SetSelected(false); // 선택 색상 해제
+        } // 조건문 끝
+
+        selectedMonster = null; // 선택 참조 초기화
+        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
     } // 메서드 끝
 
     private void DrawCards(int drawCount) // 카드 드로우 처리
@@ -227,7 +294,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     { // 메서드 시작
         if (!isPlayerTurn || isBattleEnded) // 카드 사용 불가 상태
         { // 조건문 시작
-            return; // 중복 사용 차단
+            return; // 카드 사용 차단
         } // 조건문 끝
 
         if (cardData.SummonMonster == null) // 마물 데이터 누락 확인
@@ -260,8 +327,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private void SummonMonster(MonsterData monsterData) // 마물 필드 소환
     { // 메서드 시작
         MonsterUnit newMonsterUnit = Instantiate(monsterUnitPrefab, monsterFieldContainer); // 마물 UI 복제
-        newMonsterUnit.Initialize(monsterData); // 마물 데이터 초기화
+        newMonsterUnit.Initialize(monsterData, SelectMonster); // 마물 데이터와 선택 콜백 초기화
         fieldMonsters.Add(newMonsterUnit); // 필드 마물 목록 등록
+        newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn); // 소환 대기 선택 상태 적용
     } // 메서드 끝
 
     private void SetHandInteractable(bool isInteractable) // 손패 버튼 활성 상태 변경
@@ -271,6 +339,17 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             if (handButton != null) // 버튼 존재 확인
             { // 조건문 시작
                 handButton.interactable = isInteractable; // 버튼 활성 상태 적용
+            } // 조건문 끝
+        } // 반복문 끝
+    } // 메서드 끝
+
+    private void SetMonsterInteractable(bool isInteractable) // 마물 선택 활성 상태 변경
+    { // 메서드 시작
+        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
+        { // 반복문 시작
+            if (monsterUnit != null) // 마물 존재 확인
+            { // 조건문 시작
+                monsterUnit.SetPlayerTurnInteraction(isInteractable); // 마물 선택 상태 적용
             } // 조건문 끝
         } // 반복문 끝
     } // 메서드 끝
@@ -299,6 +378,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         } // 반복문 끝
 
         fieldMonsters.Clear(); // 필드 마물 목록 초기화
+        ClearMonsterSelection(); // 마물 선택 상태 초기화
     } // 메서드 끝
 
     private void UpdateBattleUI() // 전투 수치 UI 갱신
@@ -314,9 +394,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     { // 메서드 시작
         isBattleEnded = true; // 전투 종료 상태 설정
         isPlayerTurn = false; // 플레이어 턴 해제
+        ClearMonsterSelection(); // 마물 선택 상태 해제
         turnText.text = "Battle End"; // 전투 종료 문구 설정
         resultText.text = resultMessage; // 전투 결과 표시
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
+        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
+        SetMonsterInteractable(false); // 마물 선택 비활성화
     } // 메서드 끝
 } // 클래스 끝
