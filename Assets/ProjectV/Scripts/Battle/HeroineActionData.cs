@@ -10,6 +10,12 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private int damage = 1; // 행동 피해량
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
+    [Header("AI Restrictions")] // AI 제약 조건 구분
+    [Min(0)] // 쿨타임 최소값 제한
+    [SerializeField] private int cooldownTurns = 0; // 행동 사용 후 쿨타임
+    [Min(1)] // 연속 사용 최소값 제한
+    [SerializeField] private int maxConsecutiveUses = 1; // 최대 연속 사용 횟수
+
     [Header("HP Condition")] // HP 조건 구분
     [Range(0f, 1f)] // 최소 HP 비율 범위
     [SerializeField] private float minimumHpRatio = 0f; // 최소 HP 비율
@@ -21,7 +27,8 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public HeroineActionType ActionType => actionType; // 행동 종류 반환
     public int Damage => damage; // 행동 피해량 반환
     public int Weight => weight; // 행동 가중치 반환
-
+    public int CooldownTurns => cooldownTurns; // 행동 쿨타임 반환
+    public int MaxConsecutiveUses => maxConsecutiveUses; // 최대 연속 사용 횟수 반환
     public bool IsAvailable(float currentHpRatio) // 현재 HP 조건 확인
     { // 메서드 시작
         return currentHpRatio > minimumHpRatio && currentHpRatio <= maximumHpRatio; // 행동 사용 가능 여부 반환

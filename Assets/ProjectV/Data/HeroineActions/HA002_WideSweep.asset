@@ -17,5 +17,7 @@ MonoBehaviour:
   actionType: 1
   damage: 2
   weight: 40
+  cooldownTurns: 1
+  maxConsecutiveUses: 1
   minimumHpRatio: 0.5
   maximumHpRatio: 1

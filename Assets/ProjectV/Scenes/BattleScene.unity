@@ -2127,6 +2127,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a16f070012fa76a40b44ef1a2cc3ce76, type: 2}
   - {fileID: 11400000, guid: 7996041645ae46549a5e517b39a32ed5, type: 2}
   - {fileID: 11400000, guid: 8fa222cd8a9fe2d48a105f53f02129ad, type: 2}
+  - {fileID: 11400000, guid: da45ce0d31e44d04faad5b7796a12422, type: 2}
   playerMaxHp: 30
   heroineMaxHp: 30
   heroineActionDelay: 0.8

@@ -44,8 +44,14 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<CardData> discardPile = new List<CardData>(); // 버린 카드 더미
     private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
+    private readonly Dictionary<HeroineActionData, int> heroineActionCooldowns  = new Dictionary<HeroineActionData, int>(); // 행동별 남은 쿨타임
+
     private MonsterUnit selectedMonster; // 현재 선택 마물
+
     private HeroineActionData nextHeroineAction; // 다음 히로인 행동 데이터
+    private HeroineActionData lastHeroineAction; // 마지막으로 실행한 히로인 행동
+
+    private int consecutiveHeroineActionUses; // 같은 행동 연속 사용 횟수
     private int playerCurrentHp; // 플레이어 현재 체력
     private int heroineCurrentHp; // 히로인 현재 체력
     private int heroineLust; // 히로인 현재 성욕
@@ -70,6 +76,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         currentMana = maximumMana; // 현재 마나 충전
         isPlayerTurn = true; // 플레이어 턴 설정
         isBattleEnded = false; // 전투 진행 상태 설정
+        heroineActionCooldowns.Clear(); // 행동 쿨타임 초기화
+        lastHeroineAction = null; // 마지막 행동 초기화
+        consecutiveHeroineActionUses = 0; // 연속 사용 횟수 초기화
         SelectNextHeroineAction(); // 첫 번째 히로인 행동 선택
         selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
@@ -134,7 +143,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     { // 코루틴 시작
         yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
 
-        ResolveHeroineAttack(); // 히로인 공격 대상 처리
+        HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
+        ResolveHeroineAttack(); // 히로인 공격 실행
+        RegisterHeroineActionUse(executedAction); // 실행 행동과 쿨타임 기록
         UpdateBattleUI(); // 히로인 공격 결과 갱신
 
         if (playerCurrentHp <= 0) // 플레이어 사망 확인
@@ -256,7 +267,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     } // 메서드 끝
 
 
-    private void SelectNextHeroineAction() // HP 조건과 가중치 기반 행동 선택
+    private void SelectNextHeroineAction() // AI 제약 조건 기반 행동 선택
     { // 메서드 시작
         float currentHpRatio = heroineMaxHp > 0 ? (float)heroineCurrentHp / heroineMaxHp : 0f; // 현재 히로인 HP 비율 계산
         List<HeroineActionData> availableActions = new List<HeroineActionData>(); // 사용 가능한 행동 목록 생성
@@ -271,12 +282,22 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
             if (!actionData.IsAvailable(currentHpRatio)) // HP 조건 확인
             { // 조건문 시작
-                continue; // 조건 불충족 행동 건너뛰기
+                continue; // HP 조건 불충족 행동 제외
             } // 조건문 끝
 
             if (actionData.Weight <= 0) // 가중치 유효성 확인
             { // 조건문 시작
-                continue; // 잘못된 가중치 건너뛰기
+                continue; // 잘못된 가중치 행동 제외
+            } // 조건문 끝
+
+            if (IsHeroineActionOnCooldown(actionData)) // 행동 쿨타임 확인
+            { // 조건문 시작
+                continue; // 쿨타임 행동 제외
+            } // 조건문 끝
+
+            if (IsConsecutiveUseLimitReached(actionData)) // 연속 사용 제한 확인
+            { // 조건문 시작
+                continue; // 연속 사용 제한 행동 제외
             } // 조건문 끝
 
             availableActions.Add(actionData); // 사용 가능 행동 등록
@@ -295,7 +316,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         { // 반복문 시작
             if (randomWeight < actionData.Weight) // 현재 행동 선택 범위 확인
             { // 조건문 시작
-                nextHeroineAction = actionData; // 다음 행동 데이터 설정
+                nextHeroineAction = actionData; // 다음 행동 설정
                 return; // 행동 선택 종료
             } // 조건문 끝
 
@@ -304,6 +325,60 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         nextHeroineAction = availableActions[availableActions.Count - 1]; // 마지막 행동 안전 설정
     } // 메서드 끝
+
+
+    private bool IsHeroineActionOnCooldown(HeroineActionData actionData) // 행동 쿨타임 확인
+    { // 메서드 시작
+        if (!heroineActionCooldowns.TryGetValue(actionData, out int remainingCooldown)) // 쿨타임 데이터 확인
+        { // 조건문 시작
+            return false; // 쿨타임 없음 반환
+        } // 조건문 끝
+
+        return remainingCooldown > 0; // 남은 쿨타임 여부 반환
+    } // 메서드 끝
+    private bool IsConsecutiveUseLimitReached(HeroineActionData actionData) // 연속 사용 제한 확인
+    { // 메서드 시작
+        if (lastHeroineAction != actionData) // 마지막 행동과 다른지 확인
+        { // 조건문 시작
+            return false; // 연속 사용 아님 반환
+        } // 조건문 끝
+
+        return consecutiveHeroineActionUses >= actionData.MaxConsecutiveUses; // 최대 연속 사용 도달 여부 반환
+    } // 메서드 끝
+
+    private void RegisterHeroineActionUse(HeroineActionData actionData) // 실행 행동 기록
+    { // 메서드 시작
+        if (actionData == null) // 행동 데이터 누락 확인
+        { // 조건문 시작
+            return; // 기록 차단
+        } // 조건문 끝
+
+        if (lastHeroineAction == actionData) // 이전 행동과 동일한지 확인
+        { // 조건문 시작
+            consecutiveHeroineActionUses += 1; // 연속 사용 횟수 증가
+        } // 조건문 끝
+        else // 다른 행동 실행 상태
+        { // 조건문 시작
+            lastHeroineAction = actionData; // 마지막 행동 변경
+            consecutiveHeroineActionUses = 1; // 연속 사용 횟수 초기화
+        } // 조건문 끝
+
+        heroineActionCooldowns[actionData] = actionData.CooldownTurns; // 행동 쿨타임 적용
+    } // 메서드 끝
+
+    private void ReduceHeroineActionCooldowns() // 모든 행동 쿨타임 감소
+    { // 메서드 시작
+        List<HeroineActionData> cooldownActions = new List<HeroineActionData>(heroineActionCooldowns.Keys); // 쿨타임 행동 목록 복사
+
+        foreach (HeroineActionData actionData in cooldownActions) // 모든 쿨타임 행동 반복
+        { // 반복문 시작
+            int remainingCooldown = heroineActionCooldowns[actionData]; // 현재 남은 쿨타임 확인
+            heroineActionCooldowns[actionData] = Mathf.Max(0, remainingCooldown - 1); // 쿨타임 1 감소
+        } // 반복문 끝
+    } // 메서드 끝
+
+
+
 
     private void UpdateHeroineIntentUI() // 히로인 행동 예고 UI 갱신
     { // 메서드 시작
@@ -325,7 +400,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     { // 메서드 시작
         turnNumber += 1; // 턴 번호 증가
-        SelectNextHeroineAction(); // 다음 히로인 행동 선택
+        SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
+        ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
         maximumMana = Mathf.Min(10, maximumMana + 1); // 최대 마나 증가
         currentMana = maximumMana; // 마나 전체 회복
         resultText.text = string.Empty; // 안내 텍스트 초기화
