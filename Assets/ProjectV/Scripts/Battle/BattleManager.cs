@@ -13,6 +13,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text manaText; // 마나 텍스트
     [SerializeField] private TMP_Text heroineHpText; // 히로인 체력 텍스트
     [SerializeField] private TMP_Text lustText; // 성욕 게이지 텍스트
+    [SerializeField] private TMP_Text heroineIntentText; // 히로인 행동 예고 텍스트
     [SerializeField] private TMP_Text resultText; // 전투 결과 텍스트
     [SerializeField] private Button endTurnButton; // 턴 종료 버튼
     [SerializeField] private Button monsterAttackButton; // 마물 공격 버튼
@@ -34,7 +35,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [Header("Battle Settings")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30; // 플레이어 최대 체력
     [SerializeField] private int heroineMaxHp = 30; // 히로인 최대 체력
-    [SerializeField] private int heroineAttackDamage = 3; // 히로인 임시 공격력
+    [SerializeField] private int heroineAttackDamage = 3; // 히로인 단일 공격력
+    [SerializeField] private int heroineAreaAttackDamage = 2; // 히로인 광역 공격력
     [SerializeField] private float heroineActionDelay = 0.8f; // 히로인 행동 대기 시간
 
     private readonly List<CardData> drawPile = new List<CardData>(); // 드로우 더미
@@ -42,6 +44,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private MonsterUnit selectedMonster; // 현재 선택 마물
+    private HeroineActionType nextHeroineAction; // 다음 히로인 행동
     private int playerCurrentHp; // 플레이어 현재 체력
     private int heroineCurrentHp; // 히로인 현재 체력
     private int heroineLust; // 히로인 현재 성욕
@@ -66,6 +69,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         currentMana = maximumMana; // 현재 마나 충전
         isPlayerTurn = true; // 플레이어 턴 설정
         isBattleEnded = false; // 전투 진행 상태 설정
+        SelectNextHeroineAction(); // 첫 번째 히로인 행동 선택
         selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
         monsterAttackButton.interactable = false; // 공격 버튼 비활성화
@@ -142,7 +146,23 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     } // 코루틴 끝
 
-    private void ResolveHeroineAttack() // 히로인 공격 대상 결정
+    private void ResolveHeroineAttack() // 예고된 히로인 행동 실행
+    { // 메서드 시작
+        switch (nextHeroineAction) // 다음 행동 종류 확인
+        { // 분기문 시작
+            case HeroineActionType.SingleAttack: // 단일 공격 행동
+                ExecuteSingleAttack(); // 단일 공격 실행
+                break; // 분기 종료
+            case HeroineActionType.AreaAttack: // 광역 공격 행동
+                ExecuteAreaAttack(); // 광역 공격 실행
+                break; // 분기 종료
+            default: // 정의되지 않은 행동
+                ExecuteSingleAttack(); // 기본 단일 공격 실행
+                break; // 분기 종료
+        } // 분기문 끝
+    } // 메서드 끝
+
+    private void ExecuteSingleAttack() // 히로인 단일 공격 실행
     { // 메서드 시작
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
 
@@ -154,6 +174,49 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         AttackPlayer(); // 플레이어 직접 공격
     } // 메서드 끝
+
+    private void ExecuteAreaAttack() // 히로인 광역 공격 실행
+    { // 메서드 시작
+        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
+
+        if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
+        { // 조건문 시작
+            playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAreaAttackDamage); // 플레이어 광역 피해 적용
+            resultText.text = $"Player Takes {heroineAreaAttackDamage} Area Damage"; // 플레이어 피해 표시
+            return; // 광역 공격 종료
+        } // 조건문 끝
+
+        int defeatedMonsterCount = 0; // 사망 마물 수 초기화
+
+        for (int i = fieldMonsters.Count - 1; i >= 0; i--) // 필드 마물 역순 반복
+        { // 반복문 시작
+            MonsterUnit targetMonster = fieldMonsters[i]; // 현재 공격 대상 저장
+            targetMonster.TakeDamage(heroineAreaAttackDamage); // 광역 피해 적용
+
+            if (targetMonster.IsDead) // 마물 사망 확인
+            { // 조건문 시작
+                if (selectedMonster == targetMonster) // 선택 마물 사망 확인
+                { // 조건문 시작
+                    ClearMonsterSelection(); // 선택 상태 해제
+                } // 조건문 끝
+
+                fieldMonsters.RemoveAt(i); // 필드 목록에서 마물 제거
+                Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
+                defeatedMonsterCount += 1; // 사망 마물 수 증가
+            } // 조건문 끝
+        } // 반복문 끝
+
+        if (defeatedMonsterCount > 0) // 사망 마물 존재 확인
+        { // 조건문 시작
+            resultText.text = $"Area Attack: {defeatedMonsterCount} Defeated"; // 광역 사망 결과 표시
+            return; // 결과 표시 종료
+        } // 조건문 끝
+
+        resultText.text = $"All Monsters Take {heroineAreaAttackDamage} Damage"; // 전체 마물 피해 표시
+    } // 메서드 끝
+
+
+
 
     private void AttackFirstMonster() // 첫 번째 필드 마물 공격
     { // 메서드 시작
@@ -181,10 +244,43 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
         resultText.text = $"Player Takes {heroineAttackDamage} Damage"; // 플레이어 피해 결과 표시
     } // 메서드 끝
+    private void SelectNextHeroineAction() // 다음 히로인 행동 선택
+    { // 메서드 시작
+        if (turnNumber % 2 == 0) // 짝수 턴 확인
+        { // 조건문 시작
+            nextHeroineAction = HeroineActionType.AreaAttack; // 광역 공격 설정
+            return; // 행동 선택 종료
+        } // 조건문 끝
+
+        nextHeroineAction = HeroineActionType.SingleAttack; // 단일 공격 설정
+    } // 메서드 끝
+
+    private void UpdateHeroineIntentUI() // 히로인 행동 예고 UI 갱신
+    { // 메서드 시작
+        if (heroineIntentText == null) // 행동 예고 텍스트 연결 확인
+        { // 조건문 시작
+            return; // 누락 참조 예외 방지
+        } // 조건문 끝
+
+        switch (nextHeroineAction) // 다음 행동 종류 확인
+        { // 분기문 시작
+            case HeroineActionType.SingleAttack: // 단일 공격 행동
+                heroineIntentText.text = $"Next Action: Single Attack ({heroineAttackDamage})"; // 단일 공격 예고 표시
+                break; // 분기 종료
+            case HeroineActionType.AreaAttack: // 광역 공격 행동
+                heroineIntentText.text = $"Next Action: Area Attack ({heroineAreaAttackDamage})"; // 광역 공격 예고 표시
+                break; // 분기 종료
+            default: // 정의되지 않은 행동
+                heroineIntentText.text = "Next Action: Unknown"; // 알 수 없는 행동 표시
+                break; // 분기 종료
+        } // 분기문 끝
+    } // 메서드 끝
+
 
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     { // 메서드 시작
         turnNumber += 1; // 턴 번호 증가
+        SelectNextHeroineAction(); // 다음 히로인 행동 선택
         maximumMana = Mathf.Min(10, maximumMana + 1); // 최대 마나 증가
         currentMana = maximumMana; // 마나 전체 회복
         resultText.text = string.Empty; // 안내 텍스트 초기화
@@ -388,6 +484,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         manaText.text = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
         heroineHpText.text = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
         lustText.text = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
+        UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     } // 메서드 끝
 
     private void EndBattle(string resultMessage) // 전투 종료 처리
@@ -397,6 +494,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         ClearMonsterSelection(); // 마물 선택 상태 해제
         turnText.text = "Battle End"; // 전투 종료 문구 설정
         resultText.text = resultMessage; // 전투 결과 표시
+        heroineIntentText.text = "Next Action: None"; // 행동 예고 종료 표시
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
         monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
