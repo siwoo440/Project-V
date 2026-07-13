@@ -2123,10 +2123,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b30ed08bc595a1c42ba2940f40889885, type: 2}
   startingHandCount: 3
   turnDrawCount: 1
+  heroineActions:
+  - {fileID: 11400000, guid: a16f070012fa76a40b44ef1a2cc3ce76, type: 2}
+  - {fileID: 11400000, guid: 7996041645ae46549a5e517b39a32ed5, type: 2}
+  - {fileID: 11400000, guid: 8fa222cd8a9fe2d48a105f53f02129ad, type: 2}
   playerMaxHp: 30
   heroineMaxHp: 30
-  heroineAttackDamage: 3
-  heroineAreaAttackDamage: 2
   heroineActionDelay: 0.8
 --- !u!4 &1247476052
 Transform:

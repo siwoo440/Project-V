@@ -31,12 +31,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private List<CardData> deckCards = new List<CardData>(); // 전투 시작 덱 목록
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
     [SerializeField] private int turnDrawCount = 1; // 턴 시작 드로우 수
+   
+    [Header("Heroine AI")] // 히로인 AI 구분
+    [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
 
     [Header("Battle Settings")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30; // 플레이어 최대 체력
     [SerializeField] private int heroineMaxHp = 30; // 히로인 최대 체력
-    [SerializeField] private int heroineAttackDamage = 3; // 히로인 단일 공격력
-    [SerializeField] private int heroineAreaAttackDamage = 2; // 히로인 광역 공격력
     [SerializeField] private float heroineActionDelay = 0.8f; // 히로인 행동 대기 시간
 
     private readonly List<CardData> drawPile = new List<CardData>(); // 드로우 더미
@@ -44,7 +45,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private MonsterUnit selectedMonster; // 현재 선택 마물
-    private HeroineActionType nextHeroineAction; // 다음 히로인 행동
+    private HeroineActionData nextHeroineAction; // 다음 히로인 행동 데이터
     private int playerCurrentHp; // 플레이어 현재 체력
     private int heroineCurrentHp; // 히로인 현재 체력
     private int heroineLust; // 히로인 현재 성욕
@@ -146,9 +147,15 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     } // 코루틴 끝
 
-    private void ResolveHeroineAttack() // 예고된 히로인 행동 실행
+    private void ResolveHeroineAttack() // 선택된 히로인 행동 실행
     { // 메서드 시작
-        switch (nextHeroineAction) // 다음 행동 종류 확인
+        if (nextHeroineAction == null) // 행동 데이터 누락 확인
+        { // 조건문 시작
+            resultText.text = "No Available Heroine Action"; // 행동 누락 안내
+            return; // 행동 실행 차단
+        } // 조건문 끝
+
+        switch (nextHeroineAction.ActionType) // 행동 종류 확인
         { // 분기문 시작
             case HeroineActionType.SingleAttack: // 단일 공격 행동
                 ExecuteSingleAttack(); // 단일 공격 실행
@@ -157,7 +164,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
                 ExecuteAreaAttack(); // 광역 공격 실행
                 break; // 분기 종료
             default: // 정의되지 않은 행동
-                ExecuteSingleAttack(); // 기본 단일 공격 실행
+                resultText.text = "Unknown Heroine Action"; // 알 수 없는 행동 안내
                 break; // 분기 종료
         } // 분기문 끝
     } // 메서드 끝
@@ -178,11 +185,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private void ExecuteAreaAttack() // 히로인 광역 공격 실행
     { // 메서드 시작
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
+        int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
 
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         { // 조건문 시작
-            playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAreaAttackDamage); // 플레이어 광역 피해 적용
-            resultText.text = $"Player Takes {heroineAreaAttackDamage} Area Damage"; // 플레이어 피해 표시
+            playerCurrentHp = Mathf.Max(0, playerCurrentHp - actionDamage); // 플레이어 광역 피해 적용
+            resultText.text = $"Player Takes {actionDamage} Area Damage"; // 플레이어 피해 표시
             return; // 광역 공격 종료
         } // 조건문 끝
 
@@ -191,7 +199,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         for (int i = fieldMonsters.Count - 1; i >= 0; i--) // 필드 마물 역순 반복
         { // 반복문 시작
             MonsterUnit targetMonster = fieldMonsters[i]; // 현재 공격 대상 저장
-            targetMonster.TakeDamage(heroineAreaAttackDamage); // 광역 피해 적용
+            targetMonster.TakeDamage(actionDamage); // 광역 피해 적용
 
             if (targetMonster.IsDead) // 마물 사망 확인
             { // 조건문 시작
@@ -208,11 +216,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         if (defeatedMonsterCount > 0) // 사망 마물 존재 확인
         { // 조건문 시작
-            resultText.text = $"Area Attack: {defeatedMonsterCount} Defeated"; // 광역 사망 결과 표시
+            resultText.text = $"{nextHeroineAction.DisplayName}: {defeatedMonsterCount} Defeated"; // 광역 사망 결과 표시
             return; // 결과 표시 종료
         } // 조건문 끝
 
-        resultText.text = $"All Monsters Take {heroineAreaAttackDamage} Damage"; // 전체 마물 피해 표시
+        resultText.text = $"All Monsters Take {actionDamage} Damage"; // 전체 마물 피해 표시
     } // 메서드 끝
 
 
@@ -222,9 +230,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     { // 메서드 시작
         MonsterUnit targetMonster = fieldMonsters[0]; // 가장 먼저 소환된 마물 선택
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
+        int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
 
-        targetMonster.TakeDamage(heroineAttackDamage); // 마물 피해 적용
-        resultText.text = $"{targetName} Takes {heroineAttackDamage} Damage"; // 피해 결과 표시
+        targetMonster.TakeDamage(actionDamage); // 마물 피해 적용
+        resultText.text = $"{targetName} Takes {actionDamage} Damage"; // 피해 결과 표시
 
         if (targetMonster.IsDead) // 마물 사망 확인
         { // 조건문 시작
@@ -241,18 +250,59 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     private void AttackPlayer() // 플레이어 직접 공격
     { // 메서드 시작
-        playerCurrentHp = Mathf.Max(0, playerCurrentHp - heroineAttackDamage); // 플레이어 피해 적용
-        resultText.text = $"Player Takes {heroineAttackDamage} Damage"; // 플레이어 피해 결과 표시
+        int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
+        playerCurrentHp = Mathf.Max(0, playerCurrentHp - actionDamage); // 플레이어 피해 적용
+        resultText.text = $"Player Takes {actionDamage} Damage"; // 플레이어 피해 결과 표시
     } // 메서드 끝
-    private void SelectNextHeroineAction() // 다음 히로인 행동 선택
+
+
+    private void SelectNextHeroineAction() // HP 조건과 가중치 기반 행동 선택
     { // 메서드 시작
-        if (turnNumber % 2 == 0) // 짝수 턴 확인
+        float currentHpRatio = heroineMaxHp > 0 ? (float)heroineCurrentHp / heroineMaxHp : 0f; // 현재 히로인 HP 비율 계산
+        List<HeroineActionData> availableActions = new List<HeroineActionData>(); // 사용 가능한 행동 목록 생성
+        int totalWeight = 0; // 전체 가중치 초기화
+
+        foreach (HeroineActionData actionData in heroineActions) // 모든 행동 데이터 반복
+        { // 반복문 시작
+            if (actionData == null) // 행동 데이터 누락 확인
+            { // 조건문 시작
+                continue; // 누락 데이터 건너뛰기
+            } // 조건문 끝
+
+            if (!actionData.IsAvailable(currentHpRatio)) // HP 조건 확인
+            { // 조건문 시작
+                continue; // 조건 불충족 행동 건너뛰기
+            } // 조건문 끝
+
+            if (actionData.Weight <= 0) // 가중치 유효성 확인
+            { // 조건문 시작
+                continue; // 잘못된 가중치 건너뛰기
+            } // 조건문 끝
+
+            availableActions.Add(actionData); // 사용 가능 행동 등록
+            totalWeight += actionData.Weight; // 전체 가중치 합산
+        } // 반복문 끝
+
+        if (availableActions.Count == 0 || totalWeight <= 0) // 선택 가능 행동 확인
         { // 조건문 시작
-            nextHeroineAction = HeroineActionType.AreaAttack; // 광역 공격 설정
+            nextHeroineAction = null; // 다음 행동 초기화
             return; // 행동 선택 종료
         } // 조건문 끝
 
-        nextHeroineAction = HeroineActionType.SingleAttack; // 단일 공격 설정
+        int randomWeight = Random.Range(0, totalWeight); // 가중치 범위 난수 생성
+
+        foreach (HeroineActionData actionData in availableActions) // 사용 가능 행동 반복
+        { // 반복문 시작
+            if (randomWeight < actionData.Weight) // 현재 행동 선택 범위 확인
+            { // 조건문 시작
+                nextHeroineAction = actionData; // 다음 행동 데이터 설정
+                return; // 행동 선택 종료
+            } // 조건문 끝
+
+            randomWeight -= actionData.Weight; // 다음 행동 범위 이동
+        } // 반복문 끝
+
+        nextHeroineAction = availableActions[availableActions.Count - 1]; // 마지막 행동 안전 설정
     } // 메서드 끝
 
     private void UpdateHeroineIntentUI() // 히로인 행동 예고 UI 갱신
@@ -262,18 +312,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // 누락 참조 예외 방지
         } // 조건문 끝
 
-        switch (nextHeroineAction) // 다음 행동 종류 확인
-        { // 분기문 시작
-            case HeroineActionType.SingleAttack: // 단일 공격 행동
-                heroineIntentText.text = $"Next Action: Single Attack ({heroineAttackDamage})"; // 단일 공격 예고 표시
-                break; // 분기 종료
-            case HeroineActionType.AreaAttack: // 광역 공격 행동
-                heroineIntentText.text = $"Next Action: Area Attack ({heroineAreaAttackDamage})"; // 광역 공격 예고 표시
-                break; // 분기 종료
-            default: // 정의되지 않은 행동
-                heroineIntentText.text = "Next Action: Unknown"; // 알 수 없는 행동 표시
-                break; // 분기 종료
-        } // 분기문 끝
+        if (nextHeroineAction == null) // 다음 행동 데이터 확인
+        { // 조건문 시작
+            heroineIntentText.text = "Next Action: None"; // 행동 없음 표시
+            return; // UI 갱신 종료
+        } // 조건문 끝
+
+        heroineIntentText.text = $"Next Action: {nextHeroineAction.DisplayName} ({nextHeroineAction.Damage})"; // 행동 이름과 피해량 표시
     } // 메서드 끝
 
 
