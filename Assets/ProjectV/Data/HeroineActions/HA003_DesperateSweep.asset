@@ -18,7 +18,8 @@ MonoBehaviour:
   targetType: 3
   damage: 4
   shieldAmount: 0
-  weight: 40
+  healAmount: 0
+  weight: 30
   cooldownTurns: 1
   maxConsecutiveUses: 1
   minimumHpRatio: 0

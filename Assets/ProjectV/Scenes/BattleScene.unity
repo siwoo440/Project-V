@@ -2410,6 +2410,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7ae9959420bbadb479deb708e2dca9a0, type: 2}
   - {fileID: 11400000, guid: d512adba39e177943be93330a3284d85, type: 2}
   - {fileID: 11400000, guid: 2e80b14916cb8d44a9ae7e8fe81de2b4, type: 2}
+  - {fileID: 11400000, guid: 10b04351606f2ea42847f3fe8633f9b1, type: 2}
   playerMaxHp: 30
   playerDefense: 0
   playerStartingShield: 2

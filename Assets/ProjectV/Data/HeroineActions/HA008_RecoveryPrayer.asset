@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b950246c527870844aa7a931a3e36bb7, type: 3}
-  m_Name: HA007_MagicBarrier
+  m_Name: HA008_RecoveryPrayer
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
-  actionId: HA007
-  displayName: Magic Barrier
-  actionType: 2
+  actionId: HA008
+  displayName: RecoveryPrayer
+  actionType: 3
   targetType: 5
   damage: 0
-  shieldAmount: 5
-  healAmount: 0
-  weight: 25
-  cooldownTurns: 2
+  shieldAmount: 0
+  healAmount: 5
+  weight: 20
+  cooldownTurns: 3
   maxConsecutiveUses: 1
   minimumHpRatio: 0
   maximumHpRatio: 0.5
