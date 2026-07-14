@@ -1,0 +1,4 @@
+public enum StatusEffectType // 상태 효과 종류
+{
+    DefenseUp // 방어력 증가
+}

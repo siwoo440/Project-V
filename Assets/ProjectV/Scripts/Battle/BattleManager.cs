@@ -16,6 +16,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text heroineHpText;        // 히로인 체력 텍스트
     [SerializeField] private TMP_Text heroineDefenseText;   // 히로인 방어력 텍스트
     [SerializeField] private TMP_Text heroineShieldText;    // 히로인 보호막 텍스트
+    [SerializeField] private TMP_Text heroineStatusText; // 히로인 상태 효과 텍스트
     [SerializeField] private TMP_Text lustText;             // 성욕 게이지 텍스트
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
@@ -55,6 +56,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<CardData> discardPile = new List<CardData>();         // 버린 카드 더미
     private readonly List<Button> handButtons = new List<Button>();             // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
+    private readonly List<ActiveStatusEffect> activeHeroineStatusEffects = new List<ActiveStatusEffect>(); // 히로인 활성 상태 효과 목록
     private readonly Dictionary<HeroineActionData, int> heroineActionCooldowns = new Dictionary<HeroineActionData, int>(); // 행동별 남은 쿨타임
 
     private MonsterUnit selectedMonster; // 현재 선택 마물
@@ -90,9 +92,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         turnNumber = 1; // 첫 번째 턴 설정
         maximumMana = 1; // 첫 턴 최대 마나 설정
         currentMana = maximumMana; // 현재 마나 충전
+
         isPlayerTurn = true; // 플레이어 턴 설정
         isBattleEnded = false; // 전투 진행 상태 설정
+        activeHeroineStatusEffects.Clear(); // 히로인 상태 효과 초기화
         heroineActionCooldowns.Clear(); // 행동 쿨타임 초기화
+
         lastHeroineAction = null; // 마지막 행동 초기화
         consecutiveHeroineActionUses = 0; // 연속 사용 횟수 초기화
         SelectNextHeroineAction(); // 첫 번째 히로인 행동 선택
@@ -136,7 +141,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         MonsterUnit attackingMonster = selectedMonster; // 공격 마물 저장
         string attackerName = attackingMonster.MonsterName; // 공격 마물 이름 저장
         int attackPower = attackingMonster.Attack; // 마물 공격력 저장
-        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(attackPower, heroineDefense, heroineCurrentShield); // 히로인 보호막 포함 피해 계산
+        int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 방어력 계산
+        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(attackPower, currentHeroineDefense, heroineCurrentShield); // 현재 방어력 기반 피해 계산
+
 
         heroineCurrentShield = damageResult.RemainingShield; // 히로인 남은 보호막 적용
         heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage); // 히로인 실제 HP 피해 적용
@@ -153,6 +160,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
+        ReduceHeroineStatusDurations(); // 완료된 플레이어 턴 기준 상태 지속시간 감소
         yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
 
         HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
@@ -174,15 +182,21 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     {
         if (nextHeroineAction == null) { resultText.text = "No Available Heroine Action"; return; } // 행동 누락 차단
 
-        if (nextHeroineAction.ActionType == HeroineActionType.GainShield)
+        if (nextHeroineAction.ActionType == HeroineActionType.GainShield) // 보호막 행동 확인
         {
-            ExecuteGainShieldAction(); // 보호막 획득 행동 실행
+            ExecuteGainShieldAction(); // 보호막 행동 실행
             return; // 공격 처리 종료
         }
 
-        if (nextHeroineAction.ActionType == HeroineActionType.Heal)
+        if (nextHeroineAction.ActionType == HeroineActionType.Heal) // 회복 행동 확인
         {
-            ExecuteHealAction(); // 체력 회복 행동 실행
+            ExecuteHealAction(); // 회복 행동 실행
+            return; // 공격 처리 종료
+        }
+
+        if (nextHeroineAction.ActionType == HeroineActionType.ApplyStatus) // 상태 효과 행동 확인
+        {
+            ExecuteApplyStatusAction(); // 상태 효과 행동 실행
             return; // 공격 처리 종료
         }
 
@@ -238,6 +252,64 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         resultText.text = $"{nextHeroineAction.DisplayName}: HP +{recoveredHp}"; // 회복 행동 결과 표시
     }
+    private void ExecuteApplyStatusAction() // 히로인 상태 효과 행동 실행
+    {
+        StatusEffectData statusData = nextHeroineAction.AppliedStatusEffect; // 적용 상태 효과 확인
+
+        if (statusData == null) { resultText.text = "Missing Status Effect Data"; return; } // 상태 데이터 누락 차단
+
+        ActiveStatusEffect activeStatus = new ActiveStatusEffect(statusData); // 활성 상태 효과 생성
+        activeHeroineStatusEffects.Add(activeStatus); // 히로인 상태 효과 등록
+
+        resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
+    }
+    private void ReduceHeroineStatusDurations() // 히로인 상태 효과 지속시간 감소
+    {
+        for (int i = activeHeroineStatusEffects.Count - 1; i >= 0; i--) // 상태 효과 역순 반복
+        {
+            ActiveStatusEffect activeStatus = activeHeroineStatusEffects[i]; // 현재 상태 효과 확인
+
+            if (activeStatus == null) // 비어 있는 상태 효과 확인
+            {
+                activeHeroineStatusEffects.RemoveAt(i); // 비어 있는 상태 효과 제거
+                continue; // 다음 상태 효과 처리
+            }
+
+            activeStatus.ReduceDuration(); // 남은 지속시간 감소
+
+            if (activeStatus.IsExpired) { activeHeroineStatusEffects.RemoveAt(i); } // 만료 상태 효과 제거
+        }
+    }
+
+
+    private int GetHeroineCurrentDefense() // 상태 효과 포함 히로인 방어력 계산
+    {
+        int currentDefense = heroineDefense; // 기본 방어력 저장
+
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data.StatusType != StatusEffectType.DefenseUp) { continue; } // 방어력 효과 외 제외
+
+            currentDefense += activeStatus.Data.Amount; // 방어력 증가량 적용
+        }
+
+        return Mathf.Max(0, currentDefense); // 음수 방어력 차단
+    }
+
+    private bool HasHeroineStatusEffect(StatusEffectData statusData) // 히로인 상태 효과 보유 여부 확인
+    {
+        if (statusData == null) { return false; } // 비어 있는 상태 데이터 차단
+
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data == statusData) { return true; } // 동일 상태 효과 확인
+        }
+
+        return false; // 동일 상태 효과 없음
+    }
+
 
     private MonsterUnit GetFirstMonster() // 첫 번째 마물 반환
     {
@@ -417,12 +489,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         nextHeroineAction = availableActions[availableActions.Count - 1]; // 마지막 행동 안전 설정
     }
 
-    private bool CanUseHeroineAction(HeroineActionData actionData) // 현재 전투 상태의 행동 사용 가능 여부 확인
+    private bool CanUseHeroineAction(HeroineActionData actionData) // 행동 사용 가능 여부 확인
     {
         if (actionData == null) { return false; } // 행동 데이터 누락 차단
-
         if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield) { return false; } // 최대 보호막 행동 차단
         if (actionData.ActionType == HeroineActionType.Heal && heroineCurrentHp >= heroineMaxHp) { return false; } // 최대 체력 회복 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null) { return false; } // 상태 데이터 누락 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && HasHeroineStatusEffect(actionData.AppliedStatusEffect)) { return false; } // 중복 상태 행동 차단
 
         return true; // 행동 사용 허용
     }
@@ -480,15 +553,42 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         string effectName = GetHeroineActionEffectDisplay(nextHeroineAction); // 행동 효과 문구 확인
         heroineIntentText.text = $"Next: {nextHeroineAction.DisplayName}\n{effectName} / Target: {targetName}"; // 행동 효과와 대상 표시
     }
+
+
     private string GetHeroineActionEffectDisplay(HeroineActionData actionData) // 행동 효과 표시 문구 반환
     {
         if (actionData == null) { return "Effect: None"; } // 행동 데이터 누락 표시
-
         if (actionData.ActionType == HeroineActionType.GainShield) { return $"Shield +{actionData.ShieldAmount}"; } // 보호막 효과 표시
-
         if (actionData.ActionType == HeroineActionType.Heal) { return $"HP +{actionData.HealAmount}"; } // 체력 회복 효과 표시
 
+        if (actionData.ActionType == HeroineActionType.ApplyStatus) // 상태 효과 행동 확인
+        {
+            StatusEffectData statusData = actionData.AppliedStatusEffect; // 적용 상태 효과 확인
+            if (statusData == null) { return "Status: None"; } // 상태 효과 누락 표시
+
+            return $"{statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 문구 반환
+        }
+
         return $"Damage {actionData.Damage}"; // 공격 피해 효과 표시
+    }
+
+    private string GetHeroineStatusDisplay() // 히로인 상태 효과 UI 문구 생성
+    {
+        if (activeHeroineStatusEffects.Count == 0) { return "Status: None"; } // 활성 상태 효과 없음 표시
+
+        List<string> statusNames = new List<string>(); // 상태 효과 문구 목록 생성
+
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+
+            string statusName = $"{activeStatus.Data.DisplayName} +{activeStatus.Data.Amount} ({activeStatus.RemainingTurns})"; // 개별 상태 효과 문구 생성
+            statusNames.Add(statusName); // 상태 효과 문구 등록
+        }
+
+        if (statusNames.Count == 0) { return "Status: None"; } // 표시 가능한 상태 없음 처리
+
+        return $"Status: {string.Join(", ", statusNames)}"; // 전체 상태 효과 문구 반환
     }
 
     private string GetHeroineTargetDisplayName(HeroineTargetType targetType) // 대상 규칙 표시 이름 반환
@@ -700,13 +800,15 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     private void UpdateBattleUI() // 전투 수치 UI 갱신
     {
+        int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 히로인 방어력 계산
         turnNumberText.text = $"Turn {turnNumber}"; // 턴 번호 표시
         playerHpText.text = $"Player HP: {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
         playerShieldText.text = $"Shield: {playerCurrentShield}"; // 플레이어 보호막 표시
         manaText.text = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
         heroineHpText.text = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
-        heroineDefenseText.text = $"DEF: {heroineDefense}"; // 히로인 방어력 표시
+        heroineDefenseText.text = $"DEF: {currentHeroineDefense}"; // 현재 히로인 방어력 표시
         heroineShieldText.text = $"Shield: {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
+        if (heroineStatusText != null) { heroineStatusText.text = GetHeroineStatusDisplay(); } // 히로인 상태 효과 표시
         lustText.text = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     }
