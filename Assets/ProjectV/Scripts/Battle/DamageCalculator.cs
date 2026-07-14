@@ -17,4 +17,19 @@ public static class DamageCalculator // 공통 피해 계산 관리
         int calculatedDamage = safeAttackPower - safeDefense; // 공격력과 방어력 차이 계산
         return Mathf.Max(MinimumDamage, calculatedDamage); // 최소 피해 적용
     } // 메서드 끝
+
+    public static DamageResult CalculateDamageWithShield(int attackPower, int defense, int currentShield) // 보호막 포함 피해 계산
+    { // 메서드 시작
+        int safeAttackPower = Mathf.Max(0, attackPower); // 음수 공격력 차단
+        int safeDefense = Mathf.Max(0, defense); // 음수 방어력 차단
+        int safeShield = Mathf.Max(0, currentShield); // 음수 보호막 차단
+        int shieldAbsorbed = Mathf.Min(safeAttackPower, safeShield); // 보호막 흡수량 계산
+        int remainingAttackPower = safeAttackPower - shieldAbsorbed; // 보호막 통과 공격력 계산
+        int remainingShield = safeShield - shieldAbsorbed; // 남은 보호막 계산
+        int hpDamage = CalculateDamage(remainingAttackPower, safeDefense); // 방어력 적용 HP 피해 계산
+
+        return new DamageResult(safeAttackPower, shieldAbsorbed, hpDamage, remainingShield); // 피해 계산 결과 반환
+    } // 메서드 끝
+
+
 } // 클래스 끝

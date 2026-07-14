@@ -17,3 +17,4 @@ MonoBehaviour:
   maxHp: 9
   attack: 3
   defense: 2
+  startingShield: 4
