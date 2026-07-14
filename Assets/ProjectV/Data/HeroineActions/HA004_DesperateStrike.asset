@@ -15,6 +15,7 @@ MonoBehaviour:
   actionId: HA004
   displayName: Desperate Strike
   actionType: 0
+  targetType: 2
   damage: 5
   weight: 40
   cooldownTurns: 1

@@ -23,6 +23,8 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     private int currentHp; // 현재 마물 체력
 
     public int Attack => monsterData != null ? monsterData.Attack : 0; // 현재 마물 공격력 반환
+    public int CurrentHp => currentHp; // 현재 마물 체력 반환
+    public int MaxHp => monsterData != null ? monsterData.MaxHp : 0; // 마물 최대 체력 반환
     public string MonsterName => monsterData != null ? monsterData.MonsterName : "Unknown"; // 현재 마물 이름 반환
     public bool IsDead => currentHp <= 0; // 마물 사망 여부 반환
     public bool CanAttack => actionState == MonsterActionState.Ready && !IsDead; // 현재 공격 가능 여부 반환

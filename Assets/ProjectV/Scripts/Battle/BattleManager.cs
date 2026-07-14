@@ -158,7 +158,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     } // 코루틴 끝
 
-    private void ResolveHeroineAttack() // 선택된 히로인 행동 실행
+    private void ResolveHeroineAttack() // 행동 대상 규칙에 따른 공격 실행
     { // 메서드 시작
         if (nextHeroineAction == null) // 행동 데이터 누락 확인
         { // 조건문 시작
@@ -166,32 +166,84 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // 행동 실행 차단
         } // 조건문 끝
 
-        switch (nextHeroineAction.ActionType) // 행동 종류 확인
+        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
+
+        switch (nextHeroineAction.TargetType) // 행동 대상 규칙 확인
         { // 분기문 시작
-            case HeroineActionType.SingleAttack: // 단일 공격 행동
-                ExecuteSingleAttack(); // 단일 공격 실행
+            case HeroineTargetType.FirstMonster: // 첫 번째 마물 대상
+                AttackTargetMonster(GetFirstMonster()); // 첫 번째 마물 공격
                 break; // 분기 종료
-            case HeroineActionType.AreaAttack: // 광역 공격 행동
-                ExecuteAreaAttack(); // 광역 공격 실행
+            case HeroineTargetType.RandomMonster: // 무작위 마물 대상
+                AttackTargetMonster(GetRandomMonster()); // 무작위 마물 공격
                 break; // 분기 종료
-            default: // 정의되지 않은 행동
-                resultText.text = "Unknown Heroine Action"; // 알 수 없는 행동 안내
+            case HeroineTargetType.LowestHpMonster: // 최저 HP 마물 대상
+                AttackTargetMonster(GetLowestHpMonster()); // 최저 HP 마물 공격
+                break; // 분기 종료
+            case HeroineTargetType.AllMonsters: // 전체 마물 대상
+                ExecuteAreaAttack(); // 전체 마물 공격
+                break; // 분기 종료
+            case HeroineTargetType.Player: // 플레이어 직접 대상
+                AttackPlayer(); // 플레이어 직접 공격
+                break; // 분기 종료
+            default: // 정의되지 않은 대상
+                resultText.text = "Unknown Target Type"; // 대상 오류 안내
                 break; // 분기 종료
         } // 분기문 끝
     } // 메서드 끝
 
-    private void ExecuteSingleAttack() // 히로인 단일 공격 실행
+    private MonsterUnit GetFirstMonster() // 첫 번째 마물 반환
     { // 메서드 시작
-        fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
-
-        if (fieldMonsters.Count > 0) // 필드 마물 존재 확인
+        if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         { // 조건문 시작
-            AttackFirstMonster(); // 첫 번째 마물 공격
-            return; // 플레이어 공격 차단
+            return null; // 대상 없음 반환
         } // 조건문 끝
 
-        AttackPlayer(); // 플레이어 직접 공격
+        return fieldMonsters[0]; // 첫 번째 마물 반환
     } // 메서드 끝
+
+    private MonsterUnit GetRandomMonster() // 무작위 마물 반환
+    { // 메서드 시작
+        if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
+        { // 조건문 시작
+            return null; // 대상 없음 반환
+        } // 조건문 끝
+
+        int randomIndex = Random.Range(0, fieldMonsters.Count); // 무작위 필드 인덱스 생성
+        return fieldMonsters[randomIndex]; // 무작위 마물 반환
+    } // 메서드 끝
+
+    private MonsterUnit GetLowestHpMonster() // 현재 HP가 가장 낮은 마물 반환
+    { // 메서드 시작
+        if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
+        { // 조건문 시작
+            return null; // 대상 없음 반환
+        } // 조건문 끝
+
+        MonsterUnit lowestHpMonster = fieldMonsters[0]; // 첫 번째 마물을 초기 대상으로 설정
+
+        for (int i = 1; i < fieldMonsters.Count; i++) // 두 번째 마물부터 반복
+        { // 반복문 시작
+            MonsterUnit currentMonster = fieldMonsters[i]; // 현재 비교 마물 저장
+
+            if (currentMonster.CurrentHp < lowestHpMonster.CurrentHp) // 더 낮은 HP 확인
+            { // 조건문 시작
+                lowestHpMonster = currentMonster; // 최저 HP 마물 교체
+            } // 조건문 끝
+        } // 반복문 끝
+
+        return lowestHpMonster; // 최저 HP 마물 반환
+    } // 메서드 끝
+
+
+
+
+
+
+
+
+
+
+
 
     private void ExecuteAreaAttack() // 히로인 광역 공격 실행
     { // 메서드 시작
@@ -237,33 +289,41 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
 
 
-    private void AttackFirstMonster() // 첫 번째 필드 마물 공격
+    private void AttackTargetMonster(MonsterUnit targetMonster) // 선택된 마물 공격
     { // 메서드 시작
-        MonsterUnit targetMonster = fieldMonsters[0]; // 가장 먼저 소환된 마물 선택
+        if (targetMonster == null) // 공격 대상 마물 확인
+        { // 조건문 시작
+            AttackPlayer(); // 마물 부재 시 플레이어 공격
+            return; // 마물 공격 종료
+        } // 조건문 끝
+
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
-        int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
+        int actionDamage = nextHeroineAction.Damage; // 행동 피해량 저장
 
-        targetMonster.TakeDamage(actionDamage); // 마물 피해 적용
-        resultText.text = $"{targetName} Takes {actionDamage} Damage"; // 피해 결과 표시
+        targetMonster.TakeDamage(actionDamage); // 대상 마물 피해 적용
+        resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Takes {actionDamage} Damage"; // 공격 결과 표시
 
-        if (targetMonster.IsDead) // 마물 사망 확인
+        if (targetMonster.IsDead) // 대상 마물 사망 확인
         { // 조건문 시작
             if (selectedMonster == targetMonster) // 선택 마물 사망 확인
             { // 조건문 시작
                 ClearMonsterSelection(); // 선택 상태 해제
             } // 조건문 끝
 
-            fieldMonsters.RemoveAt(0); // 필드 목록에서 마물 제거
-            Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
-            resultText.text = $"{targetName} Defeated"; // 마물 사망 결과 표시
+            fieldMonsters.Remove(targetMonster); // 필드 목록에서 대상 마물 제거
+            Destroy(targetMonster.gameObject); // 대상 마물 오브젝트 제거
+            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Defeated"; // 마물 사망 결과 표시
         } // 조건문 끝
     } // 메서드 끝
+
+
+
 
     private void AttackPlayer() // 플레이어 직접 공격
     { // 메서드 시작
         int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - actionDamage); // 플레이어 피해 적용
-        resultText.text = $"Player Takes {actionDamage} Damage"; // 플레이어 피해 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: Player Takes {actionDamage} Damage"; // 플레이어 피해 결과 표시
     } // 메서드 끝
 
 
@@ -393,8 +453,29 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // UI 갱신 종료
         } // 조건문 끝
 
-        heroineIntentText.text = $"Next Action: {nextHeroineAction.DisplayName} ({nextHeroineAction.Damage})"; // 행동 이름과 피해량 표시
+        string targetName = GetHeroineTargetDisplayName(nextHeroineAction.TargetType); // 대상 규칙 표시 이름 확인
+        heroineIntentText.text = $"Next: {nextHeroineAction.DisplayName} ({nextHeroineAction.Damage})\nTarget: {targetName}"; // 행동 이름과 대상 표시
     } // 메서드 끝
+
+    private string GetHeroineTargetDisplayName(HeroineTargetType targetType) // 대상 규칙 표시 이름 반환
+    { // 메서드 시작
+        switch (targetType) // 대상 규칙 확인
+        { // 분기문 시작
+            case HeroineTargetType.FirstMonster: // 첫 번째 마물 대상
+                return "First Monster"; // 첫 번째 마물 문구 반환
+            case HeroineTargetType.RandomMonster: // 무작위 마물 대상
+                return "Random Monster"; // 무작위 마물 문구 반환
+            case HeroineTargetType.LowestHpMonster: // 최저 HP 마물 대상
+                return "Lowest HP Monster"; // 최저 HP 마물 문구 반환
+            case HeroineTargetType.AllMonsters: // 전체 마물 대상
+                return "All Monsters"; // 전체 마물 문구 반환
+            case HeroineTargetType.Player: // 플레이어 직접 대상
+                return "Player"; // 플레이어 문구 반환
+            default: // 정의되지 않은 대상
+                return "Unknown"; // 알 수 없는 대상 반환
+        } // 분기문 끝
+    } // 메서드 끝
+
 
 
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비

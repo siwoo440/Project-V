@@ -7,6 +7,7 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private string actionId = "HA000"; // 행동 고유 ID
     [SerializeField] private string displayName = "New Action"; // 행동 표시 이름
     [SerializeField] private HeroineActionType actionType = HeroineActionType.SingleAttack; // 행동 종류
+    [SerializeField] private HeroineTargetType targetType = HeroineTargetType.FirstMonster; // 행동 대상 규칙
     [SerializeField] private int damage = 1; // 행동 피해량
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
@@ -25,6 +26,7 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public string ActionId => actionId; // 행동 ID 반환
     public string DisplayName => displayName; // 행동 이름 반환
     public HeroineActionType ActionType => actionType; // 행동 종류 반환
+    public HeroineTargetType TargetType => targetType; // 행동 대상 규칙 반환
     public int Damage => damage; // 행동 피해량 반환
     public int Weight => weight; // 행동 가중치 반환
     public int CooldownTurns => cooldownTurns; // 행동 쿨타임 반환
