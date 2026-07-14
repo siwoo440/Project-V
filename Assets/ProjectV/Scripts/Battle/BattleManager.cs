@@ -7,52 +7,53 @@ using UnityEngine.UI; // Unity UI 기능
 public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 { // 클래스 시작
     [Header("Battle UI")] // 전투 UI 구분
-    [SerializeField] private TMP_Text turnText; // 턴 상태 텍스트
-    [SerializeField] private TMP_Text turnNumberText; // 턴 번호 텍스트
-    [SerializeField] private TMP_Text playerHpText; // 플레이어 체력 텍스트
-    [SerializeField] private TMP_Text playerShieldText; // 플레이어 보호막 텍스트
-    [SerializeField] private TMP_Text manaText; // 마나 텍스트
+    [SerializeField] private TMP_Text turnText;             // 턴 상태 텍스트
+    [SerializeField] private TMP_Text turnNumberText;       // 턴 번호 텍스트
+    [SerializeField] private TMP_Text playerHpText;         // 플레이어 체력 텍스트
+    [SerializeField] private TMP_Text playerShieldText;     // 플레이어 보호막 텍스트
+    [SerializeField] private TMP_Text manaText;             // 마나 텍스트
 
-    [SerializeField] private TMP_Text heroineHpText; // 히로인 체력 텍스트
-    [SerializeField] private TMP_Text heroineDefenseText; // 히로인 방어력 텍스트
-    [SerializeField] private TMP_Text heroineShieldText; // 히로인 보호막 텍스트
-    [SerializeField] private TMP_Text lustText; // 성욕 게이지 텍스트
+    [SerializeField] private TMP_Text heroineHpText;        // 히로인 체력 텍스트
+    [SerializeField] private TMP_Text heroineDefenseText;   // 히로인 방어력 텍스트
+    [SerializeField] private TMP_Text heroineShieldText;    // 히로인 보호막 텍스트
+    [SerializeField] private TMP_Text lustText;             // 성욕 게이지 텍스트
 
-    [SerializeField] private TMP_Text heroineIntentText; // 히로인 행동 예고 텍스트
-    [SerializeField] private TMP_Text resultText; // 전투 결과 텍스트
-    [SerializeField] private Button endTurnButton; // 턴 종료 버튼
-    [SerializeField] private Button monsterAttackButton; // 마물 공격 버튼
+    [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
+    [SerializeField] private TMP_Text resultText;           // 전투 결과 텍스트
+    [SerializeField] private Button endTurnButton;          // 턴 종료 버튼
+    [SerializeField] private Button monsterAttackButton;    // 마물 공격 버튼
 
     [Header("Card UI")] // 카드 UI 구분
-    [SerializeField] private Transform handPanel; // 손패 카드 배치 영역
-    [SerializeField] private Button cardButtonPrefab; // 카드 버튼 프리팹
+    [SerializeField] private Transform handPanel;       // 손패 카드 배치 영역
+    [SerializeField] private Button cardButtonPrefab;   // 카드 버튼 프리팹
 
     [Header("Monster Field")] // 마물 필드 구분
-    [SerializeField] private Transform monsterFieldContainer; // 마물 배치 영역
-    [SerializeField] private MonsterUnit monsterUnitPrefab; // 마물 UI 프리팹
-    [SerializeField] private int maxFieldMonsterCount = 8; // 최대 필드 마물 수
+    [SerializeField] private Transform monsterFieldContainer;// 마물 배치 영역
+    [SerializeField] private MonsterUnit monsterUnitPrefab;  // 마물 UI 프리팹
+    [SerializeField] private int maxFieldMonsterCount = 8;   // 최대 필드 마물 수
 
     [Header("Deck Settings")] // 덱 설정 구분
     [SerializeField] private List<CardData> deckCards = new List<CardData>(); // 전투 시작 덱 목록
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
-    [SerializeField] private int turnDrawCount = 1; // 턴 시작 드로우 수
+    [SerializeField] private int turnDrawCount = 1;     // 턴 시작 드로우 수
    
     [Header("Heroine AI")] // 히로인 AI 구분
     [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
 
     [Header("Battle Settings")] // 전투 설정 구분
-    [SerializeField] private int playerMaxHp = 30; // 플레이어 최대 체력
-    [SerializeField] private int playerDefense = 0; // 플레이어 방어력
-    [SerializeField] private int playerStartingShield = 2; // 플레이어 시작 보호막
-    [SerializeField] private int heroineMaxHp = 30; // 히로인 최대 체력
-    [SerializeField] private int heroineDefense = 1; // 히로인 방어력
-    [SerializeField] private int heroineStartingShield = 3; // 히로인 시작 보호막
-    [SerializeField] private float heroineActionDelay = 0.8f; // 히로인 행동 대기 시간
+    [SerializeField] private int playerMaxHp = 30;              // 플레이어 최대 체력
+    [SerializeField] private int playerDefense = 0;             // 플레이어 방어력
+    [SerializeField] private int playerStartingShield = 2;      // 플레이어 시작 보호막
+    [SerializeField] private int heroineMaxHp = 30;             // 히로인 최대 체력
+    [SerializeField] private int heroineDefense = 1;            // 히로인 방어력
+    [SerializeField] private int heroineStartingShield = 3;     // 히로인 시작 보호막
+    [SerializeField] private int heroineMaxShield = 10;         // 히로인 최대 보호막
+    [SerializeField] private float heroineActionDelay = 0.8f;   // 히로인 행동 대기 시간
 
 
-    private readonly List<CardData> drawPile = new List<CardData>(); // 드로우 더미
-    private readonly List<CardData> discardPile = new List<CardData>(); // 버린 카드 더미
-    private readonly List<Button> handButtons = new List<Button>(); // 현재 손패 버튼 목록
+    private readonly List<CardData> drawPile = new List<CardData>();            // 드로우 더미
+    private readonly List<CardData> discardPile = new List<CardData>();         // 버린 카드 더미
+    private readonly List<Button> handButtons = new List<Button>();             // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private readonly Dictionary<HeroineActionData, int> heroineActionCooldowns  = new Dictionary<HeroineActionData, int>(); // 행동별 남은 쿨타임
 
@@ -61,17 +62,17 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private HeroineActionData nextHeroineAction; // 다음 히로인 행동 데이터
     private HeroineActionData lastHeroineAction; // 마지막으로 실행한 히로인 행동
 
-    private int consecutiveHeroineActionUses; // 같은 행동 연속 사용 횟수
-    private int playerCurrentHp; // 플레이어 현재 체력
-    private int playerCurrentShield; // 플레이어 현재 보호막
-    private int heroineCurrentShield; // 히로인 현재 보호막
-    private int heroineCurrentHp; // 히로인 현재 체력
-    private int heroineLust; // 히로인 현재 성욕
-    private int turnNumber; // 현재 턴 번호
-    private int maximumMana; // 현재 최대 마나
-    private int currentMana; // 현재 사용 가능 마나
-    private bool isPlayerTurn; // 플레이어 턴 여부
-    private bool isBattleEnded; // 전투 종료 여부
+    private int consecutiveHeroineActionUses;   // 같은 행동 연속 사용 횟수
+    private int playerCurrentHp;                // 플레이어 현재 체력
+    private int playerCurrentShield;            // 플레이어 현재 보호막
+    private int heroineCurrentShield;           // 히로인 현재 보호막
+    private int heroineCurrentHp;               // 히로인 현재 체력
+    private int heroineLust;                    // 히로인 현재 성욕
+    private int turnNumber;                     // 현재 턴 번호
+    private int maximumMana;                    // 현재 최대 마나
+    private int currentMana;                    // 현재 사용 가능 마나
+    private bool isPlayerTurn;                  // 플레이어 턴 여부
+    private bool isBattleEnded;                 // 전투 종료 여부
 
     private void Start() // 전투 초기화 진입
     { // 메서드 시작
@@ -83,7 +84,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         playerCurrentHp = playerMaxHp; // 플레이어 체력 초기화
         playerCurrentShield = Mathf.Max(0, playerStartingShield); // 플레이어 보호막 초기화
         heroineCurrentHp = heroineMaxHp; // 히로인 체력 초기화
-        heroineCurrentShield = Mathf.Max(0, heroineStartingShield); // 히로인 보호막 초기화
+        heroineCurrentShield = Mathf.Clamp(heroineStartingShield, 0, heroineMaxShield); // 최대치 범위 내 보호막 초기화
 
         heroineLust = 0; // 성욕 게이지 초기화
         turnNumber = 1; // 첫 번째 턴 설정
@@ -175,39 +176,62 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     } // 코루틴 끝
 
-    private void ResolveHeroineAttack() // 행동 대상 규칙에 따른 공격 실행
-    { // 메서드 시작
-        if (nextHeroineAction == null) // 행동 데이터 누락 확인
-        { // 조건문 시작
+    private void ResolveHeroineAttack() // 선택된 히로인 행동 실행
+    {
+        if (nextHeroineAction == null)
+        {
             resultText.text = "No Available Heroine Action"; // 행동 누락 안내
-            return; // 행동 실행 차단
-        } // 조건문 끝
+            return;
+        }
+
+        if (nextHeroineAction.ActionType == HeroineActionType.GainShield)
+        {
+            ExecuteGainShieldAction(); // 보호막 획득 행동 실행
+            return;
+        }
 
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
 
         switch (nextHeroineAction.TargetType) // 행동 대상 규칙 확인
-        { // 분기문 시작
+        {
             case HeroineTargetType.FirstMonster: // 첫 번째 마물 대상
                 AttackTargetMonster(GetFirstMonster()); // 첫 번째 마물 공격
-                break; // 분기 종료
+                break;
+
             case HeroineTargetType.RandomMonster: // 무작위 마물 대상
                 AttackTargetMonster(GetRandomMonster()); // 무작위 마물 공격
-                break; // 분기 종료
+                break;
+
             case HeroineTargetType.LowestHpMonster: // 최저 HP 마물 대상
                 AttackTargetMonster(GetLowestHpMonster()); // 최저 HP 마물 공격
-                break; // 분기 종료
-            case HeroineTargetType.AllMonsters: // 전체 마물 대상
+                break;
+
+            case HeroineTargetType.AllMonsters: // 모든 마물 대상
                 ExecuteAreaAttack(); // 전체 마물 공격
-                break; // 분기 종료
+                break;
+
             case HeroineTargetType.Player: // 플레이어 직접 대상
                 AttackPlayer(); // 플레이어 직접 공격
-                break; // 분기 종료
-            default: // 정의되지 않은 대상
-                resultText.text = "Unknown Target Type"; // 대상 오류 안내
-                break; // 분기 종료
-        } // 분기문 끝
-    } // 메서드 끝
+                break;
 
+            case HeroineTargetType.Self: // 히로인 자신 대상
+                resultText.text = "Invalid Self Target Action"; // 잘못된 자기 대상 안내
+                break;
+
+            default: // 정의되지 않은 대상
+                resultText.text = "Unknown Target Type"; // 대상 규칙 오류 안내
+                break;
+        }
+    }
+    private void ExecuteGainShieldAction() // 히로인 보호막 획득 행동 실행
+    {
+        int safeShieldAmount = Mathf.Max(0, nextHeroineAction.ShieldAmount); // 음수 보호막 획득 차단
+        int previousShield = heroineCurrentShield; // 행동 전 보호막 저장
+        heroineCurrentShield = Mathf.Min(heroineMaxShield, heroineCurrentShield + safeShieldAmount); // 최대치 범위 내 보호막 증가
+        int gainedShield = heroineCurrentShield - previousShield; // 실제 보호막 획득량 계산
+
+        resultText.text = $"{nextHeroineAction.DisplayName}: Shield +{gainedShield}"; // 보호막 행동 결과 표시
+    }
     private MonsterUnit GetFirstMonster() // 첫 번째 마물 반환
     { // 메서드 시작
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
@@ -366,6 +390,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             { // 조건문 시작
                 continue; // HP 조건 불충족 행동 제외
             } // 조건문 끝
+            
+            if (!CanUseHeroineAction(actionData)) { continue; } // 현재 전투 상태상 사용할 수 없는 행동 제외
 
             if (actionData.Weight <= 0) // 가중치 유효성 확인
             { // 조건문 시작
@@ -408,7 +434,17 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         nextHeroineAction = availableActions[availableActions.Count - 1]; // 마지막 행동 안전 설정
     } // 메서드 끝
 
+    private bool CanUseHeroineAction(HeroineActionData actionData) // 현재 전투 상태의 행동 사용 가능 여부 확인
+    {
+        if (actionData == null) { return false; } // 행동 데이터 누락 차단
 
+        if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield)
+        {
+            return false; // 최대 보호막 상태의 보호막 행동 차단
+        }
+
+        return true; // 행동 사용 허용
+    }
     private bool IsHeroineActionOnCooldown(HeroineActionData actionData) // 행동 쿨타임 확인
     { // 메서드 시작
         if (!heroineActionCooldowns.TryGetValue(actionData, out int remainingCooldown)) // 쿨타임 데이터 확인
@@ -463,41 +499,44 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
 
     private void UpdateHeroineIntentUI() // 히로인 행동 예고 UI 갱신
-    { // 메서드 시작
-        if (heroineIntentText == null) // 행동 예고 텍스트 연결 확인
-        { // 조건문 시작
-            return; // 누락 참조 예외 방지
-        } // 조건문 끝
+    {
+        if (heroineIntentText == null) { return; } // 행동 예고 텍스트 누락 차단
 
-        if (nextHeroineAction == null) // 다음 행동 데이터 확인
-        { // 조건문 시작
-            heroineIntentText.text = "Next Action: None"; // 행동 없음 표시
-            return; // UI 갱신 종료
-        } // 조건문 끝
+        if (nextHeroineAction == null)
+        {
+            heroineIntentText.text = "Next Action: None"; // 다음 행동 없음 표시
+            return;
+        }
 
-        string targetName = GetHeroineTargetDisplayName(nextHeroineAction.TargetType); // 대상 규칙 표시 이름 확인
-        heroineIntentText.text = $"Next: {nextHeroineAction.DisplayName} ({nextHeroineAction.Damage})\nTarget: {targetName}"; // 행동 이름과 대상 표시
-    } // 메서드 끝
+        string targetName = GetHeroineTargetDisplayName(nextHeroineAction.TargetType); // 대상 표시 이름 확인
+        string effectName = GetHeroineActionEffectDisplay(nextHeroineAction); // 행동 효과 문구 확인
+        heroineIntentText.text = $"Next: {nextHeroineAction.DisplayName}\n{effectName} / Target: {targetName}"; // 행동 효과와 대상 표시
+    }
+    private string GetHeroineActionEffectDisplay(HeroineActionData actionData) // 행동 효과 표시 문구 반환
+    {
+        if (actionData == null) { return "Effect: None"; } // 행동 데이터 누락 표시
+
+        if (actionData.ActionType == HeroineActionType.GainShield)
+        {
+            return $"Shield +{actionData.ShieldAmount}"; // 보호막 효과 표시
+        }
+
+        return $"Damage {actionData.Damage}"; // 공격 피해 효과 표시
+    }
 
     private string GetHeroineTargetDisplayName(HeroineTargetType targetType) // 대상 규칙 표시 이름 반환
-    { // 메서드 시작
+    {
         switch (targetType) // 대상 규칙 확인
-        { // 분기문 시작
-            case HeroineTargetType.FirstMonster: // 첫 번째 마물 대상
-                return "First Monster"; // 첫 번째 마물 문구 반환
-            case HeroineTargetType.RandomMonster: // 무작위 마물 대상
-                return "Random Monster"; // 무작위 마물 문구 반환
-            case HeroineTargetType.LowestHpMonster: // 최저 HP 마물 대상
-                return "Lowest HP Monster"; // 최저 HP 마물 문구 반환
-            case HeroineTargetType.AllMonsters: // 전체 마물 대상
-                return "All Monsters"; // 전체 마물 문구 반환
-            case HeroineTargetType.Player: // 플레이어 직접 대상
-                return "Player"; // 플레이어 문구 반환
-            default: // 정의되지 않은 대상
-                return "Unknown"; // 알 수 없는 대상 반환
-        } // 분기문 끝
-    } // 메서드 끝
-
+        { 
+            case HeroineTargetType.FirstMonster    : return "First Monster";    // 첫 번째 마물 대상 -> 첫 번째 마물 문구 반환
+            case HeroineTargetType.RandomMonster   : return "Random Monster";   // 무작위 마물 대상 -> 무작위 마물 문구 반환
+            case HeroineTargetType.LowestHpMonster : return "Lowest HP Monster";// 최저 HP 마물 대상 -> 최저 HP 마물 문구 반환
+            case HeroineTargetType.AllMonsters     : return "All Monsters";     // 전체 마물 대상 p -> 전체 마물 문구 반환
+            case HeroineTargetType.Player          : return "Player";           // 플레이어 직접 대상 -> 플레이어 문구 반환
+            case HeroineTargetType.Self            : return "Self";             // 히로인 자신 대상 -> 자기 자신 문구 반환
+            default                                : return "Unknown";          // 정의되지 않은 대상 -> 알 수 없는 대상 반환
+        }
+    }
 
 
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
@@ -505,11 +544,14 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         turnNumber += 1; // 턴 번호 증가
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
+        
         maximumMana = Mathf.Min(10, maximumMana + 1); // 최대 마나 증가
         currentMana = maximumMana; // 마나 전체 회복
         resultText.text = string.Empty; // 안내 텍스트 초기화
+       
         DrawCards(turnDrawCount); // 턴 시작 카드 드로우
         isPlayerTurn = true; // 플레이어 턴 설정
+        
         PrepareMonstersForNewTurn(); // 마물 공격 상태 준비
         ShowPlayerTurn(); // 플레이어 턴 표시
         UpdateBattleUI(); // 전체 UI 갱신
@@ -709,7 +751,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         manaText.text           = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
         heroineHpText.text      = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
         heroineDefenseText.text = $"DEF: {heroineDefense}"; // 히로인 방어력 표시
-        heroineShieldText.text  = $"Shield: {heroineCurrentShield}"; // 히로인 보호막 표시
+        heroineShieldText.text = $"Shield: {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
         lustText.text           = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     } // 메서드 끝

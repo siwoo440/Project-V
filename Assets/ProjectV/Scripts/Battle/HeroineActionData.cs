@@ -9,6 +9,7 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private HeroineActionType actionType = HeroineActionType.SingleAttack; // 행동 종류
     [SerializeField] private HeroineTargetType targetType = HeroineTargetType.FirstMonster; // 행동 대상 규칙
     [SerializeField] private int damage = 1; // 행동 피해량
+    [SerializeField] private int shieldAmount = 0; // 행동 보호막 획득량
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
     [Header("AI Restrictions")] // AI 제약 조건 구분
@@ -28,6 +29,7 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public HeroineActionType ActionType => actionType; // 행동 종류 반환
     public HeroineTargetType TargetType => targetType; // 행동 대상 규칙 반환
     public int Damage => damage; // 행동 피해량 반환
+    public int ShieldAmount => shieldAmount; // 보호막 획득량 반환
     public int Weight => weight; // 행동 가중치 반환
     public int CooldownTurns => cooldownTurns; // 행동 쿨타임 반환
     public int MaxConsecutiveUses => maxConsecutiveUses; // 최대 연속 사용 횟수 반환
