@@ -12,6 +12,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text playerHpText; // 플레이어 체력 텍스트
     [SerializeField] private TMP_Text manaText; // 마나 텍스트
     [SerializeField] private TMP_Text heroineHpText; // 히로인 체력 텍스트
+    [SerializeField] private TMP_Text heroineDefenseText; // 히로인 방어력 텍스트
     [SerializeField] private TMP_Text lustText; // 성욕 게이지 텍스트
     [SerializeField] private TMP_Text heroineIntentText; // 히로인 행동 예고 텍스트
     [SerializeField] private TMP_Text resultText; // 전투 결과 텍스트
@@ -38,6 +39,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [Header("Battle Settings")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30; // 플레이어 최대 체력
     [SerializeField] private int heroineMaxHp = 30; // 히로인 최대 체력
+    [SerializeField] private int heroineDefense = 1; // 히로인 방어력
     [SerializeField] private float heroineActionDelay = 0.8f; // 히로인 행동 대기 시간
 
     private readonly List<CardData> drawPile = new List<CardData>(); // 드로우 더미
@@ -125,12 +127,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         MonsterUnit attackingMonster = selectedMonster; // 공격 마물 저장
         string attackerName = attackingMonster.MonsterName; // 공격 마물 이름 저장
-        int attackDamage = attackingMonster.Attack; // 공격 피해량 저장
+        int attackPower = attackingMonster.Attack; // 마물 공격력 저장
+        int actualDamage = DamageCalculator.CalculateDamage(attackPower, heroineDefense); // 히로인 방어력 적용 피해 계산
 
-        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - attackDamage); // 히로인 피해 적용
+        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - actualDamage); // 히로인 실제 피해 적용
         attackingMonster.MarkActed(); // 마물 행동 완료 처리
         ClearMonsterSelection(); // 마물 선택 해제
-        resultText.text = $"{attackerName} Deals {attackDamage} Damage"; // 공격 결과 표시
+        resultText.text = $"{attackerName} Deals {actualDamage} Damage"; // 실제 공격 결과 표시
         UpdateBattleUI(); // 전투 UI 갱신
 
         if (heroineCurrentHp <= 0) // 히로인 사망 확인
@@ -236,33 +239,26 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
 
 
-
-
-
-
-
-
-
-
-
     private void ExecuteAreaAttack() // 히로인 광역 공격 실행
     { // 메서드 시작
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
-        int actionDamage = nextHeroineAction.Damage; // 행동 데이터 피해량 저장
+        int attackPower = nextHeroineAction.Damage; // 행동 공격력 저장
 
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         { // 조건문 시작
-            playerCurrentHp = Mathf.Max(0, playerCurrentHp - actionDamage); // 플레이어 광역 피해 적용
-            resultText.text = $"Player Takes {actionDamage} Area Damage"; // 플레이어 피해 표시
+            playerCurrentHp = Mathf.Max(0, playerCurrentHp - attackPower); // 플레이어 광역 피해 적용
+            resultText.text = $"Player Takes {attackPower} Area Damage"; // 플레이어 피해 표시
             return; // 광역 공격 종료
         } // 조건문 끝
 
         int defeatedMonsterCount = 0; // 사망 마물 수 초기화
+        int totalActualDamage = 0; // 전체 실제 피해량 초기화
 
         for (int i = fieldMonsters.Count - 1; i >= 0; i--) // 필드 마물 역순 반복
         { // 반복문 시작
             MonsterUnit targetMonster = fieldMonsters[i]; // 현재 공격 대상 저장
-            targetMonster.TakeDamage(actionDamage); // 광역 피해 적용
+            int actualDamage = targetMonster.TakeDamage(attackPower); // 마물별 방어력 적용 피해 계산
+            totalActualDamage += actualDamage; // 전체 실제 피해량 합산
 
             if (targetMonster.IsDead) // 마물 사망 확인
             { // 조건문 시작
@@ -283,7 +279,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // 결과 표시 종료
         } // 조건문 끝
 
-        resultText.text = $"All Monsters Take {actionDamage} Damage"; // 전체 마물 피해 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: {totalActualDamage} Total Damage"; // 전체 실제 피해 표시
     } // 메서드 끝
 
 
@@ -298,10 +294,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         } // 조건문 끝
 
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
-        int actionDamage = nextHeroineAction.Damage; // 행동 피해량 저장
+        int attackPower = nextHeroineAction.Damage; // 행동 공격력 저장
+        int actualDamage = targetMonster.TakeDamage(attackPower); // 마물 방어력 적용 피해 처리
 
-        targetMonster.TakeDamage(actionDamage); // 대상 마물 피해 적용
-        resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Takes {actionDamage} Damage"; // 공격 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Takes {actualDamage} Damage"; // 실제 피해 결과 표시
 
         if (targetMonster.IsDead) // 대상 마물 사망 확인
         { // 조건문 시작
@@ -681,11 +677,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     private void UpdateBattleUI() // 전투 수치 UI 갱신
     { // 메서드 시작
-        turnNumberText.text = $"Turn {turnNumber}"; // 턴 번호 표시
-        playerHpText.text = $"Player HP: {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
-        manaText.text = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
-        heroineHpText.text = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
-        lustText.text = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
+        turnNumberText.text     = $"Turn {turnNumber}"; // 턴 번호 표시
+        playerHpText.text       = $"Player HP: {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
+        manaText.text           = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
+        heroineHpText.text      = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
+        heroineDefenseText.text = $"DEF: {heroineDefense}"; // 히로인 방어력 표시
+        lustText.text           = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     } // 메서드 끝
 

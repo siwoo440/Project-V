@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b950246c527870844aa7a931a3e36bb7, type: 3}
   m_Name: HA006_SoulPierce
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
-  actionId: HA005
-  displayName: Chaotic Strike
+  actionId: HA006
+  displayName: Soul Pierce
   actionType: 0
-  targetType: 1
-  damage: 4
-  weight: 20
-  cooldownTurns: 0
-  maxConsecutiveUses: 2
+  targetType: 4
+  damage: 2
+  weight: 10
+  cooldownTurns: 2
+  maxConsecutiveUses: 1
   minimumHpRatio: 0.5
   maximumHpRatio: 1

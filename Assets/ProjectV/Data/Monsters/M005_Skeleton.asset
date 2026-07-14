@@ -16,3 +16,4 @@ MonoBehaviour:
   monsterName: Skeleton
   maxHp: 9
   attack: 3
+  defense: 2

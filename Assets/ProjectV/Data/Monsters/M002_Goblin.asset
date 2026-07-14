@@ -16,3 +16,4 @@ MonoBehaviour:
   monsterName: Goblin
   maxHp: 8
   attack: 3
+  defense: 1

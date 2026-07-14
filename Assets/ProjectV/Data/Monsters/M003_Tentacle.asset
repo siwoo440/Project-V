@@ -16,3 +16,4 @@ MonoBehaviour:
   monsterName: Tentacle
   maxHp: 10
   attack: 4
+  defense: 2
