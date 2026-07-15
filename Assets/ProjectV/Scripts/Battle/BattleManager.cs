@@ -169,6 +169,15 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
         ReduceHeroineStatusDurations(StatusDurationTiming.AfterPlayerTurn); // 플레이어 턴 기준 상태 지속시간 감소
+        ApplyHeroineStartTurnStatusEffects(); // 히로인 행동 시작 상태 효과 처리
+        UpdateBattleUI(); // 독 피해 결과 UI 갱신
+
+        if (heroineCurrentHp <= 0) // 독 피해 히로인 사망 확인
+        {
+            EndBattle("Victory"); // 플레이어 승리 처리
+            yield break; // 히로인 행동 중단
+        }
+
         yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
 
         HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
@@ -320,7 +329,28 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         return Mathf.Max(0, currentAttack); // 음수 공격력 차단
     }
+    private int ApplyHeroineStartTurnStatusEffects() // 히로인 행동 시작 상태 효과 처리
+    {
+        int totalPoisonDamage = 0; // 전체 독 피해 초기화
 
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data.StatusType != StatusEffectType.Poison) { continue; } // 독 이외 효과 제외
+
+            int poisonDamage = Mathf.Max(0, activeStatus.Data.Amount); // 안전한 독 피해 계산
+            int previousHp = heroineCurrentHp; // 독 피해 전 체력 저장
+
+            heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - poisonDamage); // 방어 무시 직접 체력 피해
+            totalPoisonDamage += previousHp - heroineCurrentHp; // 실제 독 피해 합산
+
+            if (heroineCurrentHp <= 0) { break; } // 히로인 사망 시 추가 처리 중단
+        }
+
+        if (totalPoisonDamage > 0) { resultText.text = $"Poison: Heroine HP -{totalPoisonDamage}"; } // 독 피해 결과 표시
+
+        return totalPoisonDamage; // 실제 독 피해 반환
+    }
 
     private bool HasHeroineStatusEffect(StatusEffectData statusData) // 히로인 상태 효과 보유 여부 확인
     {
@@ -616,7 +646,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             StatusEffectData statusData = actionData.AppliedStatusEffect; // 적용 상태 효과 확인
             if (statusData == null) { return "Status: None"; } // 상태 효과 누락 표시
 
-            return $"{statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 문구 반환
+            string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
+            return $"{statusData.DisplayName} {amountText} ({statusData.DurationTurns} Turns)"; // 상태 효과 문구 반환
         }
 
         int currentAttack = GetHeroineCurrentAttack(actionData.Damage); // 상태 효과 포함 예고 공격력 계산
@@ -634,6 +665,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             case StatusEffectType.AttackDown: // 공격력 감소
                 return $"-{statusData.Amount}"; // 감소 수치 반환
 
+            case StatusEffectType.Poison: // 지속 독 피해
+                return $"HP -{statusData.Amount}"; // 독 피해 수치 반환
+
             default: // 정의되지 않은 상태 효과
                 return statusData.Amount.ToString(); // 기본 수치 반환
         }
@@ -649,7 +683,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
 
             string amountText = GetStatusAmountDisplay(activeStatus.Data); // 상태 효과 수치 문구 생성
-            string statusName = $"{activeStatus.Data.DisplayName} {amountText} ({activeStatus.RemainingTurns})"; // 개별 상태 효과 문구 생성
+            string statusName = $"{activeStatus.Data.DisplayName} {amountText} ({activeStatus.RemainingTurns})"; // 상태 효과 문구 생성
             statusNames.Add(statusName); // 상태 효과 문구 등록
         }
 

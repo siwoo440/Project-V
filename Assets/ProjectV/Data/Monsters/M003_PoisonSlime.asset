@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4725c9519f415c5418512917ea8ecfc5, type: 3}
-  m_Name: M003_Tentacle
+  m_Name: M003_PoisonSlime
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M003
-  monsterName: Tentacle
-  maxHp: 10
-  attack: 4
-  defense: 2
-  startingShield: 3
-  attackStatusEffect: {fileID: 0}
+  monsterName: Poison Slime
+  maxHp: 6
+  attack: 2
+  defense: 0
+  startingShield: 0
+  attackStatusEffect: {fileID: 11400000, guid: f7accbbf22adb7f4d937277f5609cf00, type: 2}
