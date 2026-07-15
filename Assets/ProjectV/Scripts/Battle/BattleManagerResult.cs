@@ -149,18 +149,30 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         string claimMessage = lastBattleResult.IsVictory
-            ? "Rewards Added to Player Progress"
-            : "Battle Result Confirmed";
+    ? "Rewards Added to Player Progress"
+    : "Battle Result Confirmed"; // 기본 수령 문구
+
+        if (lastBattleResult.DuplicateMaterialReward > 0)
+        {
+            claimMessage =
+                $"Duplicate Converted: Enhancement Material +" +
+                $"{lastBattleResult.DuplicateMaterialReward}"; // 중복 변환 문구
+        }
 
         if (resultText != null)
         {
-            resultText.text = claimMessage;
+            resultText.text = claimMessage; // 전투 안내 갱신
+        }
+
+        if (battleResultUI != null)
+        {
+            battleResultUI.Refresh(lastBattleResult); // 결과 패널 갱신
         }
 
         AddBattleLog(
             BattleLogCategory.System,
             claimMessage
-        );
+        ); // 보상 수령 로그
     }
     private void EndBattle(BattleOutcome outcome)
     {
