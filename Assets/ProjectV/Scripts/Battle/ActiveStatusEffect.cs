@@ -17,4 +17,8 @@ public class ActiveStatusEffect // 전투 중 활성 상태 효과
     {
         RemainingTurns = Mathf.Max(0, RemainingTurns - 1); // 남은 지속시간 감소
     }
+    public void RefreshDuration() // 상태 효과 지속시간 갱신
+    {
+        RemainingTurns = Data == null ? 0 : Mathf.Max(1, Data.DurationTurns); // 원본 지속시간 재설정
+    }
 }

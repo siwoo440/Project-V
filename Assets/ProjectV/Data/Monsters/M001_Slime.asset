@@ -16,3 +16,6 @@ MonoBehaviour:
   monsterName: Slime
   maxHp: 6
   attack: 2
+  defense: 0
+  startingShield: 0
+  attackStatusEffect: {fileID: 11400000, guid: aa4a3a9603fd7ee4eb6b9c5cbbb0cc88, type: 2}

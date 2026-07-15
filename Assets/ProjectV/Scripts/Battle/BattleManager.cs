@@ -147,9 +147,17 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         heroineCurrentShield = damageResult.RemainingShield; // 히로인 남은 보호막 적용
         heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage); // 히로인 실제 HP 피해 적용
+
+        string damageText = CreateDamageResultText(attackerName, damageResult); // 마물 공격 피해 문구 생성
+        string statusText = TryApplyMonsterAttackStatus(attackingMonster); // 마물 공격 상태 효과 적용
+
         attackingMonster.MarkActed(); // 마물 행동 완료 처리
         ClearMonsterSelection(); // 마물 선택 해제
-        resultText.text = CreateDamageResultText(attackerName, damageResult); // 마물 공격 결과 표시
+
+        resultText.text = string.IsNullOrEmpty(statusText)
+            ? damageText // 피해 결과만 표시
+            : $"{damageText}\n{statusText}"; // 피해와 상태 효과 표시
+
         UpdateBattleUI(); // 전투 UI 갱신
 
         if (heroineCurrentHp <= 0) // 히로인 사망 확인
@@ -160,12 +168,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
-        ReduceHeroineStatusDurations(); // 완료된 플레이어 턴 기준 상태 지속시간 감소
+        ReduceHeroineStatusDurations(StatusDurationTiming.AfterPlayerTurn); // 플레이어 턴 기준 상태 지속시간 감소
         yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
 
         HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
         ResolveHeroineAttack(); // 히로인 공격 실행
         RegisterHeroineActionUse(executedAction); // 실행 행동과 쿨타임 기록
+        ReduceHeroineStatusDurations(StatusDurationTiming.AfterHeroineTurn); // 히로인 행동 기준 상태 지속시간 감소
         UpdateBattleUI(); // 히로인 공격 결과 갱신
 
         if (playerCurrentHp <= 0) // 플레이어 사망 확인
@@ -258,12 +267,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         if (statusData == null) { resultText.text = "Missing Status Effect Data"; return; } // 상태 데이터 누락 차단
 
-        ActiveStatusEffect activeStatus = new ActiveStatusEffect(statusData); // 활성 상태 효과 생성
-        activeHeroineStatusEffects.Add(activeStatus); // 히로인 상태 효과 등록
+        ApplyOrRefreshHeroineStatus(statusData); // 상태 효과 적용 또는 지속시간 갱신
 
         resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
     }
-    private void ReduceHeroineStatusDurations() // 히로인 상태 효과 지속시간 감소
+    private void ReduceHeroineStatusDurations(StatusDurationTiming durationTiming) // 지정 시점 상태 효과 지속시간 감소
     {
         for (int i = activeHeroineStatusEffects.Count - 1; i >= 0; i--) // 상태 효과 역순 반복
         {
@@ -271,11 +279,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
             if (activeStatus == null) // 비어 있는 상태 효과 확인
             {
-                activeHeroineStatusEffects.RemoveAt(i); // 비어 있는 상태 효과 제거
+                activeHeroineStatusEffects.RemoveAt(i); // 비어 있는 상태 제거
                 continue; // 다음 상태 효과 처리
             }
 
-            activeStatus.ReduceDuration(); // 남은 지속시간 감소
+            if (activeStatus.Data.DurationTiming != durationTiming) { continue; } // 다른 감소 시점 상태 제외
+
+            activeStatus.ReduceDuration(); // 상태 효과 지속시간 감소
 
             if (activeStatus.IsExpired) { activeHeroineStatusEffects.RemoveAt(i); } // 만료 상태 효과 제거
         }
@@ -296,6 +306,21 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         return Mathf.Max(0, currentDefense); // 음수 방어력 차단
     }
+    private int GetHeroineCurrentAttack(int baseAttack) // 상태 효과 포함 히로인 공격력 계산
+    {
+        int currentAttack = Mathf.Max(0, baseAttack); // 기본 공격력 저장
+
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data.StatusType != StatusEffectType.AttackDown) { continue; } // 공격력 감소 외 제외
+
+            currentAttack -= activeStatus.Data.Amount; // 공격력 감소량 적용
+        }
+
+        return Mathf.Max(0, currentAttack); // 음수 공격력 차단
+    }
+
 
     private bool HasHeroineStatusEffect(StatusEffectData statusData) // 히로인 상태 효과 보유 여부 확인
     {
@@ -309,8 +334,35 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         return false; // 동일 상태 효과 없음
     }
+    private void ApplyOrRefreshHeroineStatus(StatusEffectData statusData) // 히로인 상태 효과 적용 및 갱신
+    {
+        if (statusData == null) { return; } // 비어 있는 상태 효과 차단
 
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data != statusData) { continue; } // 다른 상태 효과 제외
 
+            activeStatus.RefreshDuration(); // 동일 상태 지속시간 갱신
+            return; // 신규 상태 등록 차단
+        }
+
+        ActiveStatusEffect newStatus = new ActiveStatusEffect(statusData); // 신규 활성 상태 생성
+        activeHeroineStatusEffects.Add(newStatus); // 히로인 상태 효과 등록
+    }
+    private string TryApplyMonsterAttackStatus(MonsterUnit attackingMonster) // 마물 공격 상태 효과 적용
+    {
+        if (attackingMonster == null) { return string.Empty; } // 공격 마물 누락 차단
+
+        StatusEffectData statusData = attackingMonster.AttackStatusEffect; // 마물 공격 상태 효과 확인
+
+        if (statusData == null) { return string.Empty; } // 상태 효과 없는 공격 처리
+
+        ApplyOrRefreshHeroineStatus(statusData); // 상태 효과 적용 또는 갱신
+
+        string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
+        return $"Heroine: {statusData.DisplayName} {amountText}"; // 상태 효과 적용 결과 반환
+    }
     private MonsterUnit GetFirstMonster() // 첫 번째 마물 반환
     {
         if (fieldMonsters.Count == 0) { return null; } // 대상 없음 반환
@@ -350,7 +402,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private void ExecuteAreaAttack() // 히로인 광역 공격 실행
     {
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
-        int attackPower = nextHeroineAction.Damage; // 행동 공격력 저장
+        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 광역 공격력 계산
 
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         {
@@ -397,7 +449,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         }
 
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
-        int attackPower = nextHeroineAction.Damage; // 행동 공격력 저장
+        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 행동 공격력 계산
         DamageResult damageResult = targetMonster.TakeDamage(attackPower); // 마물 보호막 포함 피해 처리
 
         resultText.text = CreateDamageResultText(targetName, damageResult); // 마물 피해 결과 표시
@@ -417,12 +469,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
 
 
-
-
-
     private void AttackPlayer() // 플레이어 직접 공격
     {
-        ApplyDamageToPlayer(nextHeroineAction.Damage, nextHeroineAction.DisplayName); // 플레이어 보호막 포함 피해 적용
+        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 공격력 계산
+        ApplyDamageToPlayer(attackPower, nextHeroineAction.DisplayName); // 플레이어 보호막 포함 피해 적용
     }
 
 
@@ -569,9 +619,25 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return $"{statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 문구 반환
         }
 
-        return $"Damage {actionData.Damage}"; // 공격 피해 효과 표시
+        int currentAttack = GetHeroineCurrentAttack(actionData.Damage); // 상태 효과 포함 예고 공격력 계산
+        return $"Damage {currentAttack}"; // 현재 공격 피해 효과 표시
     }
+    private string GetStatusAmountDisplay(StatusEffectData statusData) // 상태 효과 수치 문구 반환
+    {
+        if (statusData == null) { return "0"; } // 상태 효과 누락 처리
 
+        switch (statusData.StatusType) // 상태 효과 종류 확인
+        {
+            case StatusEffectType.DefenseUp: // 방어력 증가
+                return $"+{statusData.Amount}"; // 증가 수치 반환
+
+            case StatusEffectType.AttackDown: // 공격력 감소
+                return $"-{statusData.Amount}"; // 감소 수치 반환
+
+            default: // 정의되지 않은 상태 효과
+                return statusData.Amount.ToString(); // 기본 수치 반환
+        }
+    }
     private string GetHeroineStatusDisplay() // 히로인 상태 효과 UI 문구 생성
     {
         if (activeHeroineStatusEffects.Count == 0) { return "Status: None"; } // 활성 상태 효과 없음 표시
@@ -582,7 +648,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         {
             if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
 
-            string statusName = $"{activeStatus.Data.DisplayName} +{activeStatus.Data.Amount} ({activeStatus.RemainingTurns})"; // 개별 상태 효과 문구 생성
+            string amountText = GetStatusAmountDisplay(activeStatus.Data); // 상태 효과 수치 문구 생성
+            string statusName = $"{activeStatus.Data.DisplayName} {amountText} ({activeStatus.RemainingTurns})"; // 개별 상태 효과 문구 생성
             statusNames.Add(statusName); // 상태 효과 문구 등록
         }
 

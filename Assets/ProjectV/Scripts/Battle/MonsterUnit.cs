@@ -28,6 +28,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     private int currentShield; // 현재 마물 보호막
 
     public int Attack => monsterData != null ? monsterData.Attack : 0; // 현재 마물 공격력 반환
+    public StatusEffectData AttackStatusEffect => monsterData != null ? monsterData.AttackStatusEffect : null; // 공격 상태 효과 반환
     public int Defense => monsterData != null ? monsterData.Defense : 0; // 현재 마물 방어력 반환
     public int CurrentShield => currentShield; // 현재 마물 보호막 반환
     public int CurrentHp => currentHp; // 현재 마물 체력 반환
