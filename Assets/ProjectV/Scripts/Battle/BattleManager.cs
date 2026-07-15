@@ -50,6 +50,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private bool validateDeckOnStart = true; // 전투 시작 검증
     [SerializeField] private bool shuffleDeckAtBattleStart = true; // 시작 셔플
 
+    [Header("Battle Result")]
+    [SerializeField] private BattleRewardData battleRewardData;
+    [SerializeField] private BattleResultUI battleResultUI;
+
     [Header("Heroine AI")] // 히로인 AI 구분
     [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
 
@@ -90,7 +94,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private int currentMana;                    // 현재 사용 가능 마나
     private bool isPlayerTurn;                  // 플레이어 턴 여부
     private bool isBattleEnded;                 // 전투 종료 여부
-
+    private BattleResultData lastBattleResult;
+    public BattleResultData LastBattleResult => lastBattleResult;
     private void Start() // 전투 초기화 진입
     {
         InitializeBattle(); // 기본 전투 초기화
@@ -151,6 +156,15 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     }
     private void InitializeBattle()
     {
+        if (!ValidateBattleDeckBeforeStart()) { return; }
+
+        lastBattleResult = null;
+
+        if (battleResultUI != null)
+        {
+            battleResultUI.Hide();
+        }
+
         if (!ValidateBattleDeckBeforeStart()) { return; }
 
         playerCurrentHp = playerMaxHp; // 플레이어 체력 초기화
@@ -276,13 +290,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         if (heroineCurrentHp <= 0)
         {
-            EndBattle("Victory - HP Depleted");
+            EndBattle(BattleOutcome.VictoryHp);
             return;
         }
 
         if (heroineLust >= heroineMaxLust)
         {
-            EndBattle("Victory - Lust MAX");
+            EndBattle(BattleOutcome.VictoryLust);
         }
     }
 
@@ -327,7 +341,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         if (heroineCurrentHp <= 0) // 독 피해 히로인 사망 확인
         {
-            EndBattle("Victory"); // 플레이어 승리 처리
+            EndBattle(BattleOutcome.VictoryHp); // 플레이어 승리 처리
             yield break; // 히로인 행동 중단
         }
 
@@ -344,7 +358,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         if (playerCurrentHp <= 0) // 플레이어 사망 확인
         {
-            EndBattle("Defeat"); // 패배 처리
+            EndBattle(BattleOutcome.Defeat); // 패배 처리
             yield break; // 코루틴 종료
         }
 
@@ -1581,21 +1595,164 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         UpdateDeckStatusUI();
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     }
-
-    private void EndBattle(string resultMessage) // 전투 종료 처리
+    private BattleResultData CreateBattleResult(
+    BattleOutcome outcome
+)
     {
-        isBattleEnded = true; // 전투 종료 상태 설정
-        isPlayerTurn = false; // 플레이어 턴 해제
+        bool isVictory =
+            outcome == BattleOutcome.VictoryHp ||
+            outcome == BattleOutcome.VictoryLust;
+
+        if (!isVictory || battleRewardData == null)
+        {
+            return new BattleResultData(
+                outcome,
+                0,
+                0,
+                false,
+                false,
+                null
+            );
+        }
+
+        int goldReward =
+            battleRewardData.RollGold();
+
+        int experienceReward =
+            battleRewardData.RollExperience();
+
+        bool captureAttempted =
+            battleRewardData.HasCaptureCandidate &&
+            battleRewardData.CaptureChance > 0f;
+
+        bool captureSucceeded =
+            captureAttempted &&
+            battleRewardData.RollCapture();
+
+        MonsterData capturedMonster = captureSucceeded
+            ? battleRewardData.GetRandomCaptureCandidate()
+            : null;
+
+        if (capturedMonster == null)
+        {
+            captureSucceeded = false;
+        }
+
+        return new BattleResultData(
+            outcome,
+            goldReward,
+            experienceReward,
+            captureAttempted,
+            captureSucceeded,
+            capturedMonster
+        );
+    }
+    private string GetBattleOutcomeDisplayName(
+    BattleOutcome outcome
+)
+    {
+        switch (outcome)
+        {
+            case BattleOutcome.VictoryHp: return "Victory - HP Depleted";
+            case BattleOutcome.VictoryLust: return "Victory - Lust MAX";
+            case BattleOutcome.Defeat: return "Defeat";
+            default: return "Unknown Result";
+        }
+    }
+    private void AddBattleResultLogs(
+    BattleResultData resultData
+)
+    {
+        if (resultData == null) { return; }
+
+        string outcomeName =
+            GetBattleOutcomeDisplayName(resultData.Outcome);
+
+        AddBattleLog(
+            BattleLogCategory.System,
+            $"Battle ended: {outcomeName}."
+        );
+
+        if (!resultData.IsVictory) { return; }
+
+        AddBattleLog(
+            BattleLogCategory.System,
+            $"Rewards: Gold +{resultData.GoldReward}, " +
+            $"EXP +{resultData.ExperienceReward}."
+        );
+
+        if (!resultData.CaptureAttempted)
+        {
+            AddBattleLog(
+                BattleLogCategory.System,
+                "Capture was not attempted."
+            );
+
+            return;
+        }
+
+        if (!resultData.CaptureSucceeded)
+        {
+            AddBattleLog(
+                BattleLogCategory.System,
+                "Capture failed."
+            );
+
+            return;
+        }
+
+        AddBattleLog(
+            BattleLogCategory.System,
+            $"Captured {resultData.CapturedMonster.MonsterName}."
+        );
+    }
+
+    private void EndBattle(BattleOutcome outcome)
+    {
+        if (isBattleEnded) { return; }
+
+        isBattleEnded = true;
+        isPlayerTurn = false;
+
         ClearHeroineTargetPreview();
-        ClearMonsterSelection(); // 마물 선택 상태 해제
-        turnText.text = "Battle End"; // 전투 종료 문구 설정
-        resultText.text = resultMessage; // 전투 결과 표시
-        AddBattleLog(BattleLogCategory.System, $"Battle ended: {resultMessage}."); // 전투 종료 기록
-        heroineIntentText.text = "Next Action: None"; // 행동 예고 종료 표시
-        endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
-        SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
-        SetHandInteractable(false); // 손패 버튼 비활성화
-        SetMonsterInteractable(false); // 마물 선택 비활성화
+        ClearMonsterSelection();
+
+        lastBattleResult =
+            CreateBattleResult(outcome);
+
+        string resultMessage =
+            GetBattleOutcomeDisplayName(outcome);
+
+        if (turnText != null)
+        {
+            turnText.text = "Battle End";
+        }
+
+        if (resultText != null)
+        {
+            resultText.text = resultMessage;
+        }
+
+        if (heroineIntentText != null)
+        {
+            heroineIntentText.text = "Next Action: None";
+        }
+
+        if (endTurnButton != null)
+        {
+            endTurnButton.interactable = false;
+        }
+
+        SetAttackButtonsInteractable(false);
+        SetHandInteractable(false);
+        SetMonsterInteractable(false);
+
+        AddBattleResultLogs(lastBattleResult);
+
+        if (battleResultUI != null)
+        {
+            battleResultUI.Show(lastBattleResult);
+        }
     }
 
     private void ReduceMonsterStatusDurations( StatusDurationTiming durationTiming)
@@ -1653,9 +1810,6 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             );
         }
     }
-
-
-
 
 
 

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37e3a1bbbe18b084386971d13a245738, type: 3}
+  m_Name: BR001_TestBattleReward
+  m_EditorClassIdentifier: Assembly-CSharp::BattleRewardData
+  minimumGold: 10
+  maximumGold: 20
+  minimumExperience: 5
+  maximumExperience: 10
+  captureChance: 0.5
+  captureCandidates:
+  - {fileID: 11400000, guid: 6573435d329bf1045bf430248212723c, type: 2}
