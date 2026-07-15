@@ -35,8 +35,7 @@ public class BattleResultUI : MonoBehaviour
 
         if (outcomeText != null)
         {
-            outcomeText.text =
-                GetOutcomeDisplayName(resultData.Outcome);
+            outcomeText.text = GetOutcomeDisplayName(resultData.Outcome);
         }
 
         if (rewardText != null)

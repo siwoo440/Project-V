@@ -11,9 +11,14 @@ public class BattleResultData
     public MonsterData CapturedMonster { get; }
 
     public bool IsVictory =>
-        Outcome == BattleOutcome.VictoryHp ||
-        Outcome == BattleOutcome.VictoryLust;
+    Outcome == BattleOutcome.VictoryHp ||
+    Outcome == BattleOutcome.VictoryLust;
 
+    public bool RewardsApplied { get; private set; }
+    public void MarkRewardsApplied()
+    {
+        RewardsApplied = true;
+    }
     public BattleResultData(
         BattleOutcome outcome,
         int goldReward,

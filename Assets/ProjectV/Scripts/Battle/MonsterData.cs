@@ -12,6 +12,12 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [SerializeField] private int defense = 0; // 마물 방어력
     [SerializeField] private int startingShield = 0; // 마물 시작 보호막
 
+    [Header("Level Growth")]
+    [SerializeField, Min(0)] private int hpGrowthPerLevel = 1;
+    [SerializeField, Min(0)] private int attackGrowthPerLevel = 1;
+    [SerializeField, Min(0)] private int lustGrowthPerLevel = 1;
+    [SerializeField, Min(0)] private int defenseGrowthPerLevel = 0;
+
     [Header("Target Rules")]
     [SerializeField] private bool isTaunting;
 
@@ -27,4 +33,9 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     public int StartingShield => startingShield; // 마물 시작 보호막 반환
     public bool IsTaunting => isTaunting; // 도발 상태 반환
     public StatusEffectData AttackStatusEffect => attackStatusEffect; // 공격 상태 효과 반환
+    public int HpGrowthPerLevel => hpGrowthPerLevel;
+    public int AttackGrowthPerLevel => attackGrowthPerLevel;
+    public int LustGrowthPerLevel => lustGrowthPerLevel;
+    public int DefenseGrowthPerLevel => defenseGrowthPerLevel;
+
 } 

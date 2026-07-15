@@ -16,6 +16,6 @@ MonoBehaviour:
   maximumGold: 20
   minimumExperience: 5
   maximumExperience: 10
-  captureChance: 0.5
+  captureChance: 1
   captureCandidates:
   - {fileID: 11400000, guid: 6573435d329bf1045bf430248212723c, type: 2}

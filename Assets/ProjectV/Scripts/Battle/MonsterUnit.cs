@@ -48,12 +48,17 @@ public class MonsterUnit : MonoBehaviour
     private bool isSelected;
     private bool isHeroineTargeted;
 
+    private int runtimeMaxHp;
+    private int runtimeAttack;
+    private int runtimeLustDamage;
+    private int runtimeDefense;
+
     public int Attack => GetCurrentAttack();
-    public int LustDamage => monsterData != null ? monsterData.LustDamage : 0;
+    public int LustDamage => runtimeLustDamage;
     public int Defense => GetCurrentDefense();
     public int CurrentShield => currentShield;
     public int CurrentHp => currentHp;
-    public int MaxHp => monsterData != null ? monsterData.MaxHp : 0;
+    public int MaxHp => runtimeMaxHp;
 
     public StatusEffectData AttackStatusEffect =>
         monsterData != null ? monsterData.AttackStatusEffect : null;
@@ -70,11 +75,14 @@ public class MonsterUnit : MonoBehaviour
         actionState == MonsterActionState.Ready && !IsDead;
 
     public void Initialize(
+
         MonsterData data,
         Action<MonsterUnit> selectedCallback,
         StatusEffectIconUI iconPrefab,
         StatusEffectTooltipUI tooltipUI
     )
+
+
     {
         if (data == null) { return; }
 
@@ -82,8 +90,9 @@ public class MonsterUnit : MonoBehaviour
         onSelected = selectedCallback;
         statusEffectIconPrefab = iconPrefab;
         statusEffectTooltipUI = tooltipUI;
+        InitializeRuntimeStats();
 
-        currentHp = monsterData.MaxHp;
+        currentHp = MaxHp;
         currentShield = Mathf.Max(0, monsterData.StartingShield);
         actionState = MonsterActionState.Summoning;
 
@@ -242,7 +251,7 @@ public class MonsterUnit : MonoBehaviour
 
     private int GetCurrentAttack()
     {
-        int currentAttack = monsterData != null ? monsterData.Attack : 0;
+        int currentAttack = runtimeAttack;
 
         foreach (ActiveStatusEffect activeStatus in activeStatusEffects)
         {
@@ -264,7 +273,7 @@ public class MonsterUnit : MonoBehaviour
 
     private int GetCurrentDefense()
     {
-        int currentDefense = monsterData != null ? monsterData.Defense : 0;
+        int currentDefense = runtimeDefense;
 
         foreach (ActiveStatusEffect activeStatus in activeStatusEffects)
         {
@@ -321,7 +330,7 @@ public class MonsterUnit : MonoBehaviour
 
         if (monsterHpText != null)
         {
-            monsterHpText.text = $"HP: {currentHp} / {monsterData.MaxHp}";
+            monsterHpText.text = $"HP: {currentHp} / {MaxHp}";
         }
 
         if (monsterAttackText != null)
@@ -331,7 +340,7 @@ public class MonsterUnit : MonoBehaviour
 
         if (monsterLustDamageText != null)
         {
-            monsterLustDamageText.text = $"LST: {monsterData.LustDamage}";
+            monsterLustDamageText.text = $"LST: {LustDamage}";
         }
 
         if (monsterDefenseText != null)
@@ -401,5 +410,35 @@ public class MonsterUnit : MonoBehaviour
             case MonsterActionState.Acted: return "Acted";
             default: return "Unknown";
         }
+    }
+    private void InitializeRuntimeStats()
+    {
+        if (monsterData == null)
+        {
+            runtimeMaxHp = 0;
+            runtimeAttack = 0;
+            runtimeLustDamage = 0;
+            runtimeDefense = 0;
+            return;
+        }
+
+        runtimeMaxHp = monsterData.MaxHp;
+        runtimeAttack = monsterData.Attack;
+        runtimeLustDamage = monsterData.LustDamage;
+        runtimeDefense = monsterData.Defense;
+
+        if (PlayerProgressManager.Instance == null) { return; }
+
+        OwnedMonsterData ownedMonster =
+            PlayerProgressManager.Instance.GetOwnedMonster(
+                monsterData
+            );
+
+        if (ownedMonster == null) { return; }
+
+        runtimeMaxHp = ownedMonster.MaxHp;
+        runtimeAttack = ownedMonster.Attack;
+        runtimeLustDamage = ownedMonster.LustDamage;
+        runtimeDefense = ownedMonster.Defense;
     }
 }

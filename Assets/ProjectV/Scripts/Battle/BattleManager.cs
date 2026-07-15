@@ -156,8 +156,6 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     }
     private void InitializeBattle()
     {
-        if (!ValidateBattleDeckBeforeStart()) { return; }
-
         lastBattleResult = null;
 
         if (battleResultUI != null)
@@ -1706,7 +1704,57 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             $"Captured {resultData.CapturedMonster.MonsterName}."
         );
     }
+    public void ClaimBattleRewards()
+    {
+        if (lastBattleResult == null)
+        {
+            if (resultText != null)
+            {
+                resultText.text = "Missing Battle Result";
+            }
 
+            return;
+        }
+
+        if (PlayerProgressManager.Instance == null)
+        {
+            if (resultText != null)
+            {
+                resultText.text = "Missing Player Progress Manager";
+            }
+
+            return;
+        }
+
+        bool applied =
+            PlayerProgressManager.Instance.ApplyBattleResult(
+                lastBattleResult
+            );
+
+        if (!applied)
+        {
+            if (resultText != null)
+            {
+                resultText.text = "Rewards Already Claimed";
+            }
+
+            return;
+        }
+
+        string claimMessage = lastBattleResult.IsVictory
+            ? "Rewards Added to Player Progress"
+            : "Battle Result Confirmed";
+
+        if (resultText != null)
+        {
+            resultText.text = claimMessage;
+        }
+
+        AddBattleLog(
+            BattleLogCategory.System,
+            claimMessage
+        );
+    }
     private void EndBattle(BattleOutcome outcome)
     {
         if (isBattleEnded) { return; }
