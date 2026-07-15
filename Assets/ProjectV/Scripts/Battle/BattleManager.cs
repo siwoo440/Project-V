@@ -21,6 +21,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private StatusEffectIconUI statusEffectIconPrefab; // 상태 효과 아이콘 프리팹
     [SerializeField] private StatusEffectTooltipUI statusEffectTooltipUI; // 상태 효과 툴팁 UI
     [SerializeField] private TMP_Text lustText;             // 성욕 게이지 텍스트
+    [SerializeField] private Slider heroineLustSlider; // 성욕 게이지
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
     [SerializeField] private TMP_Text resultText;           // 전투 결과 텍스트
@@ -50,6 +51,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private int playerDefense = 0;             // 플레이어 방어력
     [SerializeField] private int playerStartingShield = 2;      // 플레이어 시작 보호막
     [SerializeField] private int heroineMaxHp = 30;             // 히로인 최대 체력
+    [SerializeField, Min(1)] private int heroineMaxLust = 100; // 최대 성욕
     [SerializeField] private int heroineDefense = 1;            // 히로인 방어력
     [SerializeField] private int heroineStartingShield = 3;     // 히로인 시작 보호막
     [SerializeField] private int heroineMaxShield = 10;         // 히로인 최대 보호막
@@ -136,51 +138,75 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         turnText.text = "Heroine Turn"; // 히로인 턴 표시
         StartCoroutine(HeroineTurnRoutine()); // 히로인 행동 시작
     }
-
-    public void AttackWithSelectedMonster() // 선택 마물 공격 처리
+    private int AddHeroineLust(int amount)
     {
-        if (!isPlayerTurn || isBattleEnded) { return; } // 공격 차단
+        if (amount <= 0) { return 0; }
 
-        if (selectedMonster == null || !selectedMonster.CanAttack) // 선택 마물 상태 확인
+        int previousLust = heroineLust;
+        heroineLust = Mathf.Clamp(heroineLust + amount, 0, heroineMaxLust);
+
+        return heroineLust - previousLust;
+    }
+
+    private string GetLustGainText(int requestedAmount, int appliedAmount)
+    {
+        if (requestedAmount <= 0) { return "Lust +0"; }
+        if (appliedAmount <= 0 && heroineLust >= heroineMaxLust) { return "Lust MAX"; }
+
+        return $"Lust +{appliedAmount}";
+    }
+    public void AttackWithSelectedMonster()
+    {
+        if (!isPlayerTurn || isBattleEnded) { return; }
+
+        if (selectedMonster == null || !selectedMonster.CanAttack)
         {
-            resultText.text = "Select Ready Monster"; // 마물 선택 안내
-            return; // 공격 차단
+            resultText.text = "Select Ready Monster";
+            return;
         }
 
-        MonsterUnit attackingMonster = selectedMonster; // 공격 마물 저장
-        string attackerName = attackingMonster.MonsterName; // 공격 마물 이름 저장
-        int attackPower = attackingMonster.Attack; // 마물 공격력 저장
-        int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 방어력 계산
-        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(attackPower, currentHeroineDefense, heroineCurrentShield); // 현재 방어력 기반 피해 계산
+        MonsterUnit attackingMonster = selectedMonster;
+        string attackerName = attackingMonster.MonsterName;
+        int attackPower = attackingMonster.Attack;
+        int requestedLustDamage = attackingMonster.LustDamage;
+        int currentHeroineDefense = GetHeroineCurrentDefense();
 
+        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(
+            attackPower,
+            currentHeroineDefense,
+            heroineCurrentShield
+        );
 
-        heroineCurrentShield = damageResult.RemainingShield; // 히로인 남은 보호막 적용
-        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage); // 히로인 실제 HP 피해 적용
+        heroineCurrentShield = damageResult.RemainingShield;
+        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage);
 
-        string damageText = CreateDamageResultText(attackerName, damageResult); // 마물 공격 피해 문구 생성
-        string statusText = TryApplyMonsterAttackStatus(attackingMonster); // 마물 공격 상태 효과 적용
+        int appliedLustDamage = AddHeroineLust(requestedLustDamage);
 
-        attackingMonster.MarkActed(); // 마물 행동 완료 처리
-        ClearMonsterSelection(); // 마물 선택 해제
+        string damageText = CreateDamageResultText(attackerName, damageResult);
+        string lustGainText = GetLustGainText(requestedLustDamage, appliedLustDamage);
+        string attackResultText = $"{damageText}\n{lustGainText}";
+        string statusText = TryApplyMonsterAttackStatus(attackingMonster);
+
+        attackingMonster.MarkActed();
+        ClearMonsterSelection();
 
         resultText.text = string.IsNullOrEmpty(statusText)
-            ? damageText // 피해 결과만 표시
-            : $"{damageText}\n{statusText}"; // 피해와 상태 효과 표시
+            ? attackResultText
+            : $"{attackResultText}\n{statusText}";
 
-        AddBattleLog(BattleLogCategory.PlayerAction, damageText); // 마물 공격 피해 기록
+        AddBattleLog(BattleLogCategory.PlayerAction, attackResultText);
 
-        if (!string.IsNullOrEmpty(statusText)) // 상태 효과 적용 확인
+        if (!string.IsNullOrEmpty(statusText))
         {
-            AddBattleLog(BattleLogCategory.StatusEffect, statusText); // 마물 공격 상태 효과 기록
+            AddBattleLog(BattleLogCategory.StatusEffect, statusText);
         }
 
-
-        if (heroineCurrentHp <= 0) // 히로인 사망 확인
+        if (heroineCurrentHp <= 0)
         {
-            EndBattle("Victory"); // 승리 처리
+            EndBattle("Victory");
         }
 
-        UpdateBattleUI(); // 전투 UI 갱신
+        UpdateBattleUI();
     }
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
@@ -1063,7 +1089,19 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         heroineShieldText.text = $"Shield: {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
         if (heroineStatusText != null) { heroineStatusText.text = GetHeroineStatusDisplay(); } // 히로인 상태 효과 표시
         RefreshHeroineStatusIcons(); // 히로인 상태 효과 아이콘 갱신
-        lustText.text = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
+        if (lustText != null)
+        {
+            lustText.text = heroineLust >= heroineMaxLust
+                ? $"Lust: {heroineLust} / {heroineMaxLust} MAX"
+                : $"Lust: {heroineLust} / {heroineMaxLust}";
+        }
+
+        if (heroineLustSlider != null)
+        {
+            heroineLustSlider.minValue = 0;
+            heroineLustSlider.maxValue = Mathf.Max(1, heroineMaxLust);
+            heroineLustSlider.value = heroineLust;
+        }
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     }
 

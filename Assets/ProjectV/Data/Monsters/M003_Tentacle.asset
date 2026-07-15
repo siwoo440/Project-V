@@ -16,6 +16,7 @@ MonoBehaviour:
   monsterName: Tentacle
   maxHp: 10
   attack: 4
+  lustDamage: 8
   defense: 2
   startingShield: 3
   attackStatusEffect: {fileID: 0}

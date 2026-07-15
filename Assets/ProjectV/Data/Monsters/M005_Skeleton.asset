@@ -16,5 +16,7 @@ MonoBehaviour:
   monsterName: Skeleton
   maxHp: 9
   attack: 3
+  lustDamage: 12
   defense: 2
   startingShield: 4
+  attackStatusEffect: {fileID: 0}

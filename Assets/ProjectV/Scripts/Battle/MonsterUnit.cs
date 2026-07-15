@@ -9,6 +9,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     [SerializeField] private TMP_Text monsterNameText;      // 마물 이름 텍스트
     [SerializeField] private TMP_Text monsterHpText;        // 마물 체력 텍스트
     [SerializeField] private TMP_Text monsterAttackText;    // 마물 공격력 텍스트
+    [SerializeField] private TMP_Text monsterLustDamageText; // 성욕 피해 텍스트
     [SerializeField] private TMP_Text monsterDefenseText;   // 마물 방어력 텍스트
     [SerializeField] private TMP_Text monsterShieldText;    // 마물 보호막 텍스트
     [SerializeField] private TMP_Text monsterStateText;     // 마물 행동 상태 텍스트
@@ -28,6 +29,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     private int currentShield; // 현재 마물 보호막
 
     public int Attack => monsterData != null ? monsterData.Attack : 0; // 현재 마물 공격력 반환
+    public int LustDamage => monsterData != null ? monsterData.LustDamage : 0; // 성욕 피해 반환
     public StatusEffectData AttackStatusEffect => monsterData != null ? monsterData.AttackStatusEffect : null; // 공격 상태 효과 반환
     public int Defense => monsterData != null ? monsterData.Defense : 0; // 현재 마물 방어력 반환
     public int CurrentShield => currentShield; // 현재 마물 보호막 반환
@@ -100,6 +102,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
         monsterNameText.text    = monsterData.MonsterName; // 마물 이름 표시
         monsterHpText.text      = $"HP: {currentHp} / {monsterData.MaxHp}"; // 마물 체력 표시
         monsterAttackText.text  = $"ATK: {monsterData.Attack}"; // 마물 공격력 표시
+        if (monsterLustDamageText != null)  { monsterLustDamageText.text = $"LST: {monsterData.LustDamage}"; }
         monsterDefenseText.text = $"DEF: {monsterData.Defense}"; // 마물 방어력 표시
         monsterShieldText.text  = $"Shield: {currentShield}"; // 마물 보호막 표시
         monsterStateText.text   = $"State: {GetStateLabel()}"; // 마물 행동 상태 표시

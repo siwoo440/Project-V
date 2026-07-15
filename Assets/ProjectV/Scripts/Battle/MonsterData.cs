@@ -8,6 +8,7 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [SerializeField] private string monsterName = "New Monster"; // 마물 표시 이름
     [SerializeField] private int maxHp = 5; // 마물 최대 체력
     [SerializeField] private int attack = 1; // 마물 공격력
+    [SerializeField, Min(0)] private int lustDamage = 5; // 성욕 피해
     [SerializeField] private int defense = 0; // 마물 방어력
     [SerializeField] private int startingShield = 0; // 마물 시작 보호막
 
@@ -18,6 +19,7 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     public string MonsterName => monsterName; // 마물 이름 반환
     public int MaxHp => maxHp; // 마물 최대 체력 반환
     public int Attack => attack; // 마물 공격력 반환
+    public int LustDamage => lustDamage; // 성욕 피해 반환
     public int Defense => defense; // 마물 방어력 반환
     public int StartingShield => startingShield; // 마물 시작 보호막 반환
     public StatusEffectData AttackStatusEffect => attackStatusEffect; // 공격 상태 효과 반환

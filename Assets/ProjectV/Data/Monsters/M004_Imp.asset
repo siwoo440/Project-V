@@ -16,3 +16,7 @@ MonoBehaviour:
   monsterName: Imp
   maxHp: 5
   attack: 2
+  lustDamage: 12
+  defense: 0
+  startingShield: 0
+  attackStatusEffect: {fileID: 0}
