@@ -21,3 +21,4 @@ MonoBehaviour:
   durationTiming: 0
   icon: {fileID: 0}
   displayColor: {r: 0.23921569, g: 0.54509807, b: 1, a: 1}
+  description: Increases the Heroine's Defense while active.

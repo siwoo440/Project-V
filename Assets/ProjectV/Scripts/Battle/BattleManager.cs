@@ -19,6 +19,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text heroineStatusText; // 히로인 상태 효과 텍스트
     [SerializeField] private Transform heroineStatusIconContainer; // 히로인 상태 아이콘 배치 영역
     [SerializeField] private StatusEffectIconUI statusEffectIconPrefab; // 상태 효과 아이콘 프리팹
+    [SerializeField] private StatusEffectTooltipUI statusEffectTooltipUI; // 상태 효과 툴팁 UI
     [SerializeField] private TMP_Text lustText;             // 성욕 게이지 텍스트
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
@@ -805,7 +806,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             if (activeStatus.Data == null) { continue; } // 상태 데이터 누락 제외
 
             StatusEffectIconUI newStatusIcon = Instantiate(statusEffectIconPrefab, heroineStatusIconContainer); // 상태 아이콘 생성
-            newStatusIcon.Setup(activeStatus.Data, activeStatus.RemainingTurns); // 상태 효과 정보 적용
+            newStatusIcon.Setup(activeStatus.Data, activeStatus.RemainingTurns, statusEffectTooltipUI); // 상태 효과와 툴팁 정보 적용
             heroineStatusIconUIs.Add(newStatusIcon); // 생성 아이콘 목록 등록
         }
     }

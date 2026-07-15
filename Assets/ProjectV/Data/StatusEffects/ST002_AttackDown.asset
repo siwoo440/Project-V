@@ -21,3 +21,4 @@ MonoBehaviour:
   durationTiming: 1
   icon: {fileID: 0}
   displayColor: {r: 0.90588236, g: 0.43529412, b: 0.31764707, a: 1}
+  description: Reduces damage dealt by the Heroine's attacks.

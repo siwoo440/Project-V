@@ -21,3 +21,4 @@ MonoBehaviour:
   durationTiming: 1
   icon: {fileID: 0}
   displayColor: {r: 0.48235294, g: 0.17254902, b: 0.7490196, a: 1}
+  description: Deals direct HP damage before each Heroine action.
