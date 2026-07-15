@@ -24,6 +24,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
     [SerializeField] private TMP_Text resultText;           // 전투 결과 텍스트
+    [SerializeField] private BattleLogUI battleLogUI; // 전투 로그 UI
     [SerializeField] private Button endTurnButton;          // 턴 종료 버튼
     [SerializeField] private Button monsterAttackButton;    // 마물 공격 버튼
 
@@ -107,6 +108,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         SelectNextHeroineAction(); // 첫 번째 히로인 행동 선택
         selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
+        if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
+        AddBattleLog(BattleLogCategory.System, "Battle started."); // 전투 시작 기록
         monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
@@ -122,6 +125,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     {
         if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
 
+        AddBattleLog(BattleLogCategory.System, "Player turn ended."); // 플레이어 턴 종료 기록
         isPlayerTurn = false; // 플레이어 턴 종료
         ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
@@ -162,16 +166,25 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             ? damageText // 피해 결과만 표시
             : $"{damageText}\n{statusText}"; // 피해와 상태 효과 표시
 
-        UpdateBattleUI(); // 전투 UI 갱신
+        AddBattleLog(BattleLogCategory.PlayerAction, damageText); // 마물 공격 피해 기록
+
+        if (!string.IsNullOrEmpty(statusText)) // 상태 효과 적용 확인
+        {
+            AddBattleLog(BattleLogCategory.StatusEffect, statusText); // 마물 공격 상태 효과 기록
+        }
+
 
         if (heroineCurrentHp <= 0) // 히로인 사망 확인
         {
             EndBattle("Victory"); // 승리 처리
         }
+
+        UpdateBattleUI(); // 전투 UI 갱신
     }
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
+        AddBattleLog(BattleLogCategory.System, "Heroine turn started."); // 히로인 턴 시작 기록
         ReduceHeroineStatusDurations(StatusDurationTiming.AfterPlayerTurn); // 플레이어 턴 기준 상태 지속시간 감소
         ApplyHeroineStartTurnStatusEffects(); // 히로인 행동 시작 상태 효과 처리
         UpdateBattleUI(); // 독 피해 결과 UI 갱신
@@ -269,6 +282,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         int gainedShield = heroineCurrentShield - previousShield; // 실제 보호막 획득량 계산
 
         resultText.text = $"{nextHeroineAction.DisplayName}: Shield +{gainedShield}"; // 보호막 행동 결과 표시
+        AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 보호막 행동 기록
     }
 
     private void ExecuteHealAction() // 히로인 체력 회복 행동 실행
@@ -279,6 +293,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         int recoveredHp = heroineCurrentHp - previousHp; // 실제 체력 회복량 계산
 
         resultText.text = $"{nextHeroineAction.DisplayName}: HP +{recoveredHp}"; // 회복 행동 결과 표시
+        AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 회복 행동 기록
     }
     private void ExecuteApplyStatusAction() // 히로인 상태 효과 행동 실행
     {
@@ -290,6 +305,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
         resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} {amountText} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
+        AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 히로인 상태 효과 행동 기록
     }
     private void ExecuteCleanseAction() // 히로인 해로운 상태 효과 제거
     {
@@ -310,11 +326,13 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         if (removedStatusNames.Count == 0) // 제거 상태 없음 확인
         {
             resultText.text = $"{nextHeroineAction.DisplayName}: No Negative Status"; // 정화 대상 없음 표시
+            AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 정화 실패 기록
             return; // 정화 처리 종료
         }
 
         string removedStatusText = string.Join(", ", removedStatusNames); // 제거 상태 이름 결합
         resultText.text = $"{nextHeroineAction.DisplayName}: Removed {removedStatusText}"; // 정화 결과 표시
+        AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 정화 결과 기록
     }
 
     private void ReduceHeroineStatusDurations(StatusDurationTiming durationTiming) // 지정 시점 상태 효과 지속시간 감소
@@ -384,7 +402,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             if (heroineCurrentHp <= 0) { break; } // 히로인 사망 시 추가 처리 중단
         }
 
-        if (totalPoisonDamage > 0) { resultText.text = $"Poison: Heroine HP -{totalPoisonDamage}"; } // 독 피해 결과 표시
+        if (totalPoisonDamage > 0) // 독 피해 발생 확인
+        {
+            resultText.text = $"Poison: Heroine HP -{totalPoisonDamage}"; // 독 피해 결과 표시
+            AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 독 피해 전투 로그 기록
+        }
 
         return totalPoisonDamage; // 실제 독 피해 반환
     }
@@ -553,6 +575,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         }
 
         resultText.text = $"{nextHeroineAction.DisplayName}: Shield -{totalShieldAbsorbed}, HP -{totalHpDamage}, Defeated {defeatedMonsterCount}"; // 광역 공격 결과 표시
+AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광역 공격 기록
     }
 
 
@@ -583,6 +606,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             Destroy(targetMonster.gameObject); // 대상 마물 오브젝트 제거
             resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Defeated"; // 마물 사망 결과 표시
         }
+
+        AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 단일 공격 기록
     }
 
 
@@ -601,6 +626,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         playerCurrentShield = damageResult.RemainingShield; // 플레이어 남은 보호막 적용
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - damageResult.HpDamage); // 플레이어 실제 HP 피해 적용
         resultText.text = $"{actionName}: {CreateDamageResultText("Player", damageResult)}"; // 플레이어 피해 결과 표시
+        AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 플레이어 공격 기록
     }
 
 
@@ -609,7 +635,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         return $"{targetName}: Shield -{damageResult.ShieldAbsorbed}, HP -{damageResult.HpDamage}"; // 보호막과 HP 피해 문구 반환
     }
 
+    private void AddBattleLog(BattleLogCategory category, string message) // 전투 로그 추가
+    {
+        if (battleLogUI == null) { return; } // 전투 로그 UI 누락 차단
 
+        battleLogUI.AddEntry(turnNumber, category, message); // 현재 턴 전투 로그 등록
+    }
 
     private void SelectNextHeroineAction() // AI 제약 조건 기반 행동 선택
     {
@@ -828,6 +859,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     {
         turnNumber += 1; // 턴 번호 증가
+        AddBattleLog(BattleLogCategory.System, "Player turn started."); // 플레이어 턴 시작 기록
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
 
@@ -953,6 +985,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         currentMana -= cardData.ManaCost; // 카드 비용 차감
         SummonMonster(cardData.SummonMonster); // 마물 필드 소환
+        AddBattleLog(BattleLogCategory.PlayerAction, $"{cardData.CardName}: Summoned {cardData.SummonMonster.MonsterName}."); // 카드 소환 기록
         discardPile.Add(cardData); // 사용 카드 버린 더미 이동
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         Destroy(cardButton.gameObject); // 카드 버튼 제거
@@ -1040,6 +1073,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         ClearMonsterSelection(); // 마물 선택 상태 해제
         turnText.text = "Battle End"; // 전투 종료 문구 설정
         resultText.text = resultMessage; // 전투 결과 표시
+        AddBattleLog(BattleLogCategory.System, $"Battle ended: {resultMessage}."); // 전투 종료 기록
         heroineIntentText.text = "Next Action: None"; // 행동 예고 종료 표시
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
         monsterAttackButton.interactable = false; // 공격 버튼 비활성화
