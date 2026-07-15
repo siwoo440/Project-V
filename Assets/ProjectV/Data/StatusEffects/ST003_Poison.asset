@@ -19,3 +19,5 @@ MonoBehaviour:
   isNegative: 1
   durationTurns: 3
   durationTiming: 1
+  icon: {fileID: 0}
+  displayColor: {r: 0.48235294, g: 0.17254902, b: 0.7490196, a: 1}

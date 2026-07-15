@@ -17,6 +17,8 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private TMP_Text heroineDefenseText;   // 히로인 방어력 텍스트
     [SerializeField] private TMP_Text heroineShieldText;    // 히로인 보호막 텍스트
     [SerializeField] private TMP_Text heroineStatusText; // 히로인 상태 효과 텍스트
+    [SerializeField] private Transform heroineStatusIconContainer; // 히로인 상태 아이콘 배치 영역
+    [SerializeField] private StatusEffectIconUI statusEffectIconPrefab; // 상태 효과 아이콘 프리팹
     [SerializeField] private TMP_Text lustText;             // 성욕 게이지 텍스트
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
@@ -57,6 +59,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly List<Button> handButtons = new List<Button>();             // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private readonly List<ActiveStatusEffect> activeHeroineStatusEffects = new List<ActiveStatusEffect>(); // 히로인 활성 상태 효과 목록
+    private readonly List<StatusEffectIconUI> heroineStatusIconUIs = new List<StatusEffectIconUI>(); // 생성된 상태 효과 아이콘 목록
     private readonly Dictionary<HeroineActionData, int> heroineActionCooldowns = new Dictionary<HeroineActionData, int>(); // 행동별 남은 쿨타임
 
     private MonsterUnit selectedMonster; // 현재 선택 마물
@@ -777,7 +780,35 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         return $"Status: {string.Join(", ", statusNames)}"; // 전체 상태 효과 문구 반환
     }
+    private void ClearHeroineStatusIcons() // 생성된 히로인 상태 아이콘 제거
+    {
+        foreach (StatusEffectIconUI statusIconUI in heroineStatusIconUIs) // 생성된 아이콘 반복
+        {
+            if (statusIconUI == null) { continue; } // 삭제된 아이콘 제외
 
+            statusIconUI.gameObject.SetActive(false); // 중복 표시 방지 비활성화
+            Destroy(statusIconUI.gameObject); // 상태 아이콘 오브젝트 제거
+        }
+
+        heroineStatusIconUIs.Clear(); // 상태 아이콘 목록 초기화
+    }
+    private void RefreshHeroineStatusIcons() // 히로인 상태 효과 아이콘 갱신
+    {
+        ClearHeroineStatusIcons(); // 기존 상태 효과 아이콘 제거
+
+        if (heroineStatusIconContainer == null) { return; } // 아이콘 배치 영역 누락 차단
+        if (statusEffectIconPrefab == null) { return; } // 아이콘 프리팹 누락 차단
+
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data == null) { continue; } // 상태 데이터 누락 제외
+
+            StatusEffectIconUI newStatusIcon = Instantiate(statusEffectIconPrefab, heroineStatusIconContainer); // 상태 아이콘 생성
+            newStatusIcon.Setup(activeStatus.Data, activeStatus.RemainingTurns); // 상태 효과 정보 적용
+            heroineStatusIconUIs.Add(newStatusIcon); // 생성 아이콘 목록 등록
+        }
+    }
     private string GetHeroineTargetDisplayName(HeroineTargetType targetType) // 대상 규칙 표시 이름 반환
     {
         switch (targetType) // 대상 규칙 확인
@@ -996,6 +1027,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         heroineDefenseText.text = $"DEF: {currentHeroineDefense}"; // 현재 히로인 방어력 표시
         heroineShieldText.text = $"Shield: {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
         if (heroineStatusText != null) { heroineStatusText.text = GetHeroineStatusDisplay(); } // 히로인 상태 효과 표시
+        RefreshHeroineStatusIcons(); // 히로인 상태 효과 아이콘 갱신
         lustText.text = $"Lust: {heroineLust} / 100"; // 성욕 게이지 표시
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     }
