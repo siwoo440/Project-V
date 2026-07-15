@@ -67,14 +67,16 @@ public class StatusEffectIconUI : MonoBehaviour, IPointerEnterHandler, IPointerE
         if (tooltipUI != null) { tooltipUI.Hide(); } // 남아 있는 툴팁 숨김
     }
 
-    private string GetFallbackSymbol(StatusEffectType statusType) // 상태 효과 대체 기호 반환
+    private string GetFallbackSymbol(StatusEffectType statusType)
     {
-        switch (statusType) // 상태 효과 종류 확인
+        switch (statusType)
         {
-            case StatusEffectType.DefenseUp: return "D+"; // 방어력 증가 기호
-            case StatusEffectType.AttackDown: return "A-"; // 공격력 감소 기호
-            case StatusEffectType.Poison: return "P"; // 독 기호
-            default: return "?"; // 미지원 상태 효과 기호
+            case StatusEffectType.DefenseUp:    return "D+";
+            case StatusEffectType.AttackDown:   return "A-";
+            case StatusEffectType.Poison:       return "P";
+            case StatusEffectType.AttackUp:     return "A+";
+            case StatusEffectType.DefenseDown:  return "D-";
+            default:                            return "?";
         }
     }
 }

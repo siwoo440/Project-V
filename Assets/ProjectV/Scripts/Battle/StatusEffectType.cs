@@ -1,6 +1,8 @@
-public enum StatusEffectType // 상태 효과 종류
+public enum StatusEffectType
 {
-    DefenseUp, // 방어력 증가
-    AttackDown, // 공격력 감소
-    Poison // 지속 독 피해
+    DefenseUp   = 0,
+    AttackDown  = 1,
+    Poison      = 2,
+    AttackUp    = 3,
+    DefenseDown = 4
 }

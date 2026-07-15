@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b950246c527870844aa7a931a3e36bb7, type: 3}
+  m_Name: HA011_Poison Curse
+  m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
+  actionId: HA010
+  displayName: Poison Curse
+  actionType: 4
+  targetType: 1
+  damage: 0
+  shieldAmount: 0
+  healAmount: 0
+  appliedStatusEffect: {fileID: 11400000, guid: e635e32e8df2f16478694261eedf5b49, type: 2}
+  cleanseCount: 1
+  weight: 2
+  ignoreTaunt: 0
+  cooldownTurns: 1
+  maxConsecutiveUses: 1
+  minimumHpRatio: 0
+  maximumHpRatio: 1

@@ -253,8 +253,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
         AddBattleLog(BattleLogCategory.System, "Heroine turn started."); // 히로인 턴 시작 기록
-        ReduceHeroineStatusDurations(StatusDurationTiming.AfterPlayerTurn); // 플레이어 턴 기준 상태 지속시간 감소
-        ApplyHeroineStartTurnStatusEffects(); // 히로인 행동 시작 상태 효과 처리
+        ReduceHeroineStatusDurations( StatusDurationTiming.AfterPlayerTurn );
+        ReduceMonsterStatusDurations( StatusDurationTiming.AfterPlayerTurn );
+        ApplyHeroineStartTurnStatusEffects();
+
         UpdateBattleUI(); // 독 피해 결과 UI 갱신
 
         if (heroineCurrentHp <= 0) // 독 피해 히로인 사망 확인
@@ -269,6 +271,9 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         ResolveHeroineAttack(); // 히로인 공격 실행
         RegisterHeroineActionUse(executedAction); // 실행 행동과 쿨타임 기록
         ReduceHeroineStatusDurations(StatusDurationTiming.AfterHeroineTurn); // 히로인 행동 기준 상태 지속시간 감소
+        ReduceMonsterStatusDurations(StatusDurationTiming.AfterHeroineTurn);
+
+
         UpdateBattleUI(); // 히로인 공격 결과 갱신
 
         if (playerCurrentHp <= 0) // 플레이어 사망 확인
@@ -357,17 +362,103 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         resultText.text = $"{nextHeroineAction.DisplayName}: HP +{recoveredHp}"; // 회복 행동 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 회복 행동 기록
     }
-    private void ExecuteApplyStatusAction() // 히로인 상태 효과 행동 실행
+    private void ExecuteApplyStatusAction()
     {
-        StatusEffectData statusData = nextHeroineAction.AppliedStatusEffect; // 적용 상태 효과 확인
+        StatusEffectData statusData =
+            nextHeroineAction.AppliedStatusEffect;
 
-        if (statusData == null) { resultText.text = "Missing Status Effect Data"; return; } // 상태 데이터 누락 차단
+        if (statusData == null)
+        {
+            resultText.text = "Missing Status Effect Data";
+            return;
+        }
 
-        ApplyOrRefreshHeroineStatus(statusData); // 상태 효과 적용 또는 지속시간 갱신
+        string amountText = GetStatusAmountDisplay(statusData);
 
-        string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
-        resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} {amountText} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
-        AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 히로인 상태 효과 행동 기록
+        if (nextHeroineAction.TargetType == HeroineTargetType.Self)
+        {
+            ClearHeroineTargetPreview();
+            ApplyOrRefreshHeroineStatus(statusData);
+
+            resultText.text =
+                $"{nextHeroineAction.DisplayName}: " +
+                $"{statusData.DisplayName} {amountText} " +
+                $"({statusData.DurationTurns} Turns)";
+
+            AddBattleLog(
+                BattleLogCategory.StatusEffect,
+                resultText.text
+            );
+
+            return;
+        }
+
+        if (nextHeroineAction.TargetType == HeroineTargetType.AllMonsters)
+        {
+            ClearHeroineTargetPreview();
+
+            List<MonsterUnit> targetMonsters =
+                GetLivingMonsterCandidates();
+
+            if (targetMonsters.Count == 0)
+            {
+                resultText.text =
+                    $"{nextHeroineAction.DisplayName}: No Monster Target";
+
+                AddBattleLog(
+                    BattleLogCategory.StatusEffect,
+                    resultText.text
+                );
+
+                return;
+            }
+
+            foreach (MonsterUnit monsterUnit in targetMonsters)
+            {
+                monsterUnit.ApplyOrRefreshStatus(statusData);
+            }
+
+            resultText.text =
+                $"{nextHeroineAction.DisplayName}: " +
+                $"{statusData.DisplayName} applied to " +
+                $"{targetMonsters.Count} monsters";
+
+            AddBattleLog(
+                BattleLogCategory.StatusEffect,
+                resultText.text
+            );
+
+            return;
+        }
+
+        MonsterUnit targetMonster =
+            ConsumePreviewedHeroineTarget();
+
+        if (targetMonster == null)
+        {
+            resultText.text =
+                $"{nextHeroineAction.DisplayName}: No Monster Target";
+
+            AddBattleLog(
+                BattleLogCategory.StatusEffect,
+                resultText.text
+            );
+
+            return;
+        }
+
+        targetMonster.ApplyOrRefreshStatus(statusData);
+
+        resultText.text =
+            $"{nextHeroineAction.DisplayName}: " +
+            $"{targetMonster.MonsterName} received " +
+            $"{statusData.DisplayName} {amountText} " +
+            $"({statusData.DurationTurns} Turns)";
+
+        AddBattleLog(
+            BattleLogCategory.StatusEffect,
+            resultText.text
+        );
     }
     private void ExecuteCleanseAction() // 히로인 해로운 상태 효과 제거
     {
@@ -418,33 +509,47 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     }
 
 
-    private int GetHeroineCurrentDefense() // 상태 효과 포함 히로인 방어력 계산
+    private int GetHeroineCurrentDefense()
     {
-        int currentDefense = heroineDefense; // 기본 방어력 저장
+        int currentDefense = heroineDefense;
 
-        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects)
         {
-            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
-            if (activeStatus.Data.StatusType != StatusEffectType.DefenseUp) { continue; } // 방어력 효과 외 제외
+            if (activeStatus == null || activeStatus.IsExpired) { continue; }
 
-            currentDefense += activeStatus.Data.Amount; // 방어력 증가량 적용
+            if (activeStatus.Data.StatusType == StatusEffectType.DefenseUp)
+            {
+                currentDefense += activeStatus.Data.Amount;
+            }
+
+            if (activeStatus.Data.StatusType == StatusEffectType.DefenseDown)
+            {
+                currentDefense -= activeStatus.Data.Amount;
+            }
         }
 
-        return Mathf.Max(0, currentDefense); // 음수 방어력 차단
+        return Mathf.Max(0, currentDefense);
     }
-    private int GetHeroineCurrentAttack(int baseAttack) // 상태 효과 포함 히로인 공격력 계산
+    private int GetHeroineCurrentAttack(int baseAttack)
     {
-        int currentAttack = Mathf.Max(0, baseAttack); // 기본 공격력 저장
+        int currentAttack = Mathf.Max(0, baseAttack);
 
-        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects)
         {
-            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
-            if (activeStatus.Data.StatusType != StatusEffectType.AttackDown) { continue; } // 공격력 감소 외 제외
+            if (activeStatus == null || activeStatus.IsExpired) { continue; }
 
-            currentAttack -= activeStatus.Data.Amount; // 공격력 감소량 적용
+            if (activeStatus.Data.StatusType == StatusEffectType.AttackUp)
+            {
+                currentAttack += activeStatus.Data.Amount;
+            }
+
+            if (activeStatus.Data.StatusType == StatusEffectType.AttackDown)
+            {
+                currentAttack -= activeStatus.Data.Amount;
+            }
         }
 
-        return Mathf.Max(0, currentAttack); // 음수 공격력 차단
+        return Mathf.Max(0, currentAttack);
     }
     private int ApplyHeroineStartTurnStatusEffects() // 히로인 행동 시작 상태 효과 처리
     {
@@ -684,7 +789,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return;
         }
 
-        if (nextHeroineAction.ActionType != HeroineActionType.SingleAttack) { return; }
+        bool canPreviewMonsterTarget =
+            nextHeroineAction.ActionType == HeroineActionType.SingleAttack ||
+            nextHeroineAction.ActionType == HeroineActionType.ApplyStatus;
+
+        if (!canPreviewMonsterTarget) { return; }
 
         previewedHeroineTarget =
             ResolveHeroineSingleTarget(nextHeroineAction);
@@ -695,7 +804,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         }
     }
 
-    private void ExecutePreviewedSingleTargetAttack()
+    private MonsterUnit ConsumePreviewedHeroineTarget()
     {
         MonsterUnit targetMonster = previewedHeroineTarget;
 
@@ -706,6 +815,15 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         }
 
         ClearHeroineTargetPreview();
+
+        return targetMonster;
+    }
+
+    private void ExecutePreviewedSingleTargetAttack()
+    {
+        MonsterUnit targetMonster =
+            ConsumePreviewedHeroineTarget();
+
         AttackTargetMonster(targetMonster);
     }
 
@@ -863,11 +981,12 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
     private bool CanUseHeroineAction(HeroineActionData actionData) // 행동 사용 가능 여부 확인
     {
         if (actionData == null) { return false; } // 행동 데이터 누락 차단
-        if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield)                  { return false; } // 최대 보호막 행동 차단
-        if (actionData.ActionType == HeroineActionType.Heal && heroineCurrentHp >= heroineMaxHp)                                { return false; } // 최대 체력 회복 행동 차단
-        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null)                   { return false; } // 상태 데이터 누락 행동 차단
-        if (actionData.ActionType == HeroineActionType.ApplyStatus && HasHeroineStatusEffect(actionData.AppliedStatusEffect))   { return false; } // 중복 상태 행동 차단
-        if (actionData.ActionType == HeroineActionType.Cleanse && !HasHeroineNegativeStatus())                                  { return false; } // 해로운 상태 없는 정화 행동 제외
+        if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield) { return false; } // 최대 보호막 행동 차단
+        if (actionData.ActionType == HeroineActionType.Heal && heroineCurrentHp >= heroineMaxHp)               { return false; } // 최대 체력 회복 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null)  { return false; } // 상태 데이터 누락 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.TargetType 
+            == HeroineTargetType.Self && HasHeroineStatusEffect(actionData.AppliedStatusEffect))               { return false; }
+        if (actionData.ActionType == HeroineActionType.Cleanse && !HasHeroineNegativeStatus())                 { return false; } // 해로운 상태 없는 정화 행동 제외
 
         return true; // 행동 사용 허용
     }
@@ -987,6 +1106,12 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             case StatusEffectType.Poison: // 지속 독 피해
                 return $"HP -{statusData.Amount}"; // 독 피해 수치 반환
 
+            case StatusEffectType.AttackUp:
+                return $"+{statusData.Amount}";
+
+            case StatusEffectType.DefenseDown:
+                return $"-{statusData.Amount}";
+
             default: // 정의되지 않은 상태 효과
                 return statusData.Amount.ToString(); // 기본 수치 반환
         }
@@ -1056,8 +1181,10 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
 
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     {
-        turnNumber += 1; // 턴 번호 증가
-        AddBattleLog(BattleLogCategory.System, "Player turn started."); // 플레이어 턴 시작 기록
+        turnNumber += 1;
+        AddBattleLog(BattleLogCategory.System, "Player turn started.");
+
+        ApplyMonsterStartTurnStatusEffects();
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
 
@@ -1203,7 +1330,13 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             monsterFieldContainer
         );
 
-        newMonsterUnit.Initialize(monsterData, SelectMonster);
+        newMonsterUnit.Initialize(
+            monsterData,
+            SelectMonster,
+            statusEffectIconPrefab,
+            statusEffectTooltipUI
+        );
+
         fieldMonsters.Add(newMonsterUnit);
         newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);
 
@@ -1301,4 +1434,67 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         SetHandInteractable(false); // 손패 버튼 비활성화
         SetMonsterInteractable(false); // 마물 선택 비활성화
     }
+
+    private void ReduceMonsterStatusDurations( StatusDurationTiming durationTiming)
+    {
+        foreach (MonsterUnit monsterUnit in fieldMonsters)
+        {
+            if (monsterUnit == null || monsterUnit.IsDead) { continue; }
+
+            monsterUnit.ReduceStatusDurations(durationTiming);
+        }
+    }
+    private void ApplyMonsterStartTurnStatusEffects()
+    {
+        for (int i = fieldMonsters.Count - 1; i >= 0; i--)
+        {
+            MonsterUnit monsterUnit = fieldMonsters[i];
+
+            if (monsterUnit == null)
+            {
+                fieldMonsters.RemoveAt(i);
+                continue;
+            }
+
+            int poisonDamage =
+                monsterUnit.ApplyStartTurnStatusEffects();
+
+            if (poisonDamage > 0)
+            {
+                AddBattleLog(
+                    BattleLogCategory.StatusEffect,
+                    $"Poison: {monsterUnit.MonsterName} HP -{poisonDamage}"
+                );
+            }
+
+            if (!monsterUnit.IsDead) { continue; }
+
+            string defeatedMonsterName = monsterUnit.MonsterName;
+
+            if (selectedMonster == monsterUnit)
+            {
+                ClearMonsterSelection();
+            }
+
+            if (previewedHeroineTarget == monsterUnit)
+            {
+                previewedHeroineTarget = null;
+            }
+
+            fieldMonsters.RemoveAt(i);
+            Destroy(monsterUnit.gameObject);
+
+            AddBattleLog(
+                BattleLogCategory.StatusEffect,
+                $"{defeatedMonsterName} defeated by Poison"
+            );
+        }
+    }
+
+
+
+
+
+
+
 }
