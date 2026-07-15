@@ -19,4 +19,5 @@ MonoBehaviour:
   lustDamage: 8
   defense: 2
   startingShield: 3
+  isTaunting: 1
   attackStatusEffect: {fileID: 0}

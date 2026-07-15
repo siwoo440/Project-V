@@ -19,7 +19,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     [Header("Selection Colors")] // 선택 색상 구분
     [SerializeField] private Color normalColor   = new Color(0.34f, 0.24f, 0.45f, 1f); // 기본 배경 색상
     [SerializeField] private Color selectedColor = new Color(0.25f, 0.65f, 0.35f, 1f); // 선택 배경 색상
-
+    [SerializeField] private Color heroineTargetColor = new Color(0.9f, 0.35f, 0.2f, 1f); // 히로인 타겟 색상
 
     private MonsterData monsterData; // 연결 마물 데이터
     private MonsterActionState actionState; // 현재 행동 상태
@@ -28,8 +28,11 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     private int currentHp; // 현재 마물 체력
     private int currentShield; // 현재 마물 보호막
 
+    private bool isSelected; // 플레이어 선택
+    private bool isHeroineTargeted; // 히로인 타겟
     public int Attack => monsterData != null ? monsterData.Attack : 0; // 현재 마물 공격력 반환
     public int LustDamage => monsterData != null ? monsterData.LustDamage : 0; // 성욕 피해 반환
+    public bool IsTaunting => monsterData != null && monsterData.IsTaunting;
     public StatusEffectData AttackStatusEffect => monsterData != null ? monsterData.AttackStatusEffect : null; // 공격 상태 효과 반환
     public int Defense => monsterData != null ? monsterData.Defense : 0; // 현재 마물 방어력 반환
     public int CurrentShield => currentShield; // 현재 마물 보호막 반환
@@ -49,6 +52,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
         selectButton.onClick.RemoveAllListeners(); // 기존 버튼 이벤트 제거
         selectButton.onClick.AddListener(HandleSelectButton); // 마물 선택 이벤트 연결
         SetSelected(false); // 선택 상태 초기화
+        SetHeroineTargeted(false);
         SetPlayerTurnInteraction(true); // 초기 선택 가능 여부 갱신
         UpdateMonsterUI(); // 마물 UI 갱신
     } 
@@ -83,11 +87,37 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
     public void SetPlayerTurnInteraction(bool isPlayerTurn) // 플레이어 턴 상호작용 설정
     { 
         selectButton.interactable = isPlayerTurn && CanAttack; // 공격 가능 마물만 선택 허용
-    } 
+    }
 
-    public void SetSelected(bool isSelected) // 마물 선택 표시 설정
-    { 
-        backgroundImage.color = isSelected ? selectedColor : normalColor; // 선택 상태별 배경색 적용
+    public void SetSelected(bool selected)
+    {
+        isSelected = selected;
+        UpdateBackgroundColor();
+    }
+
+    public void SetHeroineTargeted(bool targeted)
+    {
+        isHeroineTargeted = targeted;
+        UpdateBackgroundColor();
+    }
+
+    private void UpdateBackgroundColor()
+    {
+        if (backgroundImage == null) { return; }
+
+        if (isSelected)
+        {
+            backgroundImage.color = selectedColor;
+            return;
+        }
+
+        if (isHeroineTargeted)
+        {
+            backgroundImage.color = heroineTargetColor;
+            return;
+        }
+
+        backgroundImage.color = normalColor;
     }
 
     private void HandleSelectButton() // 마물 선택 버튼 처리
@@ -105,6 +135,7 @@ public class MonsterUnit : MonoBehaviour // 필드 마물 UI 관리
         if (monsterLustDamageText != null)  { monsterLustDamageText.text = $"LST: {monsterData.LustDamage}"; }
         monsterDefenseText.text = $"DEF: {monsterData.Defense}"; // 마물 방어력 표시
         monsterShieldText.text  = $"Shield: {currentShield}"; // 마물 보호막 표시
+        string tauntText = IsTaunting ? " | Taunt" : string.Empty;
         monsterStateText.text   = $"State: {GetStateLabel()}"; // 마물 행동 상태 표시
     }
 

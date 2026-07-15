@@ -12,6 +12,9 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [SerializeField] private int defense = 0; // 마물 방어력
     [SerializeField] private int startingShield = 0; // 마물 시작 보호막
 
+    [Header("Target Rules")]
+    [SerializeField] private bool isTaunting;
+
     [Header("Attack Status Effect")] // 공격 상태 효과 구분
     [SerializeField] private StatusEffectData attackStatusEffect; // 공격 시 부여 상태 효과
 
@@ -22,5 +25,6 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     public int LustDamage => lustDamage; // 성욕 피해 반환
     public int Defense => defense; // 마물 방어력 반환
     public int StartingShield => startingShield; // 마물 시작 보호막 반환
+    public bool IsTaunting => isTaunting; // 도발 상태 반환
     public StatusEffectData AttackStatusEffect => attackStatusEffect; // 공격 상태 효과 반환
 } 

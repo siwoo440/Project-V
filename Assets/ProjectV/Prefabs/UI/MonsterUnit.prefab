@@ -244,6 +244,7 @@ MonoBehaviour:
   backgroundImage: {fileID: 7443571184343099476}
   normalColor: {r: 0.34, g: 0.24, b: 0.45, a: 1}
   selectedColor: {r: 0.25, g: 0.65, b: 0.35, a: 1}
+  heroineTargetColor: {r: 0.9, g: 0.3529412, b: 0.19607843, a: 1}
 --- !u!114 &2915986314479178350
 MonoBehaviour:
   m_ObjectHideFlags: 0

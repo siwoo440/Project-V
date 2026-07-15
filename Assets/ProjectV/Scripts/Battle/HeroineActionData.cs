@@ -16,6 +16,9 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private int cleanseCount = 1; // 한 번에 제거할 상태 효과 수
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
+    [Header("Target Rules")]
+    [SerializeField] private bool ignoreTaunt; // 도발 무시
+
     [Header("AI Restrictions")] // AI 제약 조건 구분
     [Min(0)] // 쿨타임 최소값 제한
     [SerializeField] private int cooldownTurns = 0; // 행동 사용 후 쿨타임
@@ -43,5 +46,6 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public bool IsAvailable(float currentHpRatio) // 현재 HP 조건 확인
     {
         return currentHpRatio > minimumHpRatio && currentHpRatio <= maximumHpRatio; // 행동 사용 가능 여부 반환
-    } 
+    }
+    public bool IgnoreTaunt => ignoreTaunt; // 도발 무시 반환
 }

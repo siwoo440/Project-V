@@ -68,6 +68,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private readonly Dictionary<HeroineActionData, int> heroineActionCooldowns = new Dictionary<HeroineActionData, int>(); // 행동별 남은 쿨타임
 
     private MonsterUnit selectedMonster; // 현재 선택 마물
+    private MonsterUnit previewedHeroineTarget; // 히로인 공격 예정 대상
 
     private HeroineActionData nextHeroineAction; // 다음 히로인 행동 데이터
     private HeroineActionData lastHeroineAction; // 마지막으로 실행한 히로인 행동
@@ -120,9 +121,10 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         ClearHand(); // 기존 손패 초기화
         ClearMonsterField(); // 기존 마물 필드 초기화
         drawPile.AddRange(deckCards); // 덱 카드 드로우 더미 등록
-        DrawCards(startingHandCount); // 시작 손패 드로우
-        ShowPlayerTurn(); // 플레이어 턴 표시
-        UpdateBattleUI(); // 전체 UI 갱신
+        DrawCards(startingHandCount);
+        RefreshHeroineTargetPreview();
+        ShowPlayerTurn();
+        UpdateBattleUI();
     }
 
     public void EndPlayerTurn() // 플레이어 턴 종료
@@ -309,34 +311,28 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
 
-        switch (nextHeroineAction.TargetType) // 행동 대상 규칙 확인
+        switch (nextHeroineAction.TargetType)
         {
-            case HeroineTargetType.FirstMonster: // 첫 번째 마물 대상
-                AttackTargetMonster(GetFirstMonster()); // 첫 번째 마물 공격
+            case HeroineTargetType.FirstMonster:
+            case HeroineTargetType.RandomMonster:
+            case HeroineTargetType.LowestHpMonster:
+            case HeroineTargetType.Player:
+                ExecutePreviewedSingleTargetAttack();
                 break;
 
-            case HeroineTargetType.RandomMonster: // 무작위 마물 대상
-                AttackTargetMonster(GetRandomMonster()); // 무작위 마물 공격
+            case HeroineTargetType.AllMonsters:
+                ClearHeroineTargetPreview();
+                ExecuteAreaAttack();
                 break;
 
-            case HeroineTargetType.LowestHpMonster: // 최저 HP 마물 대상
-                AttackTargetMonster(GetLowestHpMonster()); // 최저 HP 마물 공격
+            case HeroineTargetType.Self:
+                ClearHeroineTargetPreview();
+                resultText.text = "Invalid Self Target Action";
                 break;
 
-            case HeroineTargetType.AllMonsters: // 모든 마물 대상
-                ExecuteAreaAttack(); // 전체 마물 공격
-                break;
-
-            case HeroineTargetType.Player: // 플레이어 직접 대상
-                AttackPlayer(); // 플레이어 직접 공격
-                break;
-
-            case HeroineTargetType.Self: // 히로인 자신 대상
-                resultText.text = "Invalid Self Target Action"; // 잘못된 자기 대상 안내
-                break;
-
-            default: // 정의되지 않은 대상
-                resultText.text = "Unknown Target Type"; // 대상 규칙 오류 안내
+            default:
+                ClearHeroineTargetPreview();
+                resultText.text = "Unknown Target Type";
                 break;
         }
     }
@@ -569,38 +565,148 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
         return $"Heroine: {statusData.DisplayName} {amountText}"; // 상태 효과 적용 결과 반환
     }
-    private MonsterUnit GetFirstMonster() // 첫 번째 마물 반환
-    {
-        if (fieldMonsters.Count == 0) { return null; } // 대상 없음 반환
 
-        return fieldMonsters[0]; // 첫 번째 마물 반환
+    private List<MonsterUnit> GetLivingMonsterCandidates()
+    {
+        fieldMonsters.RemoveAll(
+            monsterUnit => monsterUnit == null || monsterUnit.IsDead
+        );
+
+        return new List<MonsterUnit>(fieldMonsters);
     }
-
-    private MonsterUnit GetRandomMonster() // 무작위 마물 반환
+    private List<MonsterUnit> GetTauntingMonsterCandidates(
+    List<MonsterUnit> livingMonsters
+)
     {
-        if (fieldMonsters.Count == 0) { return null; } // 대상 없음 반환
+        List<MonsterUnit> tauntingMonsters = new List<MonsterUnit>();
 
-        int randomIndex = Random.Range(0, fieldMonsters.Count); // 무작위 필드 인덱스 생성
-        return fieldMonsters[randomIndex]; // 무작위 마물 반환
-    }
-
-    private MonsterUnit GetLowestHpMonster() // 현재 HP가 가장 낮은 마물 반환
-    {
-        if (fieldMonsters.Count == 0) { return null; } // 대상 없음 반환
-
-        MonsterUnit lowestHpMonster = fieldMonsters[0]; // 첫 번째 마물을 초기 대상으로 설정
-
-        for (int i = 1; i < fieldMonsters.Count; i++) // 두 번째 마물부터 반복
+        foreach (MonsterUnit monsterUnit in livingMonsters)
         {
-            MonsterUnit currentMonster = fieldMonsters[i]; // 현재 비교 마물 저장
+            if (monsterUnit == null || monsterUnit.IsDead) { continue; }
+            if (!monsterUnit.IsTaunting) { continue; }
 
-            if (currentMonster.CurrentHp < lowestHpMonster.CurrentHp) // 더 낮은 HP 확인
+            tauntingMonsters.Add(monsterUnit);
+        }
+
+        return tauntingMonsters;
+    }
+    private MonsterUnit GetLowestHpMonsterFromCandidates(
+    List<MonsterUnit> candidates
+)
+    {
+        if (candidates == null || candidates.Count == 0) { return null; }
+
+        MonsterUnit lowestHpMonster = candidates[0];
+
+        for (int i = 1; i < candidates.Count; i++)
+        {
+            MonsterUnit currentMonster = candidates[i];
+
+            if (currentMonster.CurrentHp < lowestHpMonster.CurrentHp)
             {
-                lowestHpMonster = currentMonster; // 최저 HP 마물 교체
+                lowestHpMonster = currentMonster;
             }
         }
 
-        return lowestHpMonster; // 최저 HP 마물 반환
+        return lowestHpMonster;
+    }
+    private MonsterUnit ResolveHeroineSingleTarget(
+    HeroineActionData actionData
+)
+    {
+        if (actionData == null) { return null; }
+
+        List<MonsterUnit> livingMonsters = GetLivingMonsterCandidates();
+        List<MonsterUnit> tauntingMonsters =
+            GetTauntingMonsterCandidates(livingMonsters);
+
+        bool mustTargetTaunt =
+            !actionData.IgnoreTaunt &&
+            tauntingMonsters.Count > 0;
+
+        if (actionData.TargetType == HeroineTargetType.Player)
+        {
+            return mustTargetTaunt
+                ? tauntingMonsters[0]
+                : null;
+        }
+
+        List<MonsterUnit> targetCandidates = mustTargetTaunt
+            ? tauntingMonsters
+            : livingMonsters;
+
+        if (targetCandidates.Count == 0) { return null; }
+
+        switch (actionData.TargetType)
+        {
+            case HeroineTargetType.FirstMonster:
+                return targetCandidates[0];
+
+            case HeroineTargetType.RandomMonster:
+                return targetCandidates[
+                    Random.Range(0, targetCandidates.Count)
+                ];
+
+            case HeroineTargetType.LowestHpMonster:
+                return GetLowestHpMonsterFromCandidates(targetCandidates);
+
+            default:
+                return null;
+        }
+    }
+    private void ClearHeroineTargetPreview()
+    {
+        foreach (MonsterUnit monsterUnit in fieldMonsters)
+        {
+            if (monsterUnit == null) { continue; }
+
+            monsterUnit.SetHeroineTargeted(false);
+        }
+
+        previewedHeroineTarget = null;
+    }
+
+    private void RefreshHeroineTargetPreview()
+    {
+        ClearHeroineTargetPreview();
+
+        if (nextHeroineAction == null) { return; }
+
+        List<MonsterUnit> livingMonsters = GetLivingMonsterCandidates();
+
+        if (nextHeroineAction.TargetType == HeroineTargetType.AllMonsters)
+        {
+            foreach (MonsterUnit monsterUnit in livingMonsters)
+            {
+                monsterUnit.SetHeroineTargeted(true);
+            }
+
+            return;
+        }
+
+        if (nextHeroineAction.ActionType != HeroineActionType.SingleAttack) { return; }
+
+        previewedHeroineTarget =
+            ResolveHeroineSingleTarget(nextHeroineAction);
+
+        if (previewedHeroineTarget != null)
+        {
+            previewedHeroineTarget.SetHeroineTargeted(true);
+        }
+    }
+
+    private void ExecutePreviewedSingleTargetAttack()
+    {
+        MonsterUnit targetMonster = previewedHeroineTarget;
+
+        if (targetMonster == null || targetMonster.IsDead)
+        {
+            targetMonster =
+                ResolveHeroineSingleTarget(nextHeroineAction);
+        }
+
+        ClearHeroineTargetPreview();
+        AttackTargetMonster(targetMonster);
     }
 
 
@@ -806,18 +912,44 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         }
     }
 
-
-
-
-    private void UpdateHeroineIntentUI() // 히로인 행동 예고 UI 갱신
+    private string GetHeroineTargetPreviewText()
     {
-        if (heroineIntentText == null) { return; } // 행동 예고 텍스트 누락 차단
+        if (nextHeroineAction == null) { return "None"; }
 
-        if (nextHeroineAction == null) { heroineIntentText.text = "Next Action: None"; return; } // 다음 행동 없음 표시
+        if (nextHeroineAction.TargetType == HeroineTargetType.AllMonsters)
+        {
+            return fieldMonsters.Count > 0
+                ? "All Monsters"
+                : "Player (No Monsters)";
+        }
 
-        string targetName = GetHeroineTargetDisplayName(nextHeroineAction.TargetType); // 대상 표시 이름 확인
-        string effectName = GetHeroineActionEffectDisplay(nextHeroineAction); // 행동 효과 문구 확인
-        heroineIntentText.text = $"Next: {nextHeroineAction.DisplayName}\n{effectName} / Target: {targetName}"; // 행동 효과와 대상 표시
+        if (previewedHeroineTarget != null &&
+            !previewedHeroineTarget.IsDead)
+        {
+            return previewedHeroineTarget.IsTaunting
+                ? $"{previewedHeroineTarget.MonsterName} (Taunt)"
+                : previewedHeroineTarget.MonsterName;
+        }
+
+        if (nextHeroineAction.TargetType == HeroineTargetType.Player)   { return "Player"; }
+        if (nextHeroineAction.TargetType == HeroineTargetType.Self)     { return "Self"; }
+
+        return "Player (No Monsters)";
+    }
+
+
+    private void UpdateHeroineIntentUI()
+    {
+        if (heroineIntentText == null) { return; }
+        if (nextHeroineAction == null) { heroineIntentText.text = "Next Action: None"; return;  }
+
+        string targetName = GetHeroineTargetPreviewText();
+        string effectName =
+            GetHeroineActionEffectDisplay(nextHeroineAction);
+
+        heroineIntentText.text =
+            $"Next: {nextHeroineAction.DisplayName}\n" +
+            $"{effectName} / Target: {targetName}";
     }
 
 
@@ -936,9 +1068,10 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         DrawCards(turnDrawCount); // 턴 시작 카드 드로우
         isPlayerTurn = true; // 플레이어 턴 설정
 
-        PrepareMonstersForNewTurn(); // 마물 공격 상태 준비
-        ShowPlayerTurn(); // 플레이어 턴 표시
-        UpdateBattleUI(); // 전체 UI 갱신
+        PrepareMonstersForNewTurn();
+        RefreshHeroineTargetPreview();
+        ShowPlayerTurn();
+        UpdateBattleUI();
     }
 
     private void PrepareMonstersForNewTurn() // 필드 마물 새 턴 준비
@@ -1063,12 +1196,18 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         UpdateBattleUI(); // 카드 사용 결과 표시
     }
 
-    private void SummonMonster(MonsterData monsterData) // 마물 필드 소환
+    private void SummonMonster(MonsterData monsterData)
     {
-        MonsterUnit newMonsterUnit = Instantiate(monsterUnitPrefab, monsterFieldContainer); // 마물 UI 복제
-        newMonsterUnit.Initialize(monsterData, SelectMonster); // 마물 데이터와 선택 콜백 초기화
-        fieldMonsters.Add(newMonsterUnit); // 필드 마물 목록 등록
-        newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn); // 소환 대기 선택 상태 적용
+        MonsterUnit newMonsterUnit = Instantiate(
+            monsterUnitPrefab,
+            monsterFieldContainer
+        );
+
+        newMonsterUnit.Initialize(monsterData, SelectMonster);
+        fieldMonsters.Add(newMonsterUnit);
+        newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);
+
+        RefreshHeroineTargetPreview();
     }
 
     private void SetHandInteractable(bool isInteractable) // 손패 버튼 활성 상태 변경
@@ -1106,18 +1245,17 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         handButtons.Clear(); // 손패 버튼 목록 초기화
     }
 
-    private void ClearMonsterField() // 마물 필드 전체 제거
+    private void ClearMonsterField()
     {
-        foreach (MonsterUnit monsterUnit in fieldMonsters) // 모든 필드 마물 반복
+        ClearHeroineTargetPreview();
+
+        foreach (MonsterUnit monsterUnit in fieldMonsters)
         {
-            if (monsterUnit != null) // 마물 존재 확인
-            {
-                Destroy(monsterUnit.gameObject); // 마물 UI 제거
-            }
+            if (monsterUnit != null) { Destroy(monsterUnit.gameObject); }
         }
 
-        fieldMonsters.Clear(); // 필드 마물 목록 초기화
-        ClearMonsterSelection(); // 마물 선택 상태 초기화
+        fieldMonsters.Clear();
+        ClearMonsterSelection();
     }
 
     private void UpdateBattleUI() // 전투 수치 UI 갱신
@@ -1152,6 +1290,7 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
     {
         isBattleEnded = true; // 전투 종료 상태 설정
         isPlayerTurn = false; // 플레이어 턴 해제
+        ClearHeroineTargetPreview();
         ClearMonsterSelection(); // 마물 선택 상태 해제
         turnText.text = "Battle End"; // 전투 종료 문구 설정
         resultText.text = resultMessage; // 전투 결과 표시
