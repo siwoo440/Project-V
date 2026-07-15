@@ -28,6 +28,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private BattleLogUI battleLogUI; // 전투 로그 UI
     [SerializeField] private Button endTurnButton;          // 턴 종료 버튼
     [SerializeField] private Button monsterAttackButton;    // 마물 공격 버튼
+    [SerializeField] private Button lustAttackButton; // 성욕 공격 버튼
 
     [Header("Card UI")] // 카드 UI 구분
     [SerializeField] private Transform handPanel;       // 손패 카드 배치 영역
@@ -113,7 +114,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
         AddBattleLog(BattleLogCategory.System, "Battle started."); // 전투 시작 기록
         AddBattleLog(BattleLogCategory.System, "Player turn started.");
-        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
+        SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
         ClearHand(); // 기존 손패 초기화
@@ -132,7 +133,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         isPlayerTurn = false; // 플레이어 턴 종료
         ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
-        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
+        SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
         SetMonsterInteractable(false); // 마물 선택 비활성화
         turnText.text = "Heroine Turn"; // 히로인 턴 표시
@@ -157,6 +158,16 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     }
     public void AttackWithSelectedMonster()
     {
+        ExecuteMonsterAttack(MonsterAttackMode.Hp);
+    }
+
+    public void LustAttackWithSelectedMonster()
+    {
+        ExecuteMonsterAttack(MonsterAttackMode.Lust);
+    }
+
+    private void ExecuteMonsterAttack(MonsterAttackMode attackMode)
+    {
         if (!isPlayerTurn || isBattleEnded) { return; }
 
         if (selectedMonster == null || !selectedMonster.CanAttack)
@@ -165,26 +176,18 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return;
         }
 
+        if (attackMode == MonsterAttackMode.Lust && selectedMonster.LustDamage <= 0)
+        {
+            resultText.text = "Selected Monster Has No Lust Damage";
+            return;
+        }
+
         MonsterUnit attackingMonster = selectedMonster;
-        string attackerName = attackingMonster.MonsterName;
-        int attackPower = attackingMonster.Attack;
-        int requestedLustDamage = attackingMonster.LustDamage;
-        int currentHeroineDefense = GetHeroineCurrentDefense();
 
-        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(
-            attackPower,
-            currentHeroineDefense,
-            heroineCurrentShield
-        );
+        string attackResultText = attackMode == MonsterAttackMode.Hp
+            ? ExecuteMonsterHpAttack(attackingMonster)
+            : ExecuteMonsterLustAttack(attackingMonster);
 
-        heroineCurrentShield = damageResult.RemainingShield;
-        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage);
-
-        int appliedLustDamage = AddHeroineLust(requestedLustDamage);
-
-        string damageText = CreateDamageResultText(attackerName, damageResult);
-        string lustGainText = GetLustGainText(requestedLustDamage, appliedLustDamage);
-        string attackResultText = $"{damageText}\n{lustGainText}";
         string statusText = TryApplyMonsterAttackStatus(attackingMonster);
 
         attackingMonster.MarkActed();
@@ -201,12 +204,48 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             AddBattleLog(BattleLogCategory.StatusEffect, statusText);
         }
 
+        UpdateBattleUI();
+
         if (heroineCurrentHp <= 0)
         {
-            EndBattle("Victory");
+            EndBattle("Victory - HP Depleted");
+            return;
         }
 
-        UpdateBattleUI();
+        if (heroineLust >= heroineMaxLust)
+        {
+            EndBattle("Victory - Lust MAX");
+        }
+    }
+
+    private string ExecuteMonsterHpAttack(MonsterUnit attackingMonster)
+    {
+        int currentHeroineDefense = GetHeroineCurrentDefense();
+
+        DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(
+            attackingMonster.Attack,
+            currentHeroineDefense,
+            heroineCurrentShield
+        );
+
+        heroineCurrentShield = damageResult.RemainingShield;
+        heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage);
+
+        string damageText = CreateDamageResultText(
+            attackingMonster.MonsterName,
+            damageResult
+        );
+
+        return $"[HP Attack] {damageText}";
+    }
+
+    private string ExecuteMonsterLustAttack(MonsterUnit attackingMonster)
+    {
+        int requestedLustDamage = attackingMonster.LustDamage;
+        int appliedLustDamage = AddHeroineLust(requestedLustDamage);
+        string lustGainText = GetLustGainText(requestedLustDamage, appliedLustDamage);
+
+        return $"[Lust Attack] {attackingMonster.MonsterName}: {lustGainText}";
     }
 
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
@@ -912,46 +951,50 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             }
         }
     }
+    private void SetAttackButtonsInteractable(bool canAttack)
+    {
+        bool hasReadyMonster = selectedMonster != null && selectedMonster.CanAttack;
 
+        if (monsterAttackButton != null)
+        {
+            monsterAttackButton.interactable = canAttack && hasReadyMonster;
+        }
+
+        if (lustAttackButton != null)
+        {
+            lustAttackButton.interactable =
+                canAttack &&
+                hasReadyMonster &&
+                selectedMonster.LustDamage > 0;
+        }
+    }
     private void ShowPlayerTurn() // 플레이어 턴 UI 표시
     {
         turnText.text = "Player Turn"; // 플레이어 턴 문구 설정
         endTurnButton.interactable = true; // 턴 종료 버튼 활성화
-        monsterAttackButton.interactable = false; // 공격 버튼 초기 비활성화
+        SetAttackButtonsInteractable(false); // 공격 버튼 초기 비활성화
         SetHandInteractable(true); // 손패 버튼 활성화
         SetMonsterInteractable(true); // 공격 가능 마물 선택 활성화
     }
 
-    private void SelectMonster(MonsterUnit monsterUnit) // 공격 마물 선택
+    private void SelectMonster(MonsterUnit monsterUnit)
     {
-        if (!isPlayerTurn || isBattleEnded || monsterUnit == null) { return; } // 선택 차단
+        if (!isPlayerTurn || isBattleEnded || monsterUnit == null)                { return; }
+        if (!monsterUnit.CanAttack) {resultText.text = "Monster Cannot Attack";     return; }
+        if (selectedMonster != null)  { selectedMonster.SetSelected(false); }
 
-        if (!monsterUnit.CanAttack) // 마물 공격 가능 여부 확인
-        {
-            resultText.text = "Monster Cannot Attack"; // 공격 불가 안내
-            return; // 선택 차단
-        }
-
-        if (selectedMonster != null) // 기존 선택 마물 확인
-        {
-            selectedMonster.SetSelected(false); // 기존 선택 표시 해제
-        }
-
-        selectedMonster = monsterUnit; // 새로운 마물 선택
-        selectedMonster.SetSelected(true); // 선택 색상 표시
-        monsterAttackButton.interactable = true; // 공격 버튼 활성화
-        resultText.text = $"{selectedMonster.MonsterName} Selected"; // 선택 결과 표시
+        selectedMonster = monsterUnit;
+        selectedMonster.SetSelected(true);
+        SetAttackButtonsInteractable(true);
+        resultText.text = $"{selectedMonster.MonsterName} Selected";
     }
 
-    private void ClearMonsterSelection() // 선택 마물 초기화
+    private void ClearMonsterSelection()
     {
-        if (selectedMonster != null) // 선택 마물 존재 확인
-        {
-            selectedMonster.SetSelected(false); // 선택 색상 해제
-        }
+        if (selectedMonster != null) { selectedMonster.SetSelected(false); }
 
-        selectedMonster = null; // 선택 참조 초기화
-        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
+        selectedMonster = null;
+        SetAttackButtonsInteractable(false);
     }
 
     private void DrawCards(int drawCount) // 카드 드로우 처리
@@ -1115,7 +1158,7 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         AddBattleLog(BattleLogCategory.System, $"Battle ended: {resultMessage}."); // 전투 종료 기록
         heroineIntentText.text = "Next Action: None"; // 행동 예고 종료 표시
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
-        monsterAttackButton.interactable = false; // 공격 버튼 비활성화
+        SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
         SetMonsterInteractable(false); // 마물 선택 비활성화
     }
