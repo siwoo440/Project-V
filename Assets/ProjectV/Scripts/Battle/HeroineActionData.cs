@@ -12,6 +12,8 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private int shieldAmount = 0; // 행동 보호막 획득량
     [SerializeField] private int healAmount; // 체력 회복량
     [SerializeField] private StatusEffectData appliedStatusEffect; // 행동 적용 상태 효과
+    [Min(1)] // 최소 정화 개수 제한
+    [SerializeField] private int cleanseCount = 1; // 한 번에 제거할 상태 효과 수
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
     [Header("AI Restrictions")] // AI 제약 조건 구분
@@ -34,6 +36,7 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public int ShieldAmount => shieldAmount; // 보호막 획득량 반환
     public int HealAmount => healAmount; // 체력 회복량 반환
     public StatusEffectData AppliedStatusEffect => appliedStatusEffect; // 적용 상태 효과 반환
+    public int CleanseCount => cleanseCount; // 상태 효과 제거 개수 반환
     public int Weight => weight; // 행동 가중치 반환
     public int CooldownTurns => cooldownTurns; // 행동 쿨타임 반환
     public int MaxConsecutiveUses => maxConsecutiveUses; // 최대 연속 사용 횟수 반환

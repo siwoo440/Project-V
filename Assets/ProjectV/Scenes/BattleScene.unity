@@ -2539,6 +2539,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f22d737bbd926db40802047a4f34de55, type: 2}
   - {fileID: 11400000, guid: 4bb9ac271c14932489808fa8364a05c7, type: 2}
   - {fileID: 11400000, guid: b30ed08bc595a1c42ba2940f40889885, type: 2}
+  - {fileID: 11400000, guid: b072590b17b1cc24aa2a46ae481cb5dc, type: 2}
   startingHandCount: 3
   turnDrawCount: 1
   heroineActions:
@@ -2551,6 +2552,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2e80b14916cb8d44a9ae7e8fe81de2b4, type: 2}
   - {fileID: 11400000, guid: 10b04351606f2ea42847f3fe8633f9b1, type: 2}
   - {fileID: 11400000, guid: dfce71ac3c77105499709eef5eccce42, type: 2}
+  - {fileID: 11400000, guid: 9f06e751c69be8b46b4de236809e4521, type: 2}
   playerMaxHp: 30
   playerDefense: 0
   playerStartingShield: 2

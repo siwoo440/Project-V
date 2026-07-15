@@ -16,5 +16,6 @@ MonoBehaviour:
   displayName: Poison
   statusType: 2
   amount: 2
+  isNegative: 1
   durationTurns: 3
   durationTiming: 1

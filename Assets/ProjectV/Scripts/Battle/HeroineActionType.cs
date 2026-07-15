@@ -4,5 +4,6 @@ public enum HeroineActionType // 히로인 행동 종류
     AreaAttack, // 광역 공격
     GainShield, // 보호막 획득
     Heal, // 체력 회복
-    ApplyStatus // 상태 효과 적용
+    ApplyStatus,// 상태 효과 적용
+    Cleanse // 해로운 상태 효과 제거
 }

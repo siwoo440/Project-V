@@ -218,6 +218,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
             return; // 공격 처리 종료
         }
 
+        if (nextHeroineAction.ActionType == HeroineActionType.Cleanse) // 정화 행동 확인
+        {
+            ExecuteCleanseAction(); // 해로운 상태 효과 제거
+            return; // 공격 처리 종료
+        }
+
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
 
         switch (nextHeroineAction.TargetType) // 행동 대상 규칙 확인
@@ -278,8 +284,35 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         ApplyOrRefreshHeroineStatus(statusData); // 상태 효과 적용 또는 지속시간 갱신
 
-        resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} +{statusData.Amount} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
+        string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
+        resultText.text = $"{nextHeroineAction.DisplayName}: {statusData.DisplayName} {amountText} ({statusData.DurationTurns} Turns)"; // 상태 효과 결과 표시
     }
+    private void ExecuteCleanseAction() // 히로인 해로운 상태 효과 제거
+    {
+        int maximumCleanseCount = Mathf.Max(1, nextHeroineAction.CleanseCount); // 안전한 최대 정화 개수 계산
+        List<string> removedStatusNames = new List<string>(); // 제거 상태 이름 목록 생성
+
+        for (int i = 0; i < maximumCleanseCount; i++) // 정화 가능 개수 반복
+        {
+            int targetIndex = FindHighestPriorityNegativeStatusIndex(); // 최우선 정화 대상 검색
+
+            if (targetIndex < 0) { break; } // 정화 대상 없음 처리
+
+            ActiveStatusEffect targetStatus = activeHeroineStatusEffects[targetIndex]; // 정화 대상 상태 확인
+            removedStatusNames.Add(targetStatus.Data.DisplayName); // 제거 상태 이름 저장
+            activeHeroineStatusEffects.RemoveAt(targetIndex); // 해로운 상태 효과 제거
+        }
+
+        if (removedStatusNames.Count == 0) // 제거 상태 없음 확인
+        {
+            resultText.text = $"{nextHeroineAction.DisplayName}: No Negative Status"; // 정화 대상 없음 표시
+            return; // 정화 처리 종료
+        }
+
+        string removedStatusText = string.Join(", ", removedStatusNames); // 제거 상태 이름 결합
+        resultText.text = $"{nextHeroineAction.DisplayName}: Removed {removedStatusText}"; // 정화 결과 표시
+    }
+
     private void ReduceHeroineStatusDurations(StatusDurationTiming durationTiming) // 지정 시점 상태 효과 지속시간 감소
     {
         for (int i = activeHeroineStatusEffects.Count - 1; i >= 0; i--) // 상태 효과 역순 반복
@@ -364,6 +397,57 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 
         return false; // 동일 상태 효과 없음
     }
+
+    private bool HasHeroineNegativeStatus() // 히로인 해로운 상태 효과 보유 여부 확인
+    {
+        foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
+        {
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data == null) { continue; } // 상태 효과 데이터 누락 제외
+            if (activeStatus.Data.IsNegative) { return true; } // 해로운 상태 효과 확인
+        }
+
+        return false; // 해로운 상태 효과 없음
+    }
+    private int GetCleansePriority(StatusEffectData statusData) // 상태 효과 정화 우선순위 반환
+    {
+        if (statusData == null) { return -1; } // 상태 효과 누락 처리
+
+        switch (statusData.StatusType) // 상태 효과 종류 확인
+        {
+            case StatusEffectType.Poison: // 독 상태
+                return 100; // 최우선 정화
+
+            case StatusEffectType.AttackDown: // 공격력 감소 상태
+                return 50; // 두 번째 정화
+
+            default: // 기타 해로운 상태
+                return 0; // 기본 정화 우선순위
+        }
+    }
+    private int FindHighestPriorityNegativeStatusIndex() // 최우선 해로운 상태 효과 위치 검색
+    {
+        int selectedIndex = -1; // 선택 상태 효과 위치 초기화
+        int highestPriority = int.MinValue; // 최고 우선순위 초기화
+
+        for (int i = 0; i < activeHeroineStatusEffects.Count; i++) // 활성 상태 효과 반복
+        {
+            ActiveStatusEffect activeStatus = activeHeroineStatusEffects[i]; // 현재 상태 효과 확인
+
+            if (activeStatus == null || activeStatus.IsExpired) { continue; } // 만료 상태 효과 제외
+            if (activeStatus.Data == null || !activeStatus.Data.IsNegative) { continue; } // 이로운 상태 효과 제외
+
+            int currentPriority = GetCleansePriority(activeStatus.Data); // 현재 정화 우선순위 확인
+
+            if (currentPriority <= highestPriority) { continue; } // 더 낮은 우선순위 제외
+
+            highestPriority = currentPriority; // 최고 우선순위 갱신
+            selectedIndex = i; // 정화 대상 위치 저장
+        }
+
+        return selectedIndex; // 정화 대상 위치 반환
+    }
+
     private void ApplyOrRefreshHeroineStatus(StatusEffectData statusData) // 히로인 상태 효과 적용 및 갱신
     {
         if (statusData == null) { return; } // 비어 있는 상태 효과 차단
@@ -572,10 +656,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     private bool CanUseHeroineAction(HeroineActionData actionData) // 행동 사용 가능 여부 확인
     {
         if (actionData == null) { return false; } // 행동 데이터 누락 차단
-        if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield) { return false; } // 최대 보호막 행동 차단
-        if (actionData.ActionType == HeroineActionType.Heal && heroineCurrentHp >= heroineMaxHp) { return false; } // 최대 체력 회복 행동 차단
-        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null) { return false; } // 상태 데이터 누락 행동 차단
-        if (actionData.ActionType == HeroineActionType.ApplyStatus && HasHeroineStatusEffect(actionData.AppliedStatusEffect)) { return false; } // 중복 상태 행동 차단
+        if (actionData.ActionType == HeroineActionType.GainShield && heroineCurrentShield >= heroineMaxShield)                  { return false; } // 최대 보호막 행동 차단
+        if (actionData.ActionType == HeroineActionType.Heal && heroineCurrentHp >= heroineMaxHp)                                { return false; } // 최대 체력 회복 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null)                   { return false; } // 상태 데이터 누락 행동 차단
+        if (actionData.ActionType == HeroineActionType.ApplyStatus && HasHeroineStatusEffect(actionData.AppliedStatusEffect))   { return false; } // 중복 상태 행동 차단
+        if (actionData.ActionType == HeroineActionType.Cleanse && !HasHeroineNegativeStatus())                                  { return false; } // 해로운 상태 없는 정화 행동 제외
 
         return true; // 행동 사용 허용
     }
@@ -640,6 +725,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         if (actionData == null) { return "Effect: None"; } // 행동 데이터 누락 표시
         if (actionData.ActionType == HeroineActionType.GainShield) { return $"Shield +{actionData.ShieldAmount}"; } // 보호막 효과 표시
         if (actionData.ActionType == HeroineActionType.Heal) { return $"HP +{actionData.HealAmount}"; } // 체력 회복 효과 표시
+        if (actionData.ActionType == HeroineActionType.Cleanse) { return $"Cleanse {actionData.CleanseCount} Negative Status"; } // 정화 행동 효과 표시
 
         if (actionData.ActionType == HeroineActionType.ApplyStatus) // 상태 효과 행동 확인
         {

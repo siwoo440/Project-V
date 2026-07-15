@@ -16,5 +16,6 @@ MonoBehaviour:
   displayName: Attack Down
   statusType: 1
   amount: 2
+  isNegative: 1
   durationTurns: 2
   durationTiming: 1
