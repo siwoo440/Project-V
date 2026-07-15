@@ -33,6 +33,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [Header("Card UI")] // 카드 UI 구분
     [SerializeField] private Transform handPanel;       // 손패 카드 배치 영역
     [SerializeField] private Button cardButtonPrefab;   // 카드 버튼 프리팹
+    [SerializeField] private TMP_Text deckStatusText; // 덱 수량 텍스트
 
     [Header("Monster Field")] // 마물 필드 구분
     [SerializeField] private Transform monsterFieldContainer;// 마물 배치 영역
@@ -43,6 +44,11 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     [SerializeField] private List<CardData> deckCards = new List<CardData>(); // 전투 시작 덱 목록
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
     [SerializeField] private int turnDrawCount = 1;     // 턴 시작 드로우 수
+    [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
+    [SerializeField, Min(1)] private int maxCopiesPerCard = 3; // 동일 카드 제한
+    [SerializeField, Min(1)] private int maxHandSize = 10; // 최대 손패
+    [SerializeField] private bool validateDeckOnStart = true; // 전투 시작 검증
+    [SerializeField] private bool shuffleDeckAtBattleStart = true; // 시작 셔플
 
     [Header("Heroine AI")] // 히로인 AI 구분
     [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
@@ -89,9 +95,64 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
     {
         InitializeBattle(); // 기본 전투 초기화
     }
-
-    private void InitializeBattle() // 전투 기본값 설정
+    private bool ValidateBattleDeckBeforeStart()
     {
+        if (!validateDeckOnStart) { return true; }
+
+        bool isValid = DeckValidator.TryValidate(
+            deckCards,
+            requiredDeckSize,
+            maxCopiesPerCard,
+            out string errorMessage
+        );
+
+        if (isValid) { return true; }
+
+        turnNumber = 0;
+        isPlayerTurn = false;
+        isBattleEnded = true;
+
+        if (battleLogUI != null)
+        {
+            battleLogUI.Clear();
+            battleLogUI.AddEntry(
+                0,
+                BattleLogCategory.System,
+                $"Deck validation failed: {errorMessage}"
+            );
+        }
+
+        if (turnText != null)
+        {
+            turnText.text = "Deck Error";
+        }
+
+        if (turnNumberText != null)
+        {
+            turnNumberText.text = "Turn 0";
+        }
+
+        if (resultText != null)
+        {
+            resultText.text = errorMessage;
+        }
+
+        if (endTurnButton != null)
+        {
+            endTurnButton.interactable = false;
+        }
+
+        ClearMonsterSelection();
+        SetHandInteractable(false);
+        SetMonsterInteractable(false);
+        UpdateDeckStatusUI();
+
+        return false;
+    }
+    private void InitializeBattle()
+    {
+        if (!ValidateBattleDeckBeforeStart()) { return; }
+
         playerCurrentHp = playerMaxHp; // 플레이어 체력 초기화
         playerCurrentShield = Mathf.Max(0, playerStartingShield); // 플레이어 보호막 초기화
         heroineCurrentHp = heroineMaxHp; // 히로인 체력 초기화
@@ -120,7 +181,12 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         discardPile.Clear(); // 버린 카드 더미 초기화
         ClearHand(); // 기존 손패 초기화
         ClearMonsterField(); // 기존 마물 필드 초기화
-        drawPile.AddRange(deckCards); // 덱 카드 드로우 더미 등록
+
+
+        drawPile.AddRange(deckCards);
+
+        if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
+        AddBattleLog( BattleLogCategory.System, $"Deck prepared: {drawPile.Count} cards."  );
         DrawCards(startingHandCount);
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
@@ -1257,40 +1323,119 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         SetAttackButtonsInteractable(false);
     }
 
-    private void DrawCards(int drawCount) // 카드 드로우 처리
+    private void DrawCards(int drawCount)
     {
-        for (int i = 0; i < drawCount; i++) // 드로우 횟수 반복
+        int safeDrawCount = Mathf.Max(0, drawCount);
+
+        for (int i = 0; i < safeDrawCount; i++)
         {
-            RefillDrawPileIfNeeded(); // 드로우 더미 보충 확인
+            handButtons.RemoveAll(
+                handButton => handButton == null
+            );
 
-            if (drawPile.Count == 0) { return; } // 카드 부족 상태 종료
+            if (handButtons.Count >= maxHandSize)
+            {
+                AddBattleLog(
+                    BattleLogCategory.System,
+                    $"Hand is full. ({handButtons.Count} / {maxHandSize})"
+                );
 
-            CardData drawnCard = drawPile[0]; // 첫 번째 카드 선택
-            drawPile.RemoveAt(0); // 드로우 더미 카드 제거
-            CreateCardButton(drawnCard); // 손패 카드 버튼 생성
+                break;
+            }
+
+            if (!RefillDrawPileIfNeeded())
+            {
+                AddBattleLog(
+                    BattleLogCategory.System,
+                    "No cards available to draw."
+                );
+
+                break;
+            }
+
+            CardData drawnCard = drawPile[0];
+            drawPile.RemoveAt(0);
+
+            if (drawnCard == null)
+            {
+                AddBattleLog(
+                    BattleLogCategory.System,
+                    "An empty card was removed from the draw pile."
+                );
+
+                continue;
+            }
+
+            CreateCardButton(drawnCard);
+        }
+
+        UpdateDeckStatusUI();
+    }
+    private void ShuffleCards(List<CardData> cards)
+    {
+        if (cards == null || cards.Count <= 1) { return; }
+
+        for (int i = cards.Count - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i + 1);
+
+            CardData temporaryCard = cards[i];
+            cards[i] = cards[randomIndex];
+            cards[randomIndex] = temporaryCard;
         }
     }
-
-    private void RefillDrawPileIfNeeded() // 드로우 더미 재보충
+    private bool RefillDrawPileIfNeeded()
     {
-        if (drawPile.Count > 0 || discardPile.Count == 0) { return; } // 보충 불필요 조건
+        if (drawPile.Count > 0) { return true; }
+        if (discardPile.Count == 0) { return false; }
 
-        drawPile.AddRange(discardPile); // 버린 카드 드로우 더미 이동
-        discardPile.Clear(); // 버린 카드 더미 초기화
+        drawPile.AddRange(discardPile);
+        discardPile.Clear();
+        ShuffleCards(drawPile);
+
+        AddBattleLog(
+            BattleLogCategory.System,
+            $"Discard pile reshuffled: {drawPile.Count} cards."
+        );
+
+        UpdateDeckStatusUI();
+
+        return true;
     }
 
-    private void CreateCardButton(CardData cardData) // 손패 카드 버튼 생성
+    private void CreateCardButton(CardData cardData)
     {
-        Button newCardButton = Instantiate(cardButtonPrefab, handPanel); // 카드 버튼 복제
-        TMP_Text cardText = newCardButton.GetComponentInChildren<TMP_Text>(); // 카드 버튼 텍스트 검색
-        string monsterName = cardData.SummonMonster != null ? cardData.SummonMonster.MonsterName : "None"; // 소환 마물 이름 확인
+        if (cardData == null) { return; }
+        if (cardButtonPrefab == null || handPanel == null) { return; }
 
-        cardText.text = $"{cardData.CardName}\nCost: {cardData.ManaCost}\nSummon: {monsterName}"; // 카드 정보 표시
-        newCardButton.onClick.RemoveAllListeners(); // 기존 버튼 연결 초기화
-        newCardButton.onClick.AddListener(() => TryPlayCard(cardData, newCardButton)); // 카드 사용 함수 연결
-        handButtons.Add(newCardButton); // 손패 버튼 목록 등록
+        Button newCardButton = Instantiate(
+            cardButtonPrefab,
+            handPanel
+        );
+
+        TMP_Text cardText =
+            newCardButton.GetComponentInChildren<TMP_Text>();
+
+        string monsterName =
+            cardData.SummonMonster != null
+                ? cardData.SummonMonster.MonsterName
+                : "None";
+
+        if (cardText != null)
+        {
+            cardText.text =
+                $"{cardData.CardName}\n" +
+                $"Cost: {cardData.ManaCost}\n" +
+                $"Summon: {monsterName}";
+        }
+
+        newCardButton.onClick.RemoveAllListeners();
+        newCardButton.onClick.AddListener(
+            () => TryPlayCard(cardData, newCardButton)
+        );
+
+        handButtons.Add(newCardButton);
     }
-
     private void TryPlayCard(CardData cardData, Button cardButton) // 카드 사용 처리
     {
         if (!isPlayerTurn || isBattleEnded) { return; } // 카드 사용 차단
@@ -1316,6 +1461,7 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         currentMana -= cardData.ManaCost; // 카드 비용 차감
         SummonMonster(cardData.SummonMonster); // 마물 필드 소환
         AddBattleLog(BattleLogCategory.PlayerAction, $"{cardData.CardName}: Summoned {cardData.SummonMonster.MonsterName}."); // 카드 소환 기록
+        
         discardPile.Add(cardData); // 사용 카드 버린 더미 이동
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         Destroy(cardButton.gameObject); // 카드 버튼 제거
@@ -1390,7 +1536,23 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
         fieldMonsters.Clear();
         ClearMonsterSelection();
     }
+    private void UpdateDeckStatusUI()
+    {
+        if (deckStatusText == null) { return; }
 
+        handButtons.RemoveAll(
+            handButton => handButton == null
+        );
+
+        int configuredDeckCount =
+            deckCards != null ? deckCards.Count : 0;
+
+        deckStatusText.text =
+            $"Draw: {drawPile.Count} | " +
+            $"Hand: {handButtons.Count} / {maxHandSize} | " +
+            $"Discard: {discardPile.Count}\n" +
+            $"Deck: {configuredDeckCount} / {requiredDeckSize}";
+    }
     private void UpdateBattleUI() // 전투 수치 UI 갱신
     {
         int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 히로인 방어력 계산
@@ -1416,6 +1578,7 @@ AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광
             heroineLustSlider.maxValue = Mathf.Max(1, heroineMaxLust);
             heroineLustSlider.value = heroineLust;
         }
+        UpdateDeckStatusUI();
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
     }
 
