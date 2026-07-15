@@ -110,6 +110,7 @@ public class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
         resultText.text = string.Empty; // 결과 텍스트 초기화
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
         AddBattleLog(BattleLogCategory.System, "Battle started."); // 전투 시작 기록
+        AddBattleLog(BattleLogCategory.System, "Player turn started.");
         monsterAttackButton.interactable = false; // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
