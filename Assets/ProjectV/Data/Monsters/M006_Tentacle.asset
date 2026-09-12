@@ -18,6 +18,7 @@ MonoBehaviour:
   mainType: 1
   subType: 0
   isBossOrigin: 0
+  isToken: 0
   maxHp: 10
   attack: 4
   lustDamage: 8

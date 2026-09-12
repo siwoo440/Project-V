@@ -83,6 +83,13 @@ public static class DeckValidator
                 return false;
             }
 
+            if (cardData.SummonMonster.IsToken)
+            {
+                errorMessage =
+                    $"{cardData.CardName}은 편성할 수 없는 토큰 마물입니다."; // 토큰 마물 차단
+                return false;
+            }
+
             if (!cardCounts.ContainsKey(cardId))
             {
                 cardCounts.Add(cardId, 0);

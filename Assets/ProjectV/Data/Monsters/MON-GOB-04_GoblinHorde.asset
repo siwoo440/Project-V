@@ -18,6 +18,7 @@ MonoBehaviour:
   mainType: 3
   subType: 0
   isBossOrigin: 0
+  isToken: 0
   maxHp: 35
   attack: 14
   lustDamage: 3
@@ -28,5 +29,7 @@ MonoBehaviour:
   lustGrowthPerLevel: 0
   defenseGrowthPerLevel: 1
   isTaunting: 0
+  effects:
+  - {fileID: 11400000, guid: bd9e84e1470a42058348756d56c0ea67, type: 2}
   captureRewardCard: {fileID: 11400000, guid: a4d8475c5034492aae6fbde7f1d6f3d8, type: 2}
   attackStatusEffect: {fileID: 0}

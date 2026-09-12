@@ -23,6 +23,14 @@ public partial class BattleManager // 분리된 전투 기능
             monsterAttackButton.interactable = canAttack && hasReadyMonster;
         }
 
+        if (skillButton != null)
+        {
+            skillButton.interactable =
+                canAttack &&
+                selectedMonster != null &&
+                selectedMonster.CanUseSkill; // 스킬 사용 가능 시에만 활성화
+        }
+
         if (lustAttackButton != null)
         {
             lustAttackButton.interactable =
@@ -36,6 +44,12 @@ public partial class BattleManager // 분리된 전투 기능
         turnText.text = "플레이어 턴"; // 플레이어 턴 문구 설정
         endTurnButton.interactable = true; // 턴 종료 버튼 활성화
         SetAttackButtonsInteractable(false); // 공격 버튼 초기 비활성화
+
+        if (skillButton != null)
+        {
+            skillButton.onClick.RemoveAllListeners();
+            skillButton.onClick.AddListener(UseSelectedMonsterSkill); // 스킬 버튼 연결
+        }
         SetHandInteractable(true); // 손패 버튼 활성화
         SetMonsterInteractable(true); // 공격 가능 마물 선택 활성화
     }

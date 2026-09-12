@@ -14,6 +14,7 @@ public class MonsterUnit : MonoBehaviour
     [SerializeField] private TMP_Text monsterDefenseText;
     [SerializeField] private TMP_Text monsterShieldText;
     [SerializeField] private TMP_Text monsterStateText;
+    [SerializeField] private TMP_Text monsterSkillText;
     [SerializeField] private Transform statusIconContainer;
     [SerializeField] private Button selectButton;
     [SerializeField] private Image backgroundImage;
@@ -48,6 +49,8 @@ public class MonsterUnit : MonoBehaviour
     private bool isSelected;
     private bool isHeroineTargeted;
 
+    private int currentCooldown;
+
     private int runtimeMaxHp;
     private int runtimeAttack;
     private int runtimeLustDamage;
@@ -74,6 +77,20 @@ public class MonsterUnit : MonoBehaviour
     public bool CanAttack =>
         actionState == MonsterActionState.Ready && !IsDead;
 
+    public MonsterData Data => monsterData; // 마물 데이터 반환
+
+    public MonsterEffectData ActiveSkill =>
+        monsterData == null
+            ? null
+            : monsterData.GetEffect(MonsterEffectTrigger.ActiveSkill); // 능동 스킬 반환
+
+    public int CurrentCooldown => currentCooldown; // 남은 재사용 대기시간 반환
+
+    public bool HasActiveSkill => ActiveSkill != null; // 능동 스킬 보유 여부
+
+    public bool CanUseSkill =>
+        CanAttack && HasActiveSkill && currentCooldown <= 0; // 스킬 사용 가능 여부
+
     public void Initialize(
 
         MonsterData data,
@@ -94,6 +111,7 @@ public class MonsterUnit : MonoBehaviour
 
         currentHp = MaxHp;
         currentShield = Mathf.Max(0, monsterData.StartingShield);
+        currentCooldown = 0; // 재사용 대기시간 초기화
         actionState = MonsterActionState.Summoning;
 
         activeStatusEffects.Clear();
@@ -230,6 +248,99 @@ public class MonsterUnit : MonoBehaviour
         return totalPoisonDamage;
     }
 
+    public void StartCooldown() // 스킬 사용 후 대기시간 적용
+    {
+        MonsterEffectData skill = ActiveSkill;
+
+        if (skill == null) { return; }
+
+        currentCooldown = skill.CooldownTurns;
+        UpdateMonsterUI();
+    }
+
+    public void ReduceCooldown() // 턴 종료 시 대기시간 감소
+    {
+        if (currentCooldown <= 0) { return; }
+
+        currentCooldown -= 1;
+        UpdateMonsterUI();
+    }
+
+    public int AddShield(int amount) // 보호막 획득
+    {
+        if (amount <= 0) { return 0; }
+
+        currentShield += amount;
+        UpdateMonsterUI();
+
+        return amount;
+    }
+
+    public int Heal(int amount) // 체력 회복
+    {
+        if (amount <= 0 || IsDead) { return 0; }
+
+        int previousHp = currentHp;
+        currentHp = Mathf.Min(MaxHp, currentHp + amount);
+        UpdateMonsterUI();
+
+        return currentHp - previousHp;
+    }
+
+    public int IncreaseMaxHp(int amount) // 최대 체력 증가
+    {
+        if (amount <= 0) { return 0; }
+
+        runtimeMaxHp += amount;
+        currentHp += amount;
+        UpdateMonsterUI();
+
+        return amount;
+    }
+
+    public int RemoveNegativeStatus(int removeCount) // 해로운 상태 효과 제거
+    {
+        int removedCount = 0;
+
+        for (int i = activeStatusEffects.Count - 1; i >= 0; i--)
+        {
+            if (removedCount >= removeCount) { break; }
+
+            ActiveStatusEffect activeStatus = activeStatusEffects[i];
+
+            if (activeStatus == null || activeStatus.Data == null)
+            {
+                activeStatusEffects.RemoveAt(i);
+                continue;
+            }
+
+            if (!activeStatus.Data.IsNegative) { continue; }
+
+            activeStatusEffects.RemoveAt(i);
+            removedCount += 1;
+        }
+
+        if (removedCount > 0)
+        {
+            UpdateMonsterUI();
+            RefreshStatusIcons();
+        }
+
+        return removedCount;
+    }
+
+    public bool HasNegativeStatus() // 해로운 상태 효과 보유 여부
+    {
+        foreach (ActiveStatusEffect activeStatus in activeStatusEffects)
+        {
+            if (activeStatus == null || activeStatus.Data == null) { continue; }
+            if (activeStatus.IsExpired) { continue; }
+            if (activeStatus.Data.IsNegative) { return true; }
+        }
+
+        return false;
+    }
+
     public void SetPlayerTurnInteraction(bool isPlayerTurn)
     {
         if (selectButton == null) { return; }
@@ -359,6 +470,11 @@ public class MonsterUnit : MonoBehaviour
             monsterStateText.text =
                 $"상태 {GetStateLabel()}{tauntText}";
         }
+
+        if (monsterSkillText != null)
+        {
+            monsterSkillText.text = CreateSkillLabel(); // 스킬과 대기시간 표시
+        }
     }
 
     private void ClearStatusIcons()
@@ -411,6 +527,20 @@ public class MonsterUnit : MonoBehaviour
             default: return "알 수 없음";
         }
     }
+    private string CreateSkillLabel() // 스킬 표시 문구 생성
+    {
+        MonsterEffectData skill = ActiveSkill;
+
+        if (skill == null) { return string.Empty; }
+
+        if (currentCooldown > 0)
+        {
+            return $"{skill.DisplayName} ({currentCooldown})";
+        }
+
+        return skill.DisplayName;
+    }
+
     private void InitializeRuntimeStats()
     {
         if (monsterData == null)

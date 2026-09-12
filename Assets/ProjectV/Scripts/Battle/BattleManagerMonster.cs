@@ -294,13 +294,7 @@ public partial class BattleManager // 분리된 전투 기능
 
             if (targetMonster.IsDead) // 마물 사망 확인
             {
-                if (selectedMonster == targetMonster) // 선택 마물 사망 확인
-                {
-                    ClearMonsterSelection(); // 선택 상태 해제
-                }
-
-                fieldMonsters.RemoveAt(i); // 필드 목록에서 마물 제거
-                Destroy(targetMonster.gameObject); // 마물 오브젝트 제거
+                HandleMonsterDefeated(targetMonster); // 사망 효과 실행 후 제거
                 defeatedMonsterCount += 1; // 사망 마물 수 증가
             }
         }
@@ -328,13 +322,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (targetMonster.IsDead) // 대상 마물 사망 확인
         {
-            if (selectedMonster == targetMonster) // 선택 마물 사망 확인
-            {
-                ClearMonsterSelection(); // 선택 상태 해제
-            }
-
-            fieldMonsters.Remove(targetMonster); // 필드 목록에서 대상 마물 제거
-            Destroy(targetMonster.gameObject); // 대상 마물 오브젝트 제거
+            HandleMonsterDefeated(targetMonster); // 사망 효과 실행 후 제거
             resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} 사망"; // 마물 사망 결과 표시
         }
 
@@ -398,6 +386,11 @@ public partial class BattleManager // 분리된 전투 기능
 
         fieldMonsters.Add(newMonsterUnit);
         newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);
+
+        ExecuteMonsterEffects(
+            newMonsterUnit,
+            MonsterEffectTrigger.Summon
+        ); // 소환 효과 실행
 
         RefreshHeroineTargetPreview();
     }
@@ -465,18 +458,7 @@ public partial class BattleManager // 분리된 전투 기능
 
             string defeatedMonsterName = monsterUnit.MonsterName;
 
-            if (selectedMonster == monsterUnit)
-            {
-                ClearMonsterSelection();
-            }
-
-            if (previewedHeroineTarget == monsterUnit)
-            {
-                previewedHeroineTarget = null;
-            }
-
-            fieldMonsters.RemoveAt(i);
-            Destroy(monsterUnit.gameObject);
+            HandleMonsterDefeated(monsterUnit); // 사망 효과 실행 후 제거
 
             AddBattleLog(
                 BattleLogCategory.StatusEffect,

@@ -1,3 +1,4 @@
+using System.Collections.Generic; // 리스트 기능
 using UnityEngine; // Unity 기본 기능
 
 [CreateAssetMenu(fileName = "NewMonsterData", menuName = "Project V/마물 데이터")] // 마물 데이터 생성 메뉴
@@ -10,6 +11,7 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [SerializeField] private MonsterType mainType = MonsterType.None; // 마물 주 타입
     [SerializeField] private MonsterType subType = MonsterType.None; // 마물 보조 타입
     [SerializeField] private bool isBossOrigin; // 보스 출신 여부
+    [SerializeField] private bool isToken; // 토큰 마물 여부
     [SerializeField] private int maxHp = 5; // 마물 최대 체력
     [SerializeField] private int attack = 1; // 마물 공격력
     [SerializeField, Min(0)] private int lustDamage = 5; // 성욕 피해
@@ -25,6 +27,11 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [Header("대상 규칙")]
     [SerializeField] private bool isTaunting;
 
+    [Header("고유 효과")] // 마물 고유 효과 구분
+    [SerializeField]
+    private List<MonsterEffectData> effects =
+        new List<MonsterEffectData>(); // 마물 고유 효과 목록
+
     [Header("카드 연결")] // 카드 연결 구분
     [SerializeField] private CardData captureRewardCard; // 포획 보상 카드
 
@@ -37,6 +44,22 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     public MonsterType MainType => mainType; // 주 타입 반환
     public MonsterType SubType => subType; // 보조 타입 반환
     public bool IsBossOrigin => isBossOrigin; // 보스 출신 여부 반환
+    public bool IsToken => isToken; // 토큰 마물 여부 반환
+
+    public IReadOnlyList<MonsterEffectData> Effects => effects; // 고유 효과 목록 반환
+
+    public MonsterEffectData GetEffect(MonsterEffectTrigger trigger) // 발동 시점별 효과 반환
+    {
+        foreach (MonsterEffectData effect in effects)
+        {
+            if (effect == null) { continue; }
+            if (effect.Trigger != trigger) { continue; }
+
+            return effect;
+        }
+
+        return null;
+    }
 
     public bool HasType(MonsterType monsterType) // 타입 보유 여부
     {

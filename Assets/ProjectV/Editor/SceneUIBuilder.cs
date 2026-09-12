@@ -492,7 +492,25 @@ public static class SceneUIBuilder
         // 우측 행동 버튼
         PlaceByName("HpAttackButton", new Vector2(1f, 0.5f), new Vector2(-140f, -30f), new Vector2(220f, 70f));
         PlaceByName("LustAttackButton", new Vector2(1f, 0.5f), new Vector2(-140f, -110f), new Vector2(220f, 70f));
-        PlaceByName("EndTurnButton", new Vector2(1f, 0.5f), new Vector2(-140f, -190f), new Vector2(220f, 70f));
+        PlaceByName("EndTurnButton", new Vector2(1f, 0.5f), new Vector2(-140f, -270f), new Vector2(220f, 70f));
+
+        Button skillButton = EnsureButton("SkillButton", canvas.transform, "스킬 사용", ButtonColor);
+        SetAnchored(skillButton.gameObject,
+            new Vector2(1f, 0.5f), new Vector2(-140f, -190f), new Vector2(220f, 70f));
+        StyleButtonByName("SkillButton", ButtonColor, 26f);
+
+        GameObject battleManagerObject = FindInScene("BattleManager");
+
+        if (battleManagerObject != null)
+        {
+            BattleManager battleManager =
+                battleManagerObject.GetComponent<BattleManager>();
+
+            if (battleManager != null)
+            {
+                AssignReference(battleManager, "skillButton", skillButton);
+            }
+        }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);
         StyleButtonByName("LustAttackButton", ButtonColor, 26f);
         StyleButtonByName("EndTurnButton", AccentColor, 26f);
@@ -606,6 +624,8 @@ public static class SceneUIBuilder
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
 
+        EnsureMonsterSkillRow(prefabRoot); // 스킬 표시 행 준비
+
         string[] rowNames =
         {
             "MonsterNameText",
@@ -614,12 +634,13 @@ public static class SceneUIBuilder
             "MonsterLustDamageText",
             "MonsterDefenseText",
             "MonsterShieldText",
+            "MonsterSkillText",
             "MonsterStateText",
             "MonsterStatusIconContainer",
         };
 
-        float[] rowSizes = { 17f, 15f, 15f, 15f, 15f, 15f, 14f, 0f };
-        float[] rowHeights = { 24f, 20f, 20f, 20f, 20f, 20f, 20f, 28f };
+        float[] rowSizes = { 17f, 15f, 15f, 15f, 15f, 15f, 14f, 14f, 0f };
+        float[] rowHeights = { 24f, 20f, 20f, 20f, 20f, 20f, 20f, 20f, 24f };
 
         for (int i = 0; i < rowNames.Length; i++)
         {
@@ -662,6 +683,38 @@ public static class SceneUIBuilder
         PrefabUtility.UnloadPrefabContents(prefabRoot);
 
         Debug.Log("마물 카드 프리팹을 정리했습니다.");
+    }
+
+    // 마물 카드에 스킬 표시 행을 만들고 컴포넌트에 연결한다.
+    private static void EnsureMonsterSkillRow(GameObject prefabRoot)
+    {
+        Transform skillRow =
+            FindRecursive(prefabRoot.transform, "MonsterSkillText");
+
+        if (skillRow == null)
+        {
+            GameObject skillObject =
+                new GameObject("MonsterSkillText", typeof(RectTransform));
+
+            skillObject.transform.SetParent(prefabRoot.transform, false);
+            skillObject.AddComponent<TextMeshProUGUI>();
+            skillRow = skillObject.transform;
+        }
+
+        TextMeshProUGUI skillText =
+            skillRow.GetComponent<TextMeshProUGUI>();
+
+        if (skillText != null)
+        {
+            skillText.text = string.Empty;
+        }
+
+        MonsterUnit monsterUnit = prefabRoot.GetComponent<MonsterUnit>();
+
+        if (monsterUnit != null && skillText != null)
+        {
+            AssignReference(monsterUnit, "monsterSkillText", skillText);
+        }
     }
 
     // 손패 카드 프리팹 정리 (카드가 서로 겹치지 않도록 크기 조정)

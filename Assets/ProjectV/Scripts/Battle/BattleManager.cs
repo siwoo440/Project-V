@@ -29,6 +29,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private Button endTurnButton;          // 턴 종료 버튼
     [SerializeField] private Button monsterAttackButton;    // 마물 공격 버튼
     [SerializeField] private Button lustAttackButton; // 성욕 공격 버튼
+    [SerializeField] private Button skillButton; // 마물 스킬 버튼
 
     [Header("카드 UI")] // 카드 UI 구분
     [SerializeField] private Transform handPanel;       // 손패 카드 배치 영역
@@ -171,6 +172,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         AddBattleLog(BattleLogCategory.System, "히로인 턴을 시작했습니다."); // 히로인 턴 시작 기록
         ReduceHeroineStatusDurations( StatusDurationTiming.AfterPlayerTurn );
         ReduceMonsterStatusDurations( StatusDurationTiming.AfterPlayerTurn );
+        ReduceMonsterCooldowns(); // 마물 재사용 대기시간 감소
         ApplyHeroineStartTurnStatusEffects();
 
         UpdateBattleUI(); // 독 피해 결과 UI 갱신

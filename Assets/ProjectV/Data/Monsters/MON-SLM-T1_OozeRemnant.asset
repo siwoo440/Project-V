@@ -10,26 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4725c9519f415c5418512917ea8ecfc5, type: 3}
-  m_Name: MON-MEC-01_ArcaneDoll
+  m_Name: MON-SLM-T1_OozeRemnant
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterId: MON-MEC-01
-  monsterName: 마도 인형
+  monsterId: MON-SLM-T1
+  monsterName: 점액 잔재
   rarity: 0
-  mainType: 8
+  mainType: 2
   subType: 0
   isBossOrigin: 0
-  isToken: 0
-  maxHp: 26
-  attack: 10
+  isToken: 1
+  maxHp: 6
+  attack: 3
   lustDamage: 2
-  defense: 5
+  defense: 0
   startingShield: 0
-  hpGrowthPerLevel: 3
-  attackGrowthPerLevel: 1
+  hpGrowthPerLevel: 0
+  attackGrowthPerLevel: 0
   lustGrowthPerLevel: 0
-  defenseGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
   isTaunting: 0
-  effects:
-  - {fileID: 11400000, guid: 531e48b056cc4481ac556496799503ff, type: 2}
-  captureRewardCard: {fileID: 11400000, guid: 5a94a5dc02094d85908d317688502012, type: 2}
+  effects: []
+  captureRewardCard: {fileID: 0}
   attackStatusEffect: {fileID: 0}
