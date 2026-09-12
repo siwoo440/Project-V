@@ -45,7 +45,6 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
     [SerializeField] private int turnDrawCount = 1;     // 턴 시작 드로우 수
     [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
-    [SerializeField, Min(1)] private int maxCopiesPerCard = 3; // 동일 카드 제한
     [SerializeField, Min(1)] private int maxHandSize = 10; // 최대 손패
     [SerializeField] private bool validateDeckOnStart = true; // 전투 시작 검증
     [SerializeField] private bool shuffleDeckAtBattleStart = true; // 시작 셔플

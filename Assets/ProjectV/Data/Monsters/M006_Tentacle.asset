@@ -10,14 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4725c9519f415c5418512917ea8ecfc5, type: 3}
-  m_Name: M003_Tentacle
+  m_Name: M006_Tentacle
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
-  monsterId: M003
+  monsterId: M006
   monsterName: Tentacle
+  rarity: 3
   maxHp: 10
   attack: 4
   lustDamage: 8
   defense: 2
   startingShield: 3
+  hpGrowthPerLevel: 1
+  attackGrowthPerLevel: 1
+  lustGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
   isTaunting: 1
+  captureRewardCard: {fileID: 11400000, guid: f22d737bbd926db40802047a4f34de55, type: 2}
   attackStatusEffect: {fileID: 0}

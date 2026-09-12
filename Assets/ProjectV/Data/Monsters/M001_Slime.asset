@@ -14,8 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M001
   monsterName: Slime
+  rarity: 0
   maxHp: 6
   attack: 2
+  lustDamage: 5
   defense: 0
   startingShield: 0
+  hpGrowthPerLevel: 1
+  attackGrowthPerLevel: 1
+  lustGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
+  captureRewardCard: {fileID: 11400000, guid: 6c6e05023667eb443b6785866fa78456, type: 2}
   attackStatusEffect: {fileID: 11400000, guid: aa4a3a9603fd7ee4eb6b9c5cbbb0cc88, type: 2}

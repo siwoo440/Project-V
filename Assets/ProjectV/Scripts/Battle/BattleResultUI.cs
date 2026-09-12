@@ -43,16 +43,16 @@ public class BattleResultUI : MonoBehaviour
 
         if (rewardText != null)
         {
-            string materialRewardText =
-                resultData.DuplicateMaterialReward > 0
-                    ? $"\nEnhancement Material +" +
-                      $"{resultData.DuplicateMaterialReward}"
-                    : string.Empty; // 강화 재료 문구
+            string essenceRewardText =
+                resultData.DuplicateConverted
+                    ? $"\nMonster Essence +" +
+                      $"{resultData.EssenceReward}"
+                    : string.Empty; // 마물의 정수 문구
 
             rewardText.text = resultData.IsVictory
                 ? $"Gold +{resultData.GoldReward}\n" +
                   $"EXP +{resultData.ExperienceReward}" +
-                  materialRewardText
+                  essenceRewardText
                 : "No Rewards"; // 전투 보상 표시
         }
 
@@ -119,16 +119,23 @@ public class BattleResultUI : MonoBehaviour
             return "Capture Failed";
         }
 
-        if (resultData.DuplicateMaterialReward > 0)
+        string rarityText =
+            CardRarityRules.GetDisplayName(
+                resultData.CapturedMonster.Rarity
+            ); // 희귀도 표시
+
+        if (resultData.DuplicateConverted)
         {
             return
                 $"Capture Success\n" +
-                $"{resultData.CapturedMonster.MonsterName}\n" +
-                "Duplicate Converted"; // 중복 변환 표시
+                $"{resultData.CapturedMonster.MonsterName} ({rarityText})\n" +
+                $"Ownership Limit Reached\n" +
+                $"Monster Essence +{resultData.EssenceReward}"; // 초과 변환 표시
         }
 
         return
             $"Capture Success\n" +
-            $"{resultData.CapturedMonster.MonsterName}"; // 신규 포획 표시
+            $"{resultData.CapturedMonster.MonsterName} ({rarityText})\n" +
+            $"Card Added"; // 카드 획득 표시
     }
 }

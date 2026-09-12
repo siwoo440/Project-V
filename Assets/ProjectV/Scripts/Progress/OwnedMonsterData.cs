@@ -5,12 +5,10 @@ using UnityEngine;
 public class OwnedMonsterData
 {
     [SerializeField] private MonsterData monsterData;
-    [SerializeField] private int copyCount = 1;
     [SerializeField] private int level = 1;
     [SerializeField] private int currentExperience;
 
     public MonsterData MonsterData => monsterData;
-    public int CopyCount => copyCount;
     public int Level => level;
     public int CurrentExperience => currentExperience;
 
@@ -44,14 +42,8 @@ public class OwnedMonsterData
     public OwnedMonsterData(MonsterData data)
     {
         monsterData = data;
-        copyCount = 1;
         level = 1;
         currentExperience = 0;
-    }
-
-    public void IncreaseCopyCount()
-    {
-        copyCount += 1;
     }
 
     public int AddExperience(int amount)

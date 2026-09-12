@@ -5,7 +5,21 @@ public static class DeckValidator
     public static bool TryValidate(
         IReadOnlyList<CardData> deckCards,
         int requiredDeckSize,
-        int maxCopiesPerCard,
+        out string errorMessage
+    )
+    {
+        return TryValidate(
+            deckCards,
+            requiredDeckSize,
+            null,
+            out errorMessage
+        ); // 보유 검증 없는 기본 검사
+    }
+
+    public static bool TryValidate(
+        IReadOnlyList<CardData> deckCards,
+        int requiredDeckSize,
+        ICardOwnershipSource ownershipSource,
         out string errorMessage
     )
     {
@@ -21,12 +35,6 @@ public static class DeckValidator
             return false;
         }
 
-        if (maxCopiesPerCard <= 0)
-        {
-            errorMessage = "Card copy limit must be greater than 0.";
-            return false;
-        }
-
         if (deckCards.Count != requiredDeckSize)
         {
             errorMessage =
@@ -36,7 +44,12 @@ public static class DeckValidator
         }
 
         Dictionary<string, int> cardCounts =
-            new Dictionary<string, int>();
+            new Dictionary<string, int>(); // 카드별 편성 수량
+
+        Dictionary<string, CardData> cardSamples =
+            new Dictionary<string, CardData>(); // 카드별 데이터 참조
+
+        List<string> cardOrder = new List<string>(); // 검사 순서 유지
 
         for (int i = 0; i < deckCards.Count; i++)
         {
@@ -57,19 +70,58 @@ public static class DeckValidator
                 return false;
             }
 
+            if (cardData.SummonMonster == null)
+            {
+                errorMessage =
+                    $"{cardData.CardName} has no monster data."; // 손상된 카드 차단
+                return false;
+            }
+
             if (!cardCounts.ContainsKey(cardId))
             {
                 cardCounts.Add(cardId, 0);
+                cardSamples.Add(cardId, cardData);
+                cardOrder.Add(cardId);
             }
 
             cardCounts[cardId] += 1;
 
-            if (cardCounts[cardId] > maxCopiesPerCard)
+            int maxCopies = cardData.MaxCopies; // 희귀도별 편성 제한
+
+            if (cardCounts[cardId] > maxCopies)
             {
                 errorMessage =
-                    $"{cardData.CardName} exceeds the copy limit. " +
-                    $"({cardCounts[cardId]} / {maxCopiesPerCard})";
+                    $"{cardData.CardName} exceeds the " +
+                    $"{CardRarityRules.GetDisplayName(cardData.Rarity)} " +
+                    $"copy limit. ({cardCounts[cardId]} / {maxCopies})";
                 return false;
+            }
+        }
+
+        if (ownershipSource != null)
+        {
+            for (int i = 0; i < cardOrder.Count; i++)
+            {
+                string cardId = cardOrder[i];
+                CardData cardData = cardSamples[cardId];
+
+                int ownedCount =
+                    ownershipSource.GetOwnedCardCount(cardData); // 보유 수량 조회
+
+                if (ownedCount <= 0)
+                {
+                    errorMessage =
+                        $"{cardData.CardName} is not owned."; // 미보유 카드 차단
+                    return false;
+                }
+
+                if (cardCounts[cardId] > ownedCount)
+                {
+                    errorMessage =
+                        $"{cardData.CardName} exceeds the owned count. " +
+                        $"({cardCounts[cardId]} / {ownedCount})"; // 보유 초과 차단
+                    return false;
+                }
             }
         }
 

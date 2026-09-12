@@ -82,6 +82,7 @@ public class MonsterCollectionUI : MonoBehaviour
         {
             summaryText.text =
                 $"Gold: {progress.Gold} | " +
+                $"Essence: {progress.MonsterEssence} | " +
                 $"Total EXP: {progress.TotalExperience} | " +
                 $"Owned: {progress.OwnedMonsters.Count}";
         }
@@ -133,7 +134,7 @@ public class MonsterCollectionUI : MonoBehaviour
             buttonText.text =
                 $"{ownedMonster.MonsterData.MonsterName} " +
                 $"Lv.{ownedMonster.Level} " +
-                $"x{ownedMonster.CopyCount}";
+                $"x{GetOwnedCardCount(ownedMonster)}";
         }
 
         OwnedMonsterData targetMonster = ownedMonster;
@@ -162,14 +163,37 @@ public class MonsterCollectionUI : MonoBehaviour
         detailText.text =
             $"{ownedMonster.MonsterData.MonsterName}\n" +
             $"ID: {ownedMonster.MonsterData.MonsterId}\n" +
+            $"Rarity: " +
+            $"{CardRarityRules.GetDisplayName(ownedMonster.MonsterData.Rarity)}\n" +
             $"Level: {ownedMonster.Level}\n" +
             $"EXP: {ownedMonster.CurrentExperience} / " +
             $"{ownedMonster.RequiredExperience}\n" +
-            $"Copies: {ownedMonster.CopyCount}\n\n" +
+            $"Copies: {GetOwnedCardCount(ownedMonster)} / " +
+            $"{ownedMonster.MonsterData.MaxOwnedCopies}\n\n" +
             $"HP: {ownedMonster.MaxHp}\n" +
             $"ATK: {ownedMonster.Attack}\n" +
             $"LST: {ownedMonster.LustDamage}\n" +
             $"DEF: {ownedMonster.Defense}";
+    }
+
+    private int GetOwnedCardCount(
+        OwnedMonsterData ownedMonster
+    )
+    {
+        if (ownedMonster == null ||
+            ownedMonster.MonsterData == null)
+        {
+            return 0; // 빈 데이터 차단
+        }
+
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return 0; } // 진행 데이터 누락 차단
+
+        return progress.GetOwnedCardCount(
+            ownedMonster.MonsterData.CaptureRewardCard
+        ); // 보유 카드 수량 반환
     }
 
     private void ClearButtons()

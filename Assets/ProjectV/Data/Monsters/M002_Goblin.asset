@@ -14,10 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M002
   monsterName: Goblin
+  rarity: 0
   maxHp: 8
   attack: 3
   lustDamage: 5
   defense: 1
   startingShield: 2
+  hpGrowthPerLevel: 1
+  attackGrowthPerLevel: 1
+  lustGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
   isTaunting: 1
+  captureRewardCard: {fileID: 11400000, guid: 66b71cf733e504947b212a60d18ce941, type: 2}
   attackStatusEffect: {fileID: 0}

@@ -6,6 +6,7 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [Header("Monster Information")] // 마물 정보 구분
     [SerializeField] private string monsterId = "M000"; // 마물 고유 ID
     [SerializeField] private string monsterName = "New Monster"; // 마물 표시 이름
+    [SerializeField] private CardRarity rarity = CardRarity.Common; // 마물 희귀도
     [SerializeField] private int maxHp = 5; // 마물 최대 체력
     [SerializeField] private int attack = 1; // 마물 공격력
     [SerializeField, Min(0)] private int lustDamage = 5; // 성욕 피해
@@ -21,11 +22,22 @@ public class MonsterData : ScriptableObject // 마물 데이터 정의
     [Header("Target Rules")]
     [SerializeField] private bool isTaunting;
 
+    [Header("Card Link")] // 카드 연결 구분
+    [SerializeField] private CardData captureRewardCard; // 포획 보상 카드
+
     [Header("Attack Status Effect")] // 공격 상태 효과 구분
     [SerializeField] private StatusEffectData attackStatusEffect; // 공격 시 부여 상태 효과
 
     public string MonsterId => monsterId; // 마물 ID 반환
     public string MonsterName => monsterName; // 마물 이름 반환
+    public CardRarity Rarity => rarity; // 마물 희귀도 반환
+    public CardData CaptureRewardCard => captureRewardCard; // 포획 보상 카드 반환
+
+    public int MaxOwnedCopies =>
+        CardRarityRules.GetMaxCopies(rarity); // 희귀도별 보유 한도
+
+    public int DuplicateEssenceReward =>
+        CardRarityRules.GetEssenceReward(rarity); // 초과 변환량
     public int MaxHp => maxHp; // 마물 최대 체력 반환
     public int Attack => attack; // 마물 공격력 반환
     public int LustDamage => lustDamage; // 성욕 피해 반환

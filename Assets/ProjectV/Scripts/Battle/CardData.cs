@@ -13,4 +13,15 @@ public class CardData : ScriptableObject // 카드 데이터 정의
     public string CardName => cardName; // 카드 이름 반환
     public int ManaCost => manaCost; // 카드 마나 비용 반환
     public MonsterData SummonMonster => summonMonster; // 소환 마물 반환
+
+    public CardRarity Rarity =>
+        summonMonster == null
+            ? CardRarity.Common
+            : summonMonster.Rarity; // 소환 마물 희귀도 반환
+
+    public int MaxCopies =>
+        CardRarityRules.GetMaxCopies(Rarity); // 희귀도별 보유 및 편성 한도
+
+    public int EssenceReward =>
+        CardRarityRules.GetEssenceReward(Rarity); // 초과 변환량
 } // 클래스 끝

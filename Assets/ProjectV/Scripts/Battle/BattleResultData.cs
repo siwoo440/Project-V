@@ -9,7 +9,10 @@ public class BattleResultData
     public bool CaptureAttempted { get; }
     public bool CaptureSucceeded { get; }
     public MonsterData CapturedMonster { get; }
-    public int DuplicateMaterialReward { get; private set; } // 중복 포획 강화 재료
+    public int EssenceReward { get; private set; } // 초과 포획 변환 정수
+
+    public bool DuplicateConverted =>
+        EssenceReward > 0; // 초과 변환 여부
 
 
     public bool IsVictory =>
@@ -17,9 +20,9 @@ public class BattleResultData
     Outcome == BattleOutcome.VictoryLust;
 
     public bool RewardsApplied { get; private set; }
-    public void MarkRewardsApplied(int duplicateMaterialReward)
+    public void MarkRewardsApplied(int essenceReward)
     {
-        DuplicateMaterialReward = Math.Max(0, duplicateMaterialReward); // 획득 재료 저장
+        EssenceReward = Math.Max(0, essenceReward); // 획득 정수 저장
         RewardsApplied = true; // 보상 적용 완료
     }
     public BattleResultData(

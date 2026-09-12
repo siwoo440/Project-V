@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M004
   monsterName: Imp
+  rarity: 1
   maxHp: 5
   attack: 2
   lustDamage: 12
   defense: 0
   startingShield: 0
+  hpGrowthPerLevel: 1
+  attackGrowthPerLevel: 1
+  lustGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
+  captureRewardCard: {fileID: 11400000, guid: 4bb9ac271c14932489808fa8364a05c7, type: 2}
   attackStatusEffect: {fileID: 0}

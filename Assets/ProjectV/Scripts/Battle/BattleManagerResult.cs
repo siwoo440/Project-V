@@ -152,11 +152,11 @@ public partial class BattleManager // 분리된 전투 기능
     ? "Rewards Added to Player Progress"
     : "Battle Result Confirmed"; // 기본 수령 문구
 
-        if (lastBattleResult.DuplicateMaterialReward > 0)
+        if (lastBattleResult.DuplicateConverted)
         {
             claimMessage =
-                $"Duplicate Converted: Enhancement Material +" +
-                $"{lastBattleResult.DuplicateMaterialReward}"; // 중복 변환 문구
+                $"Ownership Limit Reached: Monster Essence +" +
+                $"{lastBattleResult.EssenceReward}"; // 초과 변환 문구
         }
 
         if (resultText != null)

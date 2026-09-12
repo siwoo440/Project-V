@@ -10,10 +10,21 @@ public partial class BattleManager // 분리된 전투 기능
     {
         if (!validateDeckOnStart) { return true; }
 
+        ICardOwnershipSource ownershipSource =
+            PlayerProgressManager.Instance; // 보유 카드 조회 대상
+
+        if (ownershipSource == null)
+        {
+            Debug.LogWarning(
+                "Missing Player Progress Manager. " +
+                "Card ownership check is skipped."
+            ); // 보유 검증 생략 경고
+        }
+
         bool isValid = DeckValidator.TryValidate(
             deckCards,
             requiredDeckSize,
-            maxCopiesPerCard,
+            ownershipSource,
             out string errorMessage
         );
 

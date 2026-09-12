@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M005
   monsterName: Skeleton
+  rarity: 2
   maxHp: 9
   attack: 3
   lustDamage: 12
   defense: 2
   startingShield: 4
+  hpGrowthPerLevel: 1
+  attackGrowthPerLevel: 1
+  lustGrowthPerLevel: 1
+  defenseGrowthPerLevel: 0
+  captureRewardCard: {fileID: 11400000, guid: b30ed08bc595a1c42ba2940f40889885, type: 2}
   attackStatusEffect: {fileID: 0}

@@ -7136,7 +7136,6 @@ MonoBehaviour:
   startingHandCount: 3
   turnDrawCount: 1
   requiredDeckSize: 6
-  maxCopiesPerCard: 3
   maxHandSize: 5
   validateDeckOnStart: 1
   shuffleDeckAtBattleStart: 1
@@ -9815,8 +9814,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgressManager
   startingGold: 0
-  startingMonsters: []
-  duplicateExperienceBonus: 5
+  startingCards:
+  - cardData: {fileID: 11400000, guid: 6c6e05023667eb443b6785866fa78456, type: 2}
+    count: 3
+  - cardData: {fileID: 11400000, guid: 66b71cf733e504947b212a60d18ce941, type: 2}
+    count: 3
+  - cardData: {fileID: 11400000, guid: b072590b17b1cc24aa2a46ae481cb5dc, type: 2}
+    count: 3
+  - cardData: {fileID: 11400000, guid: 4bb9ac271c14932489808fa8364a05c7, type: 2}
+    count: 2
+  - cardData: {fileID: 11400000, guid: b30ed08bc595a1c42ba2940f40889885, type: 2}
+    count: 1
+  - cardData: {fileID: 11400000, guid: f22d737bbd926db40802047a4f34de55, type: 2}
+    count: 1
 --- !u!4 &1838099544
 Transform:
   m_ObjectHideFlags: 0
