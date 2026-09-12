@@ -5,6 +5,131 @@ public static class DeckValidator
     private const int MaxLegendaryCards = 3; // 덱 전설 제한
     private const int MaxBossOriginCards = 1; // 덱 보스 출신 제한
 
+    // 편성 중 카드 1장을 더 넣을 수 있는지 검사한다. (덱이 30장 미만인 상태를 허용)
+    public static bool TryAddCard(
+        IReadOnlyList<CardData> deckCards,
+        CardData cardToAdd,
+        int requiredDeckSize,
+        ICardOwnershipSource ownershipSource,
+        out string errorMessage
+    )
+    {
+        if (cardToAdd == null)
+        {
+            errorMessage = "추가할 카드가 없습니다.";
+            return false;
+        }
+
+        if (deckCards == null)
+        {
+            errorMessage = "덱 데이터가 없습니다.";
+            return false;
+        }
+
+        if (cardToAdd.SummonMonster == null)
+        {
+            errorMessage = $"{cardToAdd.CardName}에 마물 데이터가 없습니다.";
+            return false;
+        }
+
+        if (cardToAdd.SummonMonster.IsToken)
+        {
+            errorMessage =
+                $"{cardToAdd.CardName}은 편성할 수 없는 토큰 마물입니다.";
+            return false;
+        }
+
+        if (deckCards.Count >= requiredDeckSize)
+        {
+            errorMessage =
+                $"덱이 이미 {requiredDeckSize}장입니다.";
+            return false;
+        }
+
+        string targetCardId = cardToAdd.CardId?.Trim();
+
+        if (string.IsNullOrEmpty(targetCardId))
+        {
+            errorMessage = $"{cardToAdd.CardName}의 카드 ID가 비어 있습니다.";
+            return false;
+        }
+
+        int sameCardCount = 0;
+        int legendaryCount = 0;
+        int bossOriginCount = 0;
+
+        foreach (CardData deckCard in deckCards)
+        {
+            if (deckCard == null) { continue; }
+
+            if (deckCard.CardId?.Trim() == targetCardId)
+            {
+                sameCardCount += 1;
+            }
+
+            if (deckCard.Rarity == CardRarity.Legendary)
+            {
+                legendaryCount += 1;
+            }
+
+            if (deckCard.IsBossOrigin)
+            {
+                bossOriginCount += 1;
+            }
+        }
+
+        int maxCopies = cardToAdd.MaxCopies;
+
+        if (sameCardCount + 1 > maxCopies)
+        {
+            errorMessage =
+                $"{cardToAdd.CardName}은 " +
+                $"{CardRarityRules.GetDisplayName(cardToAdd.Rarity)} " +
+                $"중복 제한을 초과합니다. ({sameCardCount + 1} / {maxCopies})";
+            return false;
+        }
+
+        if (ownershipSource != null)
+        {
+            int ownedCount = ownershipSource.GetOwnedCardCount(cardToAdd);
+
+            if (ownedCount <= 0)
+            {
+                errorMessage = $"{cardToAdd.CardName}은 보유하지 않은 카드입니다.";
+                return false;
+            }
+
+            if (sameCardCount + 1 > ownedCount)
+            {
+                errorMessage =
+                    $"{cardToAdd.CardName}의 보유 수량을 초과합니다. " +
+                    $"({sameCardCount + 1} / {ownedCount})";
+                return false;
+            }
+        }
+
+        if (cardToAdd.Rarity == CardRarity.Legendary &&
+            legendaryCount + 1 > MaxLegendaryCards)
+        {
+            errorMessage =
+                $"덱의 전설 마물 제한을 초과합니다. " +
+                $"({legendaryCount + 1} / {MaxLegendaryCards})";
+            return false;
+        }
+
+        if (cardToAdd.IsBossOrigin &&
+            bossOriginCount + 1 > MaxBossOriginCards)
+        {
+            errorMessage =
+                $"덱의 보스 출신 마물 제한을 초과합니다. " +
+                $"({bossOriginCount + 1} / {MaxBossOriginCards})";
+            return false;
+        }
+
+        errorMessage = string.Empty;
+        return true;
+    }
+
     public static bool TryValidate(
         IReadOnlyList<CardData> deckCards,
         int requiredDeckSize,

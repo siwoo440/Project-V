@@ -294,6 +294,76 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         ownedMonsters.Add(new OwnedMonsterData(monsterData)); // 성장 데이터 등록
     }
 
+    public int GetDeckCardCount(CardData cardData) // 덱 편성 수량 반환
+    {
+        if (cardData == null) { return 0; }
+
+        int deckCount = 0;
+
+        foreach (CardData deckCard in currentDeck)
+        {
+            if (deckCard == null) { continue; }
+            if (deckCard.CardId != cardData.CardId) { continue; }
+
+            deckCount += 1;
+        }
+
+        return deckCount;
+    }
+
+    public bool TryAddCardToDeck( // 덱에 카드 1장 추가
+        CardData cardData,
+        out string errorMessage
+    )
+    {
+        bool canAdd = DeckValidator.TryAddCard(
+            currentDeck,
+            cardData,
+            RequiredDeckSize,
+            this,
+            out errorMessage
+        ); // 편성 규칙 검사
+
+        if (!canAdd) { return false; }
+
+        currentDeck.Add(cardData);
+        ProgressChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool RemoveCardFromDeck(CardData cardData) // 덱에서 카드 1장 제거
+    {
+        if (cardData == null) { return false; }
+
+        for (int i = currentDeck.Count - 1; i >= 0; i--)
+        {
+            if (currentDeck[i] == null) { continue; }
+            if (currentDeck[i].CardId != cardData.CardId) { continue; }
+
+            currentDeck.RemoveAt(i);
+            ProgressChanged?.Invoke();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public void ClearDeck() // 덱 비우기
+    {
+        if (currentDeck.Count == 0) { return; }
+
+        currentDeck.Clear();
+        ProgressChanged?.Invoke();
+    }
+
+    public void FillDeckFromOwnedCards() // 보유 카드로 덱 채우기
+    {
+        RebuildDeckFromOwnedCards();
+        ProgressChanged?.Invoke();
+    }
+
     public bool SetCurrentDeck(IReadOnlyList<CardData> deckCards) // 덱 교체
     {
         if (deckCards == null) { return false; } // 빈 목록 차단

@@ -181,65 +181,91 @@ public static class SceneUIBuilder
         EnsureEventSystem();
         EnsureBackground(canvas.transform);
 
+        SetActiveByName("DeckBuilderPanel", false); // 비어 있는 껍데기 패널 숨김
+
         TextMeshProUGUI title = EnsureText(
             "TitleText", canvas.transform, "덱 편성",
-            56f, AccentColor, TextAlignmentOptions.Left);
+            48f, AccentColor, TextAlignmentOptions.Left);
 
         SetAnchored(title.gameObject,
-            new Vector2(0f, 1f), new Vector2(400f, -90f), new Vector2(700f, 80f));
-
-        SendToBack("DeckBuilderPanel");
-
-        GameObject ownedPanel = EnsurePanel("OwnedCardsPanel", canvas.transform, PanelColor);
-        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(540f, -20f), new Vector2(920f, 660f));
-
-        TextMeshProUGUI ownedTitle = EnsureText(
-            "OwnedCardsTitleText", ownedPanel.transform, "보유 카드",
-            32f, AccentColor, TextAlignmentOptions.Left);
-
-        SetAnchored(ownedTitle.gameObject,
-            new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(840f, 46f));
-
-        GameObject ownedContent = EnsureObject("OwnedCardsContent", ownedPanel.transform);
-        SetStretch(ownedContent, new Vector4(30f, 30f, 30f, 90f));
-        ApplyVerticalLayout(ownedContent, 6f, 0, TextAnchor.UpperLeft);
-
-        GameObject deckPanel = EnsurePanel("CurrentDeckPanel", canvas.transform, PanelDeepColor);
-        SetAnchored(deckPanel, new Vector2(1f, 0.5f), new Vector2(-500f, -20f), new Vector2(820f, 660f));
-
-        TextMeshProUGUI deckTitle = EnsureText(
-            "CurrentDeckTitleText", deckPanel.transform, "현재 덱",
-            32f, AccentColor, TextAlignmentOptions.Left);
-
-        SetAnchored(deckTitle.gameObject,
-            new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(740f, 46f));
-
-        GameObject deckContent = EnsureObject("CurrentDeckContent", deckPanel.transform);
-        SetStretch(deckContent, new Vector4(30f, 30f, 30f, 90f));
-        ApplyVerticalLayout(deckContent, 6f, 0, TextAnchor.UpperLeft);
+            new Vector2(0f, 1f), new Vector2(260f, -72f), new Vector2(400f, 60f));
 
         TextMeshProUGUI deckCountText = EnsureText(
             "DeckCountText", canvas.transform, "덱 0 / 30      평균 마나 0.00",
-            28f, TextColor, TextAlignmentOptions.Left);
+            28f, TextColor, TextAlignmentOptions.Right);
 
         SetAnchored(deckCountText.gameObject,
-            new Vector2(0f, 0f), new Vector2(600f, 120f), new Vector2(900f, 50f));
+            new Vector2(1f, 1f), new Vector2(-320f, -72f), new Vector2(560f, 60f));
+
+        // 좌측 보유 카드
+        GameObject ownedPanel = EnsurePanel("OwnedCardsPanel", canvas.transform, PanelColor);
+        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(500f, -10f), new Vector2(860f, 720f));
+
+        TextMeshProUGUI ownedTitle = EnsureText(
+            "OwnedCardsTitleText", ownedPanel.transform, "보유 카드",
+            30f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(ownedTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(800f, 40f));
+
+        GameObject ownedContent = EnsureScrollList(
+            "OwnedCardsView", "OwnedCardsContent", ownedPanel.transform,
+            new Vector4(22f, 74f, 22f, 22f));
+
+        // 우측 현재 덱
+        GameObject deckPanel = EnsurePanel("CurrentDeckPanel", canvas.transform, PanelDeepColor);
+        SetAnchored(deckPanel, new Vector2(1f, 0.5f), new Vector2(-500f, -10f), new Vector2(860f, 720f));
+
+        TextMeshProUGUI deckTitle = EnsureText(
+            "CurrentDeckTitleText", deckPanel.transform, "현재 덱",
+            30f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(deckTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(800f, 40f));
+
+        GameObject deckContent = EnsureScrollList(
+            "CurrentDeckView", "CurrentDeckContent", deckPanel.transform,
+            new Vector4(22f, 74f, 22f, 22f));
+
+        // 좌측 하단 통계와 안내
+        TextMeshProUGUI deckStatsText = EnsureText(
+            "DeckStatsText", canvas.transform, "",
+            20f, SubTextColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(deckStatsText.gameObject,
+            new Vector2(0f, 0f), new Vector2(500f, 108f), new Vector2(860f, 110f));
 
         TextMeshProUGUI messageText = EnsureText(
             "MessageText", canvas.transform, "",
-            24f, SubTextColor, TextAlignmentOptions.Left);
+            20f, AccentColor, TextAlignmentOptions.Left);
 
         SetAnchored(messageText.gameObject,
-            new Vector2(0f, 0f), new Vector2(600f, 74f), new Vector2(1100f, 46f));
+            new Vector2(0f, 0f), new Vector2(500f, 34f), new Vector2(860f, 36f));
+
+        // 우측 하단 조작 버튼
+        Button fillDeckButton = EnsureButton("FillDeckButton", canvas.transform, "보유 카드로 채우기", ButtonColor);
+        SetAnchored(fillDeckButton.gameObject,
+            new Vector2(1f, 0f), new Vector2(-700f, 80f), new Vector2(300f, 64f));
+
+        Button clearDeckButton = EnsureButton("ClearDeckButton", canvas.transform, "덱 비우기", ButtonColor);
+        SetAnchored(clearDeckButton.gameObject,
+            new Vector2(1f, 0f), new Vector2(-400f, 80f), new Vector2(240f, 64f));
 
         Button backButton = EnsureButton("BackButton", canvas.transform, "돌아가기", ButtonColor);
         SetAnchored(backButton.gameObject,
-            new Vector2(1f, 0f), new Vector2(-200f, 100f), new Vector2(280f, 68f));
+            new Vector2(1f, 0f), new Vector2(-160f, 80f), new Vector2(200f, 64f));
+
+        StyleButtonByName("FillDeckButton", ButtonColor, 22f);
+        StyleButtonByName("ClearDeckButton", ButtonColor, 22f);
+        StyleButtonByName("BackButton", ButtonColor, 22f);
 
         GameObject controller = EnsureObject("DeckBuilderController", null);
         DeckBuilderFlow flow = controller.AddComponentIfMissing<DeckBuilderFlow>();
 
         AssignReference(flow, "backButton", backButton);
+        AssignReference(flow, "clearDeckButton", clearDeckButton);
+        AssignReference(flow, "fillDeckButton", fillDeckButton);
+        AssignReference(flow, "deckStatsText", deckStatsText);
         AssignReference(flow, "ownedCardsContent", ownedContent.transform);
         AssignReference(flow, "currentDeckContent", deckContent.transform);
         AssignReference(flow, "deckCountText", deckCountText);
@@ -801,6 +827,71 @@ public static class SceneUIBuilder
         PrefabUtility.UnloadPrefabContents(prefabRoot);
 
         Debug.Log("손패 카드 프리팹을 정리했습니다.");
+    }
+
+    // 세로 스크롤 목록을 만들고 항목이 들어갈 Content 오브젝트를 반환한다.
+    private static GameObject EnsureScrollList(
+        string viewName,
+        string contentName,
+        Transform parent,
+        Vector4 offsets)
+    {
+        GameObject viewObject = EnsureObject(viewName, parent);
+        SetStretch(viewObject, offsets);
+
+        Image viewImage = viewObject.AddComponentIfMissing<Image>();
+        viewImage.color = new Color(0.06f, 0.05f, 0.09f, 0.6f);
+        viewImage.raycastTarget = true;
+
+        viewObject.AddComponentIfMissing<RectMask2D>();
+
+        ScrollRect scrollRect = viewObject.AddComponentIfMissing<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 24f;
+
+        GameObject contentObject = EnsureObject(contentName, viewObject.transform);
+
+        RectTransform contentRect =
+            contentObject.GetComponent<RectTransform>();
+
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.offsetMin = new Vector2(0f, contentRect.offsetMin.y);
+        contentRect.offsetMax = new Vector2(0f, contentRect.offsetMax.y);
+        contentRect.sizeDelta = new Vector2(0f, 0f);
+        contentRect.anchoredPosition = Vector2.zero;
+
+        VerticalLayoutGroup listLayout =
+            contentObject.GetComponent<VerticalLayoutGroup>();
+
+        if (listLayout != null)
+        {
+            Object.DestroyImmediate(listLayout); // 세로 목록 배치 제거
+        }
+
+        GridLayoutGroup contentLayout =
+            contentObject.AddComponentIfMissing<GridLayoutGroup>();
+
+        contentLayout.cellSize = new Vector2(190f, 230f);
+        contentLayout.spacing = new Vector2(10f, 10f);
+        contentLayout.padding = new RectOffset(8, 8, 8, 8);
+        contentLayout.childAlignment = TextAnchor.UpperLeft;
+        contentLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        contentLayout.constraintCount = 4; // 가로 4장 배치
+
+        ContentSizeFitter contentFitter =
+            contentObject.AddComponentIfMissing<ContentSizeFitter>();
+
+        contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        scrollRect.content = contentRect;
+        scrollRect.viewport = viewObject.GetComponent<RectTransform>();
+
+        return contentObject;
     }
 
     // ---------- 기존 오브젝트 배치 도우미 ----------

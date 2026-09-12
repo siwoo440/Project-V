@@ -14,8 +14,8 @@ public partial class BattleManager // 분리된 전투 기능
             PlayerProgressManager.Instance;
 
         if (progress == null) { return; } // 진행 데이터 없음
-        if (progress.CurrentDeck.Count == 0) { return; } // 구성된 덱 없음
 
+        // 덱을 비운 상태도 그대로 반영해 덱 검증이 사유를 알려주도록 한다.
         deckCards.Clear();
         deckCards.AddRange(progress.CurrentDeck); // 플레이어 덱 적용
 
