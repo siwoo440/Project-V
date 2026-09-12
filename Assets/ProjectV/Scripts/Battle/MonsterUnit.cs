@@ -51,6 +51,8 @@ public class MonsterUnit : MonoBehaviour
 
     private int currentCooldown;
 
+    private int enhanceLevel = CardEnhanceRules.MinLevel; // 소환에 사용한 사본의 강화 단계
+
     private int synergyMaxHpBonus;
     private int synergyAttackBonus;
     private int synergyDefenseBonus;
@@ -93,6 +95,8 @@ public class MonsterUnit : MonoBehaviour
 
     public int CurrentCooldown => currentCooldown; // 남은 재사용 대기시간 반환
 
+    public int EnhanceLevel => enhanceLevel; // 소환 사본의 강화 단계 반환
+
     public bool HasActiveSkill => ActiveSkill != null; // 능동 스킬 보유 여부
 
     public bool CanUseSkill =>
@@ -101,6 +105,7 @@ public class MonsterUnit : MonoBehaviour
     public void Initialize(
 
         MonsterData data,
+        int summonEnhanceLevel,
         Action<MonsterUnit> selectedCallback,
         StatusEffectIconUI iconPrefab,
         StatusEffectTooltipUI tooltipUI
@@ -111,6 +116,7 @@ public class MonsterUnit : MonoBehaviour
         if (data == null) { return; }
 
         monsterData = data;
+        enhanceLevel = CardEnhanceRules.ClampLevel(summonEnhanceLevel);
         onSelected = selectedCallback;
         statusEffectIconPrefab = iconPrefab;
         statusEffectTooltipUI = tooltipUI;
@@ -473,7 +479,8 @@ public class MonsterUnit : MonoBehaviour
 
         if (monsterNameText != null)
         {
-            monsterNameText.text = monsterData.MonsterName;
+            monsterNameText.text =
+                $"{monsterData.MonsterName} Lv.{enhanceLevel}"; // 강화 단계 표시
         }
 
         if (monsterHpText != null)
@@ -578,6 +585,7 @@ public class MonsterUnit : MonoBehaviour
         return skill.DisplayName;
     }
 
+    // 소환에 사용한 사본의 강화 단계로 능력치를 계산한다. (기획서 6.9.4)
     private void InitializeRuntimeStats()
     {
         if (monsterData == null)
@@ -589,23 +597,28 @@ public class MonsterUnit : MonoBehaviour
             return;
         }
 
-        runtimeMaxHp = monsterData.MaxHp;
-        runtimeAttack = monsterData.Attack;
-        runtimeLustDamage = monsterData.LustDamage;
-        runtimeDefense = monsterData.Defense;
+        runtimeMaxHp = CardEnhanceRules.GetStatValue(
+            monsterData.MaxHp,
+            monsterData.HpGrowthPerLevel,
+            enhanceLevel
+        );
 
-        if (PlayerProgressManager.Instance == null) { return; }
+        runtimeAttack = CardEnhanceRules.GetStatValue(
+            monsterData.Attack,
+            monsterData.AttackGrowthPerLevel,
+            enhanceLevel
+        );
 
-        OwnedMonsterData ownedMonster =
-            PlayerProgressManager.Instance.GetOwnedMonster(
-                monsterData
-            );
+        runtimeLustDamage = CardEnhanceRules.GetStatValue(
+            monsterData.LustDamage,
+            monsterData.LustGrowthPerLevel,
+            enhanceLevel
+        );
 
-        if (ownedMonster == null) { return; }
-
-        runtimeMaxHp = ownedMonster.MaxHp;
-        runtimeAttack = ownedMonster.Attack;
-        runtimeLustDamage = ownedMonster.LustDamage;
-        runtimeDefense = ownedMonster.Defense;
+        runtimeDefense = CardEnhanceRules.GetStatValue(
+            monsterData.Defense,
+            monsterData.DefenseGrowthPerLevel,
+            enhanceLevel
+        );
     }
 }

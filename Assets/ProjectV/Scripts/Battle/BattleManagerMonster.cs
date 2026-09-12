@@ -370,7 +370,10 @@ public partial class BattleManager // 분리된 전투 기능
 
 
 
-    private void SummonMonster(MonsterData monsterData)
+    private void SummonMonster(
+        MonsterData monsterData,
+        int enhanceLevel = CardEnhanceRules.MinLevel
+    )
     {
         MonsterUnit newMonsterUnit = Instantiate(
             monsterUnitPrefab,
@@ -379,6 +382,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         newMonsterUnit.Initialize(
             monsterData,
+            enhanceLevel,
             SelectMonster,
             statusEffectIconPrefab,
             statusEffectTooltipUI

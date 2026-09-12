@@ -188,8 +188,8 @@ Camera:
   m_GameObject: {fileID: 284625941}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.05, g: 0.05, b: 0.07, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -536,7 +536,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e093fe030c3c5cf4aa2d38849d6c12dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgressManager
-  startingGold: 0
+  startingGold: 2000
+  startingMonsterEssence: 40
   startingCards:
   - cardData: {fileID: 11400000, guid: e0f329c433364665bac4093c93af8d27, type: 2}
     count: 3
@@ -561,6 +562,7 @@ MonoBehaviour:
   - cardData: {fileID: 11400000, guid: eb553a381279489fa9021d2ba94b837a, type: 2}
     count: 1
   requiredDeckSize: 30
+  enhanceLevelCap: 5
 --- !u!224 &936803421
 RectTransform:
   m_ObjectHideFlags: 0

@@ -21,6 +21,9 @@ EditorBuildSettings:
     path: Assets/ProjectV/Scenes/04_Story.unity
     guid: f841b5514e99b3b499a3deffa7486132
   - enabled: 1
+    path: Assets/ProjectV/Scenes/05_Enhance.unity
+    guid: 3c7f21b9d4e84a1f8b6c05d2a7e91f43
+  - enabled: 1
     path: Assets/ProjectV/Scenes/BattleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:

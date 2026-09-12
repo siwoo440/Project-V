@@ -5,4 +5,5 @@ public enum CardSortMode // 보유 카드 정렬 방식 (기획서 6.12.5)
     ManaDesc = 2,  // 마나 높은 순
     Rarity = 3,    // 희귀도순
     MonsterType = 4, // 계열순
+    EnhanceLevel = 5, // 강화 단계순 (기획서 6.9)
 }

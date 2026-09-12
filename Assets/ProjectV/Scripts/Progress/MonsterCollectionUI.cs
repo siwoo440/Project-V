@@ -165,9 +165,8 @@ public class MonsterCollectionUI : MonoBehaviour
             $"ID {ownedMonster.MonsterData.MonsterId}\n" +
             $"희귀도 " +
             $"{CardRarityRules.GetDisplayName(ownedMonster.MonsterData.Rarity)}\n" +
-            $"레벨 {ownedMonster.Level}\n" +
-            $"경험치 {ownedMonster.CurrentExperience} / " +
-            $"{ownedMonster.RequiredExperience}\n" +
+            $"강화 단계 Lv.{ownedMonster.Level} / " +
+            $"Lv.{CardEnhanceRules.MaxLevel}\n" +
             $"보유 {GetOwnedCardCount(ownedMonster)} / " +
             $"{ownedMonster.MonsterData.MaxOwnedCopies}\n\n" +
             $"HP {ownedMonster.MaxHp}\n" +

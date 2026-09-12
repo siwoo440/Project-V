@@ -5,16 +5,16 @@ public static class DeckValidator
     private const int MaxLegendaryCards = 3; // 덱 전설 제한
     private const int MaxBossOriginCards = 1; // 덱 보스 출신 제한
 
-    // 편성 중 카드 1장을 더 넣을 수 있는지 검사한다. (덱이 30장 미만인 상태를 허용)
+    // 편성 중 사본 1장을 더 넣을 수 있는지 검사한다. (덱이 30장 미만인 상태를 허용)
     public static bool TryAddCard(
-        IReadOnlyList<CardData> deckCards,
-        CardData cardToAdd,
+        IReadOnlyList<CardCopy> deckCards,
+        CardCopy copyToAdd,
         int requiredDeckSize,
         ICardOwnershipSource ownershipSource,
         out string errorMessage
     )
     {
-        if (cardToAdd == null)
+        if (copyToAdd == null || copyToAdd.CardData == null)
         {
             errorMessage = "추가할 카드가 없습니다.";
             return false;
@@ -25,6 +25,8 @@ public static class DeckValidator
             errorMessage = "덱 데이터가 없습니다.";
             return false;
         }
+
+        CardData cardToAdd = copyToAdd.CardData;
 
         if (cardToAdd.SummonMonster == null)
         {
@@ -58,21 +60,28 @@ public static class DeckValidator
         int legendaryCount = 0;
         int bossOriginCount = 0;
 
-        foreach (CardData deckCard in deckCards)
+        foreach (CardCopy deckCopy in deckCards)
         {
-            if (deckCard == null) { continue; }
+            if (deckCopy == null || deckCopy.CardData == null) { continue; }
 
-            if (deckCard.CardId?.Trim() == targetCardId)
+            if (deckCopy == copyToAdd)
+            {
+                errorMessage =
+                    $"{copyToAdd.DisplayName}은 이미 덱에 들어 있습니다."; // 같은 사본 중복 차단
+                return false;
+            }
+
+            if (deckCopy.CardId?.Trim() == targetCardId)
             {
                 sameCardCount += 1;
             }
 
-            if (deckCard.Rarity == CardRarity.Legendary)
+            if (deckCopy.Rarity == CardRarity.Legendary)
             {
                 legendaryCount += 1;
             }
 
-            if (deckCard.IsBossOrigin)
+            if (deckCopy.IsBossOrigin)
             {
                 bossOriginCount += 1;
             }
@@ -131,7 +140,7 @@ public static class DeckValidator
     }
 
     public static bool TryValidate(
-        IReadOnlyList<CardData> deckCards,
+        IReadOnlyList<CardCopy> deckCards,
         int requiredDeckSize,
         out string errorMessage
     )
@@ -145,7 +154,7 @@ public static class DeckValidator
     }
 
     public static bool TryValidate(
-        IReadOnlyList<CardData> deckCards,
+        IReadOnlyList<CardCopy> deckCards,
         int requiredDeckSize,
         ICardOwnershipSource ownershipSource,
         out string errorMessage
@@ -179,18 +188,29 @@ public static class DeckValidator
 
         List<string> cardOrder = new List<string>(); // 검사 순서 유지
 
+        HashSet<CardCopy> usedCopies = new HashSet<CardCopy>(); // 사본 중복 확인
+
         int legendaryCount = 0; // 전설 편성 수량
         int bossOriginCount = 0; // 보스 출신 편성 수량
 
         for (int i = 0; i < deckCards.Count; i++)
         {
-            CardData cardData = deckCards[i];
+            CardCopy deckCopy = deckCards[i];
 
-            if (cardData == null)
+            if (deckCopy == null || deckCopy.CardData == null)
             {
                 errorMessage = $"{i}번 자리에 빈 카드가 있습니다.";
                 return false;
             }
+
+            if (!usedCopies.Add(deckCopy))
+            {
+                errorMessage =
+                    $"{deckCopy.DisplayName}이 중복 편성되었습니다."; // 같은 사본 중복 차단
+                return false;
+            }
+
+            CardData cardData = deckCopy.CardData;
 
             string cardId = cardData.CardId?.Trim();
 

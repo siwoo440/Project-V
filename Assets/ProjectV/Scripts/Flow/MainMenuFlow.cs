@@ -9,6 +9,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
     [SerializeField] private Button storyButton;       // 스토리 진행
     [SerializeField] private Button stageSelectButton; // 지역 선택
     [SerializeField] private Button deckBuilderButton; // 덱 편성
+    [SerializeField] private Button enhanceButton;     // 마물 강화
     [SerializeField] private Button quitButton;        // 게임 종료
 
     [Header("메뉴 텍스트")]
@@ -25,6 +26,9 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         deckBuilderButton =
             SceneUIBinder.Bind(deckBuilderButton, "DeckBuilderButton");
 
+        enhanceButton =
+            SceneUIBinder.Bind(enhanceButton, "EnhanceButton");
+
         quitButton =
             SceneUIBinder.Bind(quitButton, "QuitButton");
 
@@ -37,6 +41,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         AddListener(storyButton, SceneFlow.LoadStory);
         AddListener(stageSelectButton, SceneFlow.LoadStageSelect);
         AddListener(deckBuilderButton, SceneFlow.LoadDeckBuilder);
+        AddListener(enhanceButton, SceneFlow.LoadEnhance);
         AddListener(quitButton, SceneFlow.QuitGame);
 
         RefreshProgressText(); // 진행 정보 갱신

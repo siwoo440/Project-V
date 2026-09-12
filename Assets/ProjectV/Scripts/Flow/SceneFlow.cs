@@ -40,6 +40,11 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.StageSelect);
     }
 
+    public static void LoadEnhance()
+    {
+        LoadScene(SceneNames.Enhance);
+    }
+
     public static void LoadStory()
     {
         LoadScene(SceneNames.Story);

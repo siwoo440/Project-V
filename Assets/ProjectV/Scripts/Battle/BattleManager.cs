@@ -76,8 +76,9 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private float heroineActionDelay = 0.8f;   // 히로인 행동 대기 시간
 
 
-    private readonly List<CardData> drawPile = new List<CardData>();            // 드로우 더미
-    private readonly List<CardData> discardPile = new List<CardData>();         // 버린 카드 더미
+    private readonly List<CardCopy> battleDeck = new List<CardCopy>();          // 이번 전투에 사용할 사본 목록
+    private readonly List<CardCopy> drawPile = new List<CardCopy>();            // 드로우 더미
+    private readonly List<CardCopy> discardPile = new List<CardCopy>();         // 버린 카드 더미
     private readonly List<Button> handButtons = new List<Button>();             // 현재 손패 버튼 목록
     private readonly List<MonsterUnit> fieldMonsters = new List<MonsterUnit>(); // 현재 필드 마물 목록
     private readonly List<ActiveStatusEffect> activeHeroineStatusEffects = new List<ActiveStatusEffect>(); // 히로인 활성 상태 효과 목록
@@ -150,7 +151,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         ClearMonsterField(); // 기존 마물 필드 초기화
 
 
-        drawPile.AddRange(deckCards);
+        drawPile.AddRange(battleDeck);
 
         if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
         AddBattleLog( BattleLogCategory.System, $"덱 준비 완료: {drawPile.Count}장"  );

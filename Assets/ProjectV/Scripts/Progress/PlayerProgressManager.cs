@@ -18,6 +18,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     [Header("시작 진행 데이터")]
     [SerializeField, Min(0)] private int startingGold;
+    [SerializeField, Min(0)] private int startingMonsterEssence; // 시작 마물의 정수
 
     [SerializeField]
     private List<StartingCardEntry> startingCards =
@@ -25,6 +26,10 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     [Header("덱")]
     [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
+
+    [Header("강화")]
+    // 기획서 6.9.6: 플레이어 레벨이 강화 상한을 정한다. 플레이어 레벨은 40일차에 붙인다.
+    [SerializeField, Range(1, 5)] private int enhanceLevelCap = 5;
 
     private readonly List<OwnedCardData> ownedCards =
         new List<OwnedCardData>(); // 보유 카드 목록
@@ -46,6 +51,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     public int Gold => gold; // 현재 골드
     public int TotalExperience => totalExperience; // 전체 경험치
     public int MonsterEssence => monsterEssence; // 마물의 정수
+
+    public int EnhanceLevelCap =>
+        CardEnhanceRules.ClampLevel(enhanceLevelCap); // 강화 단계 상한 반환
 
     public IReadOnlyList<OwnedCardData> OwnedCards =>
         ownedCards; // 보유 카드 목록 반환
@@ -72,7 +80,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         }
     }
 
-    public IReadOnlyList<CardData> CurrentDeck =>
+    public IReadOnlyList<CardCopy> CurrentDeck =>
         SelectedPreset.Cards; // 선택 프리셋의 덱 반환
 
     public string GetPresetName(int presetIndex) // 프리셋 이름 반환
@@ -111,17 +119,17 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     {
         get
         {
-            IReadOnlyList<CardData> deckCards = CurrentDeck;
+            IReadOnlyList<CardCopy> deckCards = CurrentDeck;
 
             if (deckCards.Count == 0) { return 0f; }
 
             int totalMana = 0;
 
-            foreach (CardData deckCard in deckCards)
+            foreach (CardCopy deckCopy in deckCards)
             {
-                if (deckCard == null) { continue; }
+                if (deckCopy == null) { continue; }
 
-                totalMana += deckCard.ManaCost;
+                totalMana += deckCopy.ManaCost;
             }
 
             return (float)totalMana / deckCards.Count;
@@ -161,14 +169,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
                 ); // 포획 카드 지급 또는 초과 변환
             }
 
-            foreach (OwnedMonsterData ownedMonster in ownedMonsters)
-            {
-                if (ownedMonster == null) { continue; } // 빈 데이터 제외
-
-                ownedMonster.AddExperience(
-                    resultData.ExperienceReward
-                ); // 보유 마물 경험치 지급
-            }
+            // 기획서 6.9의 성장 수단은 강화뿐이므로 전투 경험치로는 마물이 성장하지 않는다.
         }
 
         resultData.MarkRewardsApplied(
@@ -212,6 +213,15 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         }
 
         return null;
+    }
+
+    public IReadOnlyList<CardCopy> GetCardCopies(CardData cardData) // 카드 사본 목록 반환
+    {
+        OwnedCardData ownedCard = GetOwnedCard(cardData);
+
+        return ownedCard == null
+            ? Array.Empty<CardCopy>()
+            : ownedCard.Copies;
     }
 
     public OwnedMonsterData GetOwnedMonster(
@@ -267,10 +277,13 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             return 0;
         }
 
-        if (ownedCard.TryAddCopy())
+        CardCopy addedCopy = ownedCard.AddCopy(); // 새 사본 추가
+
+        if (addedCopy != null)
         {
             Debug.Log(
                 $"카드 추가 보유: {cardData.CardName} " +
+                $"{addedCopy.DisplayName} " +
                 $"{ownedCard.OwnedCount} / {ownedCard.MaxOwnedCount}"
             ); // 중복 보유 확인
 
@@ -329,31 +342,151 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         ownedMonsters.Add(new OwnedMonsterData(monsterData)); // 성장 데이터 등록
     }
 
-    public int GetDeckCardCount(CardData cardData) // 덱 편성 수량 반환
+    // ===== 마물 카드 강화 (기획서 6.9) =====
+
+    public bool CanEnhanceCopy( // 강화 가능 여부와 사유 확인
+        CardCopy targetCopy,
+        out string errorMessage
+    )
     {
-        if (cardData == null) { return 0; }
-
-        int deckCount = 0;
-
-        foreach (CardData deckCard in CurrentDeck)
+        if (targetCopy == null || targetCopy.CardData == null)
         {
-            if (deckCard == null) { continue; }
-            if (deckCard.CardId != cardData.CardId) { continue; }
-
-            deckCount += 1;
+            errorMessage = "강화할 카드를 선택하세요.";
+            return false;
         }
 
-        return deckCount;
+        OwnedCardData ownedCard = GetOwnedCard(targetCopy.CardData);
+
+        if (ownedCard == null || !ownedCard.HasCopy(targetCopy))
+        {
+            errorMessage = "보유하지 않은 사본입니다."; // 기획서 6.9.6 임시 카드 차단
+            return false;
+        }
+
+        if (targetCopy.IsMaxLevel)
+        {
+            errorMessage =
+                $"{targetCopy.CardName}은 이미 최대 단계입니다. " +
+                $"(Lv.{CardEnhanceRules.MaxLevel})";
+            return false;
+        }
+
+        if (targetCopy.EnhanceLevel >= EnhanceLevelCap)
+        {
+            errorMessage =
+                $"현재 강화 상한은 Lv.{EnhanceLevelCap}입니다."; // 기획서 6.9.6
+            return false;
+        }
+
+        int essenceCost = targetCopy.NextEssenceCost;
+        int goldCost = targetCopy.NextGoldCost;
+
+        if (monsterEssence < essenceCost)
+        {
+            errorMessage =
+                $"마물의 정수가 부족합니다. " +
+                $"({monsterEssence} / {essenceCost})";
+            return false;
+        }
+
+        if (gold < goldCost)
+        {
+            errorMessage =
+                $"골드가 부족합니다. ({gold} / {goldCost})";
+            return false;
+        }
+
+        errorMessage = string.Empty;
+        return true;
     }
 
-    public bool TryAddCardToDeck( // 덱에 카드 1장 추가
+    public bool TryEnhanceCopy( // 사본 1장을 한 단계 강화 (기획서 6.9.7: 되돌리기 없음)
+        CardCopy targetCopy,
+        out string resultMessage
+    )
+    {
+        if (!CanEnhanceCopy(targetCopy, out resultMessage))
+        {
+            return false;
+        }
+
+        int essenceCost = targetCopy.NextEssenceCost;
+        int goldCost = targetCopy.NextGoldCost;
+        int beforeLevel = targetCopy.EnhanceLevel;
+
+        if (!targetCopy.RaiseEnhanceLevel())
+        {
+            resultMessage = "강화에 실패했습니다.";
+            return false;
+        }
+
+        monsterEssence -= essenceCost; // 정수 차감
+        gold -= goldCost; // 골드 차감
+
+        SyncOwnedMonsterLevel(targetCopy); // 도감 표시 단계 갱신
+
+        resultMessage =
+            $"{targetCopy.CardName} " +
+            $"Lv.{beforeLevel} → Lv.{targetCopy.EnhanceLevel} 강화 완료 " +
+            $"(정수 -{essenceCost}, 골드 -{goldCost})";
+
+        Debug.Log(resultMessage); // 강화 결과 기록
+
+        ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+
+        return true;
+    }
+
+    private void SyncOwnedMonsterLevel(CardCopy targetCopy) // 도감 표시 단계 동기화
+    {
+        if (targetCopy == null) { return; }
+
+        OwnedMonsterData ownedMonster =
+            GetOwnedMonster(targetCopy.SummonMonster);
+
+        if (ownedMonster == null) { return; }
+
+        ownedMonster.RaiseToLevel(targetCopy.EnhanceLevel);
+    }
+
+    public int GetDeckCardCount(CardData cardData) // 덱 편성 수량 반환
+    {
+        return SelectedPreset.CountCard(cardData);
+    }
+
+    public bool IsCopyInDeck(CardCopy targetCopy) // 사본 편성 여부 반환
+    {
+        return SelectedPreset.Contains(targetCopy);
+    }
+
+    public bool TryAddCardToDeck( // 덱에 카드 1장 추가 (편성 안 된 사본 중 최고 단계)
         CardData cardData,
+        out string errorMessage
+    )
+    {
+        CardCopy availableCopy = FindAvailableCopy(cardData);
+
+        if (availableCopy == null)
+        {
+            errorMessage =
+                cardData == null
+                    ? "추가할 카드가 없습니다."
+                    : $"{cardData.CardName}의 편성 가능한 사본이 없습니다.";
+
+            return false;
+        }
+
+        return TryAddCopyToDeck(availableCopy, out errorMessage);
+    }
+
+    public bool TryAddCopyToDeck( // 덱에 사본 1장 추가
+        CardCopy targetCopy,
         out string errorMessage
     )
     {
         bool canAdd = DeckValidator.TryAddCard(
             CurrentDeck,
-            cardData,
+            targetCopy,
             RequiredDeckSize,
             this,
             out errorMessage
@@ -361,22 +494,45 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
         if (!canAdd) { return false; }
 
-        SelectedPreset.Cards.Add(cardData);
+        SelectedPreset.Cards.Add(targetCopy);
         ProgressChanged?.Invoke();
 
         return true;
+    }
+
+    private CardCopy FindAvailableCopy(CardData cardData) // 편성 안 된 최고 단계 사본 검색
+    {
+        OwnedCardData ownedCard = GetOwnedCard(cardData);
+
+        if (ownedCard == null) { return null; }
+
+        CardCopy bestCopy = null;
+
+        foreach (CardCopy copy in ownedCard.Copies)
+        {
+            if (copy == null) { continue; }
+            if (SelectedPreset.Contains(copy)) { continue; }
+
+            if (bestCopy == null ||
+                copy.EnhanceLevel > bestCopy.EnhanceLevel)
+            {
+                bestCopy = copy;
+            }
+        }
+
+        return bestCopy;
     }
 
     public bool RemoveCardFromDeck(CardData cardData) // 덱에서 카드 1장 제거
     {
         if (cardData == null) { return false; }
 
-        List<CardData> deckCards = SelectedPreset.Cards;
+        List<CardCopy> deckCards = SelectedPreset.Cards;
 
         for (int i = deckCards.Count - 1; i >= 0; i--)
         {
             if (deckCards[i] == null) { continue; }
-            if (deckCards[i].CardId != cardData.CardId) { continue; }
+            if (!deckCards[i].IsSameCard(cardData)) { continue; }
 
             deckCards.RemoveAt(i);
             ProgressChanged?.Invoke();
@@ -385,6 +541,17 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         }
 
         return false;
+    }
+
+    public bool RemoveCopyFromDeck(CardCopy targetCopy) // 덱에서 사본 1장 제거
+    {
+        if (targetCopy == null) { return false; }
+
+        if (!SelectedPreset.Cards.Remove(targetCopy)) { return false; }
+
+        ProgressChanged?.Invoke();
+
+        return true;
     }
 
     public void ClearDeck() // 덱 비우기
@@ -454,7 +621,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         return true;
     }
 
-    public bool SetCurrentDeck(IReadOnlyList<CardData> deckCards) // 덱 교체
+    public bool SetCurrentDeck(IReadOnlyList<CardCopy> deckCards) // 덱 교체
     {
         if (deckCards == null) { return false; } // 빈 목록 차단
 
@@ -481,7 +648,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     private void RebuildDeckFromOwnedCards() // 보유 카드로 덱 구성
     {
-        List<CardData> deckCards = SelectedPreset.Cards;
+        List<CardCopy> deckCards = SelectedPreset.Cards;
 
         deckCards.Clear();
 
@@ -490,9 +657,11 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             if (ownedCard == null) { continue; }
             if (ownedCard.CardData == null) { continue; }
 
-            for (int i = 0; i < ownedCard.OwnedCount; i++)
+            foreach (CardCopy copy in ownedCard.Copies)
             {
-                deckCards.Add(ownedCard.CardData); // 보유 수량만큼 편성
+                if (copy == null) { continue; }
+
+                deckCards.Add(copy); // 보유 사본을 모두 편성
             }
         }
 
@@ -509,7 +678,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     {
         gold = Mathf.Max(0, startingGold); // 시작 골드
         totalExperience = 0; // 전체 경험치 초기화
-        monsterEssence = 0; // 마물의 정수 초기화
+        monsterEssence = Mathf.Max(0, startingMonsterEssence); // 마물의 정수 초기화
         deckPresets.Clear(); // 덱 프리셋 초기화
         selectedPresetIndex = 0;
         EnsureDeckPresets();

@@ -62,6 +62,7 @@ public static class SceneUIBuilder
         BuildScene("02_DeckBuilder", BuildDeckBuilderScene);
         BuildScene("03_StageSelect", BuildStageSelectScene);
         BuildScene("04_Story", BuildStoryScene);
+        BuildScene("05_Enhance", BuildEnhanceScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -98,6 +99,7 @@ public static class SceneUIBuilder
     {
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
+        EnsureMainCamera();
         EnsureBackground(canvas.transform);
 
         TextMeshProUGUI loadingText = EnsureText(
@@ -128,6 +130,7 @@ public static class SceneUIBuilder
     {
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
+        EnsureMainCamera();
         EnsureBackground(canvas.transform);
 
         TextMeshProUGUI title = EnsureText(
@@ -145,18 +148,20 @@ public static class SceneUIBuilder
             new Vector2(0.5f, 1f), new Vector2(0f, -290f), new Vector2(1200f, 60f));
 
         GameObject panel = EnsurePanel("MainMenuPanel", canvas.transform, PanelColor);
-        SetAnchored(panel, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(560f, 520f));
+        SetAnchored(panel, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(560f, 620f));
         ApplyVerticalLayout(panel, 24f, 48);
 
         Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리", ButtonColor);
         Button stageButton = EnsureButton("StageSelectButton", panel.transform, "지역 선택", ButtonColor);
         Button deckButton = EnsureButton("DeckBuilderButton", panel.transform, "덱 편성", ButtonColor);
+        Button enhanceButton = EnsureButton("EnhanceButton", panel.transform, "마물 강화", ButtonColor);
         Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
 
         storyButton.transform.SetSiblingIndex(0);
         stageButton.transform.SetSiblingIndex(1);
         deckButton.transform.SetSiblingIndex(2);
-        quitButton.transform.SetSiblingIndex(3);
+        enhanceButton.transform.SetSiblingIndex(3);
+        quitButton.transform.SetSiblingIndex(4);
 
         TextMeshProUGUI progressText = EnsureText(
             "ProgressText", canvas.transform, "골드 0    정수 0    보유 카드 0    덱 0",
@@ -171,6 +176,7 @@ public static class SceneUIBuilder
         AssignReference(flow, "storyButton", storyButton);
         AssignReference(flow, "stageSelectButton", stageButton);
         AssignReference(flow, "deckBuilderButton", deckButton);
+        AssignReference(flow, "enhanceButton", enhanceButton);
         AssignReference(flow, "quitButton", quitButton);
         AssignReference(flow, "progressText", progressText);
     }
@@ -179,9 +185,15 @@ public static class SceneUIBuilder
     {
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
+        EnsureMainCamera();
         EnsureBackground(canvas.transform);
 
         SetActiveByName("DeckBuilderPanel", false); // 비어 있는 껍데기 패널 숨김
+
+        // 강화는 05_Enhance 씬으로 옮겼으므로 이전 구성의 잔재를 지운다.
+        DestroyByName("EnhancePanel");
+        DestroyByName("ModeButton");
+        DestroyByName("ResourceText");
 
         TextMeshProUGUI title = EnsureText(
             "TitleText", canvas.transform, "덱 편성",
@@ -189,6 +201,14 @@ public static class SceneUIBuilder
 
         SetAnchored(title.gameObject,
             new Vector2(0f, 1f), new Vector2(260f, -72f), new Vector2(400f, 60f));
+
+        Button enhanceSceneButton = EnsureButton(
+            "EnhanceSceneButton", canvas.transform, "마물 강화", AccentColor);
+
+        SetAnchored(enhanceSceneButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(660f, -72f), new Vector2(240f, 56f));
+
+        StyleButtonByName("EnhanceSceneButton", AccentColor, 21f);
 
         TextMeshProUGUI deckCountText = EnsureText(
             "DeckCountText", canvas.transform, "덱 0 / 30      평균 마나 0.00",
@@ -338,14 +358,214 @@ public static class SceneUIBuilder
         AssignReference(flow, "rarityFilterButton", rarityFilterButton);
         AssignReference(flow, "manaFilterButton", manaFilterButton);
         AssignReference(flow, "sortButton", sortButton);
+        AssignReference(flow, "enhanceSceneButton", enhanceSceneButton);
         AssignReference(flow, "searchInput", searchInput);
         ApplyPresetButtonList(flow);
+    }
+
+    // 마물 카드 강화 화면 (기획서 6.9 / 11.13)
+    // 왼쪽은 덱 편성과 같은 보유 카드 목록, 오른쪽은 카드를 올려 강화하는 강화대.
+    private static void BuildEnhanceScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+        EnsureMainCamera();
+        EnsureBackground(canvas.transform);
+
+        TextMeshProUGUI title = EnsureText(
+            "TitleText", canvas.transform, "마물 강화",
+            48f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(title.gameObject,
+            new Vector2(0f, 1f), new Vector2(260f, -72f), new Vector2(400f, 60f));
+
+        Button deckBuilderButton = EnsureButton(
+            "DeckBuilderButton", canvas.transform, "덱 편성", ButtonColor);
+
+        SetAnchored(deckBuilderButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(640f, -72f), new Vector2(220f, 56f));
+
+        StyleButtonByName("DeckBuilderButton", ButtonColor, 21f);
+
+        TextMeshProUGUI resourceText = EnsureText(
+            "ResourceText", canvas.transform, "골드 0      마물의 정수 0",
+            28f, AccentColor, TextAlignmentOptions.Right);
+
+        SetAnchored(resourceText.gameObject,
+            new Vector2(1f, 1f), new Vector2(-320f, -72f), new Vector2(560f, 60f));
+
+        // 필터와 정렬 줄
+        Button typeFilterButton = EnsureButton(
+            "TypeFilterButton", canvas.transform, "계열: 전체", ButtonColor);
+
+        SetAnchored(typeFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(200f, -150f), new Vector2(220f, 52f));
+
+        Button rarityFilterButton = EnsureButton(
+            "RarityFilterButton", canvas.transform, "희귀도: 전체", ButtonColor);
+
+        SetAnchored(rarityFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(430f, -150f), new Vector2(220f, 52f));
+
+        Button manaFilterButton = EnsureButton(
+            "ManaFilterButton", canvas.transform, "마나: 전체", ButtonColor);
+
+        SetAnchored(manaFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(660f, -150f), new Vector2(200f, 52f));
+
+        TMP_InputField searchInput = EnsureInputField(
+            "SearchInput", canvas.transform, "카드 이름 검색");
+
+        SetAnchored(searchInput.gameObject,
+            new Vector2(0f, 1f), new Vector2(900f, -150f), new Vector2(300f, 52f));
+
+        Button sortButton = EnsureButton(
+            "SortButton", canvas.transform, "정렬: 이름순", ButtonColor);
+
+        SetAnchored(sortButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(1230f, -150f), new Vector2(260f, 52f));
+
+        StyleButtonByName("TypeFilterButton", ButtonColor, 19f);
+        StyleButtonByName("RarityFilterButton", ButtonColor, 19f);
+        StyleButtonByName("ManaFilterButton", ButtonColor, 19f);
+        StyleButtonByName("SortButton", ButtonColor, 19f);
+
+        // 좌측 보유 카드 (덱 편성 화면과 같은 구성)
+        GameObject ownedPanel = EnsurePanel("OwnedCardsPanel", canvas.transform, PanelColor);
+        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(500f, -40f), new Vector2(940f, 680f));
+
+        TextMeshProUGUI ownedTitle = EnsureText(
+            "OwnedCardsTitleText", ownedPanel.transform, "보유 카드",
+            30f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(ownedTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(880f, 40f));
+
+        GameObject ownedContent = EnsureScrollList(
+            "OwnedCardsView", "OwnedCardsContent", ownedPanel.transform,
+            new Vector4(22f, 74f, 22f, 22f));
+
+        // 우측 강화대
+        GameObject enhancePanel = EnsurePanel("EnhancePanel", canvas.transform, PanelDeepColor);
+        SetAnchored(enhancePanel, new Vector2(1f, 0.5f), new Vector2(-470f, -40f), new Vector2(900f, 680f));
+
+        TextMeshProUGUI enhanceTitle = EnsureText(
+            "EnhanceTitleText", enhancePanel.transform, "강화대",
+            30f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(enhanceTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(840f, 40f));
+
+        // 카드를 올려 두는 자리
+        GameObject slotObject = EnsurePanel("EnhanceSlot", enhancePanel.transform, ButtonColor);
+        SetAnchored(slotObject, new Vector2(0f, 1f), new Vector2(160f, -250f), new Vector2(240f, 330f));
+
+        GameObject slotHeader = EnsurePanel(
+            "EnhanceSlotHeader", slotObject.transform, SubTextColor);
+
+        SetAnchored(slotHeader, new Vector2(0.5f, 1f), new Vector2(0f, -7f), new Vector2(240f, 14f));
+
+        TextMeshProUGUI slotNameText = EnsureText(
+            "EnhanceSlotNameText", slotObject.transform, "카드를 올리세요",
+            22f, TextColor, TextAlignmentOptions.Center);
+
+        SetAnchored(slotNameText.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -62f), new Vector2(220f, 64f));
+
+        TextMeshProUGUI slotInfoText = EnsureText(
+            "EnhanceSlotInfoText", slotObject.transform, "왼쪽 보유 카드를\n눌러 주세요",
+            18f, SubTextColor, TextAlignmentOptions.Center);
+
+        SetAnchored(slotInfoText.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -180f), new Vector2(220f, 150f));
+
+        TextMeshProUGUI slotLevelText = EnsureText(
+            "EnhanceSlotLevelText", slotObject.transform, "",
+            26f, AccentColor, TextAlignmentOptions.Center);
+
+        SetAnchored(slotLevelText.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(0f, 36f), new Vector2(220f, 44f));
+
+        // 강화 전후 능력치와 비용
+        TextMeshProUGUI enhanceStatText = EnsureText(
+            "EnhanceStatText", enhancePanel.transform, "",
+            21f, TextColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(enhanceStatText.gameObject,
+            new Vector2(0f, 1f), new Vector2(600f, -200f), new Vector2(560f, 230f));
+
+        TextMeshProUGUI enhanceCostText = EnsureText(
+            "EnhanceCostText", enhancePanel.transform, "",
+            20f, SubTextColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(enhanceCostText.gameObject,
+            new Vector2(0f, 1f), new Vector2(600f, -380f), new Vector2(560f, 120f));
+
+        // 사본 목록
+        GameObject copyContent = EnsureVerticalScrollList(
+            "EnhanceCopyView", "EnhanceCopyContent", enhancePanel.transform,
+            new Vector4(40f, 450f, 40f, 90f));
+
+        Button enhanceButton = EnsureButton(
+            "EnhanceButton", enhancePanel.transform, "강화", AccentColor);
+
+        SetAnchored(enhanceButton.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(-140f, 42f), new Vector2(300f, 60f));
+
+        Button clearSlotButton = EnsureButton(
+            "ClearSlotButton", enhancePanel.transform, "내려놓기", ButtonColor);
+
+        SetAnchored(clearSlotButton.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(180f, 42f), new Vector2(220f, 60f));
+
+        StyleButtonByName("EnhanceButton", AccentColor, 24f);
+        StyleButtonByName("ClearSlotButton", ButtonColor, 22f);
+
+        // 하단 안내와 돌아가기
+        TextMeshProUGUI messageText = EnsureText(
+            "MessageText", canvas.transform, "강화할 카드를 왼쪽에서 고르세요.",
+            22f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(messageText.gameObject,
+            new Vector2(0f, 0f), new Vector2(500f, 46f), new Vector2(940f, 40f));
+
+        Button backButton = EnsureButton(
+            "BackButton", canvas.transform, "돌아가기", ButtonColor);
+
+        SetAnchored(backButton.gameObject,
+            new Vector2(1f, 0f), new Vector2(-160f, 50f), new Vector2(200f, 64f));
+
+        StyleButtonByName("BackButton", ButtonColor, 22f);
+
+        GameObject controller = EnsureObject("EnhanceController", null);
+        EnhanceFlow flow = controller.AddComponentIfMissing<EnhanceFlow>();
+
+        AssignReference(flow, "backButton", backButton);
+        AssignReference(flow, "deckBuilderButton", deckBuilderButton);
+        AssignReference(flow, "typeFilterButton", typeFilterButton);
+        AssignReference(flow, "rarityFilterButton", rarityFilterButton);
+        AssignReference(flow, "manaFilterButton", manaFilterButton);
+        AssignReference(flow, "sortButton", sortButton);
+        AssignReference(flow, "searchInput", searchInput);
+        AssignReference(flow, "ownedCardsContent", ownedContent.transform);
+        AssignReference(flow, "slotHeaderImage", slotHeader.GetComponent<Image>());
+        AssignReference(flow, "slotNameText", slotNameText);
+        AssignReference(flow, "slotInfoText", slotInfoText);
+        AssignReference(flow, "slotLevelText", slotLevelText);
+        AssignReference(flow, "copyListContent", copyContent.transform);
+        AssignReference(flow, "enhanceStatText", enhanceStatText);
+        AssignReference(flow, "enhanceCostText", enhanceCostText);
+        AssignReference(flow, "enhanceButton", enhanceButton);
+        AssignReference(flow, "clearSlotButton", clearSlotButton);
+        AssignReference(flow, "resourceText", resourceText);
+        AssignReference(flow, "messageText", messageText);
     }
 
     private static void BuildStageSelectScene()
     {
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
+        EnsureMainCamera();
         EnsureBackground(canvas.transform);
 
         TextMeshProUGUI title = EnsureText(
@@ -412,6 +632,7 @@ public static class SceneUIBuilder
     {
         Canvas canvas = EnsureCanvas();
         EnsureEventSystem();
+        EnsureMainCamera();
 
         GameObject background = EnsurePanel("BackgroundImage", canvas.transform,
             new Color(0.07f, 0.06f, 0.10f, 1f));
@@ -968,6 +1189,72 @@ public static class SceneUIBuilder
     }
 
     // 세로 스크롤 목록을 만들고 항목이 들어갈 Content 오브젝트를 반환한다.
+    // 세로로 쌓이는 목록을 만든다. (사본 선택처럼 행 단위 목록에 쓴다)
+    private static GameObject EnsureVerticalScrollList(
+        string viewName,
+        string contentName,
+        Transform parent,
+        Vector4 offsets)
+    {
+        GameObject viewObject = EnsureObject(viewName, parent);
+        SetStretch(viewObject, offsets);
+
+        Image viewImage = viewObject.AddComponentIfMissing<Image>();
+        viewImage.color = new Color(0.06f, 0.05f, 0.09f, 0.6f);
+        viewImage.raycastTarget = true;
+
+        viewObject.AddComponentIfMissing<RectMask2D>();
+
+        ScrollRect scrollRect = viewObject.AddComponentIfMissing<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 24f;
+
+        GameObject contentObject = EnsureObject(contentName, viewObject.transform);
+
+        RectTransform contentRect =
+            contentObject.GetComponent<RectTransform>();
+
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.offsetMin = new Vector2(0f, contentRect.offsetMin.y);
+        contentRect.offsetMax = new Vector2(0f, contentRect.offsetMax.y);
+        contentRect.sizeDelta = new Vector2(0f, 0f);
+        contentRect.anchoredPosition = Vector2.zero;
+
+        GridLayoutGroup gridLayout =
+            contentObject.GetComponent<GridLayoutGroup>();
+
+        if (gridLayout != null)
+        {
+            Object.DestroyImmediate(gridLayout); // 격자 배치 제거
+        }
+
+        VerticalLayoutGroup listLayout =
+            contentObject.AddComponentIfMissing<VerticalLayoutGroup>();
+
+        listLayout.spacing = 8f;
+        listLayout.padding = new RectOffset(10, 10, 10, 10);
+        listLayout.childAlignment = TextAnchor.UpperLeft;
+        listLayout.childForceExpandWidth = true;
+        listLayout.childForceExpandHeight = false;
+        listLayout.childControlWidth = true;
+        listLayout.childControlHeight = true;
+
+        ContentSizeFitter contentFitter =
+            contentObject.AddComponentIfMissing<ContentSizeFitter>();
+
+        contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        scrollRect.content = contentRect;
+        scrollRect.viewport = viewObject.GetComponent<RectTransform>();
+
+        return contentObject;
+    }
+
     private static GameObject EnsureScrollList(
         string viewName,
         string contentName,
@@ -1224,6 +1511,16 @@ public static class SceneUIBuilder
         layout.preferredHeight = height;
     }
 
+    // 이전 구성에서 만든 오브젝트를 씬에서 지운다.
+    private static void DestroyByName(string objectName)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null) { return; }
+
+        Object.DestroyImmediate(target);
+    }
+
     private static void SetActiveByName(string objectName, bool isActive)
     {
         GameObject target = FindInScene(objectName);
@@ -1438,6 +1735,26 @@ public static class SceneUIBuilder
         }
 
         return null;
+    }
+
+    // UI 전용 씬이라도 카메라가 없으면 화면이 출력되지 않는다.
+    private static void EnsureMainCamera()
+    {
+        Camera sceneCamera = Object.FindFirstObjectByType<Camera>();
+
+        if (sceneCamera == null)
+        {
+            GameObject cameraObject = new GameObject("Main Camera");
+
+            cameraObject.tag = "MainCamera";
+            cameraObject.transform.position = new Vector3(0f, 0f, -10f);
+
+            sceneCamera = cameraObject.AddComponent<Camera>();
+            cameraObject.AddComponent<AudioListener>();
+        }
+
+        sceneCamera.clearFlags = CameraClearFlags.SolidColor;
+        sceneCamera.backgroundColor = BackgroundColor;
     }
 
     private static Canvas EnsureCanvas()

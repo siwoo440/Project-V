@@ -6,7 +6,8 @@ using UnityEngine.UI; // Unity UI 기능
 public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
 {
     [Header("화면 이동")]
-    [SerializeField] private Button backButton; // 돌아가기
+    [SerializeField] private Button backButton;         // 돌아가기
+    [SerializeField] private Button enhanceSceneButton; // 마물 강화 화면으로 이동
 
     [Header("편성 조작")]
     [SerializeField] private Button clearDeckButton; // 덱 비우기
@@ -35,45 +36,21 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
     [SerializeField] private TMP_Text deckStatsText; // 계열 및 희귀도 분포
     [SerializeField] private TMP_Text messageText;   // 안내 문구
 
-    private static readonly MonsterType[] TypeFilters =
-    {
-        MonsterType.None, MonsterType.Tentacle, MonsterType.Slime,
-        MonsterType.Goblin, MonsterType.Demon, MonsterType.Undead,
-        MonsterType.Beast, MonsterType.Spirit, MonsterType.Machine,
-        MonsterType.Angel,
-    }; // 0번은 전체
-
-    private static readonly CardRarity[] RarityFilters =
-    {
-        CardRarity.Common, CardRarity.Rare,
-        CardRarity.Special, CardRarity.Legendary,
-    };
-
-    private static readonly string[] ManaFilterNames =
-    {
-        "전체", "0~2", "3~5", "6 이상",
-    };
-
-    private static readonly CardSortMode[] SortModes =
-    {
-        CardSortMode.Name, CardSortMode.ManaAsc, CardSortMode.ManaDesc,
-        CardSortMode.Rarity, CardSortMode.MonsterType,
-    };
+    private readonly CardFilterState filterState =
+        new CardFilterState(); // 필터와 정렬 상태
 
     private readonly List<GameObject> generatedEntries =
         new List<GameObject>(); // 생성한 항목 목록
 
-    private int typeFilterIndex;   // 0이면 전체
-    private int rarityFilterIndex; // 0이면 전체
-    private int manaFilterIndex;   // 0이면 전체
-    private int sortModeIndex;     // 정렬 방식 번호
-    private string searchText = string.Empty; // 이름 검색어
-    private int previousPresetIndex = -1;     // 직전 선택 프리셋
+    private int previousPresetIndex = -1; // 직전 선택 프리셋
 
     private void Awake()
     {
         backButton =
             SceneUIBinder.Bind(backButton, "BackButton");
+
+        enhanceSceneButton =
+            SceneUIBinder.Bind(enhanceSceneButton, "EnhanceSceneButton");
 
         clearDeckButton =
             SceneUIBinder.Bind(clearDeckButton, "ClearDeckButton");
@@ -144,6 +121,7 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
     private void Start()
     {
         AddClickListener(backButton, SceneFlow.ReturnToPreviousScene);
+        AddClickListener(enhanceSceneButton, SceneFlow.LoadEnhance);
         AddClickListener(clearDeckButton, ClearDeck);
         AddClickListener(fillDeckButton, FillDeck);
         AddClickListener(copyPresetButton, CopyPreviousPreset);
@@ -249,105 +227,32 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
 
     private void CycleTypeFilter()
     {
-        typeFilterIndex = (typeFilterIndex + 1) % TypeFilters.Length;
+        filterState.CycleType();
         Refresh();
     }
 
     private void CycleRarityFilter()
     {
-        rarityFilterIndex = (rarityFilterIndex + 1) % (RarityFilters.Length + 1);
+        filterState.CycleRarity();
         Refresh();
     }
 
     private void CycleManaFilter()
     {
-        manaFilterIndex = (manaFilterIndex + 1) % ManaFilterNames.Length;
+        filterState.CycleMana();
         Refresh();
     }
 
     private void CycleSortMode()
     {
-        sortModeIndex = (sortModeIndex + 1) % SortModes.Length;
+        filterState.CycleSort();
         Refresh();
     }
 
     private void OnSearchTextChanged(string newText)
     {
-        searchText = newText == null ? string.Empty : newText.Trim();
+        filterState.SetSearchText(newText);
         Refresh();
-    }
-
-    private bool PassesFilter(CardData cardData)
-    {
-        if (cardData == null) { return false; }
-
-        if (typeFilterIndex > 0)
-        {
-            MonsterType filterType = TypeFilters[typeFilterIndex];
-
-            if (cardData.SummonMonster == null) { return false; }
-            if (!cardData.SummonMonster.HasType(filterType)) { return false; }
-        }
-
-        if (rarityFilterIndex > 0)
-        {
-            CardRarity filterRarity = RarityFilters[rarityFilterIndex - 1];
-
-            if (cardData.Rarity != filterRarity) { return false; }
-        }
-
-        if (manaFilterIndex > 0)
-        {
-            int manaCost = cardData.ManaCost;
-
-            bool inRange =
-                (manaFilterIndex == 1 && manaCost <= 2) ||
-                (manaFilterIndex == 2 && manaCost >= 3 && manaCost <= 5) ||
-                (manaFilterIndex == 3 && manaCost >= 6);
-
-            if (!inRange) { return false; }
-        }
-
-        if (!string.IsNullOrEmpty(searchText))
-        {
-            if (cardData.CardName == null) { return false; }
-            if (!cardData.CardName.Contains(searchText)) { return false; }
-        }
-
-        return true;
-    }
-
-    private void SortOwnedCards(List<OwnedCardData> ownedCardList)
-    {
-        CardSortMode sortMode = SortModes[sortModeIndex];
-
-        ownedCardList.Sort((left, right) =>
-        {
-            CardData leftCard = left.CardData;
-            CardData rightCard = right.CardData;
-
-            switch (sortMode)
-            {
-                case CardSortMode.ManaAsc:
-                    return leftCard.ManaCost.CompareTo(rightCard.ManaCost);
-
-                case CardSortMode.ManaDesc:
-                    return rightCard.ManaCost.CompareTo(leftCard.ManaCost);
-
-                case CardSortMode.Rarity:
-                    return rightCard.Rarity.CompareTo(leftCard.Rarity);
-
-                case CardSortMode.MonsterType:
-                    return leftCard.MainType.CompareTo(rightCard.MainType);
-
-                default:
-                    return string.Compare(
-                        leftCard.CardName,
-                        rightCard.CardName,
-                        System.StringComparison.Ordinal
-                    );
-            }
-        });
     }
 
     private void UpdateControlLabels(PlayerProgressManager progress)
@@ -384,50 +289,10 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
                 : "덱 복사"
         );
 
-        SetButtonLabel(
-            typeFilterButton,
-            typeFilterIndex == 0
-                ? "계열: 전체"
-                : $"계열: {MonsterTypeRules.GetDisplayName(TypeFilters[typeFilterIndex])}"
-        );
-
-        SetButtonLabel(
-            rarityFilterButton,
-            rarityFilterIndex == 0
-                ? "희귀도: 전체"
-                : $"희귀도: {CardRarityRules.GetDisplayName(RarityFilters[rarityFilterIndex - 1])}"
-        );
-
-        SetButtonLabel(
-            manaFilterButton,
-            $"마나: {ManaFilterNames[manaFilterIndex]}"
-        );
-
-        SetButtonLabel(
-            sortButton,
-            $"정렬: {GetSortModeName(SortModes[sortModeIndex])}"
-        );
-    }
-
-    private string GetSortModeName(CardSortMode sortMode)
-    {
-        switch (sortMode)
-        {
-            case CardSortMode.ManaAsc:
-                return "마나 낮은 순";
-
-            case CardSortMode.ManaDesc:
-                return "마나 높은 순";
-
-            case CardSortMode.Rarity:
-                return "희귀도순";
-
-            case CardSortMode.MonsterType:
-                return "계열순";
-
-            default:
-                return "이름순";
-        }
+        SetButtonLabel(typeFilterButton, filterState.TypeLabel);
+        SetButtonLabel(rarityFilterButton, filterState.RarityLabel);
+        SetButtonLabel(manaFilterButton, filterState.ManaLabel);
+        SetButtonLabel(sortButton, filterState.SortLabel);
     }
 
     private void SetButtonLabel(Button targetButton, string label)
@@ -464,20 +329,21 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
         Refresh();
     }
 
-    // 덱에서 카드를 1장 제거한다.
-    public void RemoveCardFromDeck(CardData cardData)
+    // 덱에서 사본 1장을 제거한다.
+    public void RemoveCopyFromDeck(CardCopy targetCopy)
     {
         PlayerProgressManager progress =
             PlayerProgressManager.Instance;
 
         if (progress == null) { return; }
+        if (targetCopy == null) { return; }
 
-        bool removed = progress.RemoveCardFromDeck(cardData);
+        bool removed = progress.RemoveCopyFromDeck(targetCopy);
 
         ShowMessage(
             removed
-                ? $"{cardData.CardName}을 덱에서 뺐습니다."
-                : $"{cardData.CardName}은 덱에 없습니다."
+                ? $"{targetCopy.DisplayName}을 덱에서 뺐습니다."
+                : $"{targetCopy.DisplayName}은 덱에 없습니다."
         );
 
         Refresh();
@@ -534,12 +400,12 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
         {
             if (ownedCard == null) { continue; }
             if (ownedCard.CardData == null) { continue; }
-            if (!PassesFilter(ownedCard.CardData)) { continue; }
+            if (!filterState.Passes(ownedCard.CardData)) { continue; }
 
             visibleCards.Add(ownedCard);
         }
 
-        SortOwnedCards(visibleCards);
+        filterState.Sort(visibleCards);
 
         foreach (OwnedCardData ownedCard in visibleCards)
         {
@@ -549,47 +415,39 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
             bool canAdd = deckCount < ownedCard.OwnedCount &&
                           deckCount < ownedCard.MaxOwnedCount;
 
-            CreateCardEntry(
+            int highestLevel = ownedCard.HighestEnhanceLevel;
+
+            AddEntry(CardEntryFactory.CreateCardEntry(
                 ownedCardsContent,
                 cardData,
+                $"Lv.{highestLevel}",
+                CardEnhanceRules.GetLevelColor(highestLevel),
                 $"{deckCount} / {ownedCard.OwnedCount}",
                 canAdd,
                 () => AddCardToDeck(cardData)
-            ); // 보유 카드 항목 생성
+            )); // 보유 카드 항목 생성
         }
     }
 
+    // 같은 카드라도 사본마다 강화 단계가 다르므로 사본 단위로 표시한다.
     private void BuildDeckList(PlayerProgressManager progress)
     {
-        Dictionary<string, int> deckCounts =
-            new Dictionary<string, int>(); // 카드별 편성 수량
-
-        List<CardData> deckOrder = new List<CardData>(); // 표시 순서 유지
-
-        foreach (CardData deckCard in progress.CurrentDeck)
+        foreach (CardCopy deckCopy in progress.CurrentDeck)
         {
-            if (deckCard == null) { continue; }
+            if (deckCopy == null) { continue; }
+            if (deckCopy.CardData == null) { continue; }
 
-            if (!deckCounts.ContainsKey(deckCard.CardId))
-            {
-                deckCounts.Add(deckCard.CardId, 0);
-                deckOrder.Add(deckCard);
-            }
+            CardCopy targetCopy = deckCopy;
 
-            deckCounts[deckCard.CardId] += 1;
-        }
-
-        foreach (CardData deckCard in deckOrder)
-        {
-            CardData targetCard = deckCard;
-
-            CreateCardEntry(
+            AddEntry(CardEntryFactory.CreateCardEntry(
                 currentDeckContent,
-                deckCard,
-                $"×{deckCounts[deckCard.CardId]}",
+                deckCopy.CardData,
+                $"Lv.{deckCopy.EnhanceLevel}",
+                CardEnhanceRules.GetLevelColor(deckCopy.EnhanceLevel),
+                $"{deckCopy.CopyNumber}번 사본",
                 true,
-                () => RemoveCardFromDeck(targetCard)
-            ); // 편성 카드 항목 생성
+                () => RemoveCopyFromDeck(targetCopy)
+            )); // 편성 사본 항목 생성
         }
     }
 
@@ -612,9 +470,12 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
         Dictionary<CardRarity, int> rarityCounts =
             new Dictionary<CardRarity, int>(); // 희귀도 분포
 
-        foreach (CardData deckCard in progress.CurrentDeck)
+        foreach (CardCopy deckCopy in progress.CurrentDeck)
         {
-            if (deckCard == null) { continue; }
+            if (deckCopy == null) { continue; }
+            if (deckCopy.CardData == null) { continue; }
+
+            CardData deckCard = deckCopy.CardData;
 
             MonsterType mainType = deckCard.MainType;
 
@@ -668,195 +529,11 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
         messageText.text = message;
     }
 
-    // 세로형 카드 항목을 만든다. 크기는 그리드 배치가 결정한다.
-    private void CreateCardEntry(
-        Transform parentContent,
-        CardData cardData,
-        string countText,
-        bool isInteractable,
-        UnityEngine.Events.UnityAction clickAction
-    )
+    private void AddEntry(GameObject entryObject)
     {
-        if (parentContent == null) { return; } // 배치 영역 누락 차단
-        if (cardData == null) { return; } // 빈 카드 차단
-
-        Color rarityColor = CardRarityRules.GetDisplayColor(cardData.Rarity);
-        Color typeColor = MonsterTypeRules.GetDisplayColor(cardData.MainType);
-
-        GameObject entryObject =
-            new GameObject("CardEntry", typeof(RectTransform));
-
-        entryObject.transform.SetParent(parentContent, false);
-
-        Image cardBackground = entryObject.AddComponent<Image>();
-
-        cardBackground.color = isInteractable
-            ? new Color(0.17f, 0.14f, 0.26f, 1f)
-            : new Color(0.11f, 0.10f, 0.14f, 1f);
-
-        Button entryButton = entryObject.AddComponent<Button>();
-        entryButton.targetGraphic = cardBackground;
-        entryButton.interactable = isInteractable;
-
-        ColorBlock colors = entryButton.colors;
-        colors.normalColor = Color.white;
-        colors.highlightedColor = new Color(1f, 0.94f, 0.78f, 1f);
-        colors.pressedColor = new Color(0.78f, 0.72f, 0.62f, 1f);
-        colors.disabledColor = new Color(0.75f, 0.75f, 0.78f, 1f);
-        entryButton.colors = colors;
-
-        if (clickAction != null)
-        {
-            entryButton.onClick.AddListener(clickAction);
-        }
-
-        float dimRate = isInteractable ? 1f : 0.45f;
-
-        Color nameColor = isInteractable
-            ? new Color(0.96f, 0.95f, 0.99f, 1f)
-            : new Color(0.55f, 0.54f, 0.60f, 1f);
-
-        Color accentColor = new Color(
-            rarityColor.r * dimRate,
-            rarityColor.g * dimRate,
-            rarityColor.b * dimRate,
-            1f
-        );
-
-        Color typeTextColor = new Color(
-            typeColor.r * dimRate,
-            typeColor.g * dimRate,
-            typeColor.b * dimRate,
-            1f
-        );
-
-        // 상단 희귀도 띠
-        CreateCardImage(
-            entryObject.transform, "RarityHeader", accentColor,
-            new Vector2(0f, 1f), new Vector2(1f, 1f),
-            new Vector2(0f, -10f), new Vector2(0f, 0f)
-        );
-
-        // 마나 배지
-        CreateCardImage(
-            entryObject.transform, "ManaBadge",
-            new Color(0.10f, 0.09f, 0.16f, 1f),
-            new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(10f, -54f), new Vector2(52f, -16f)
-        );
-
-        CreateCardLabel(
-            entryObject.transform, "ManaText", cardData.ManaCost.ToString(),
-            20f, nameColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(10f, -54f), new Vector2(52f, -16f)
-        );
-
-        // 카드 이름
-        CreateCardLabel(
-            entryObject.transform, "NameText", cardData.CardName,
-            19f, nameColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.42f), new Vector2(1f, 0.76f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 계열
-        CreateCardLabel(
-            entryObject.transform, "TypeText",
-            MonsterTypeRules.GetDisplayName(cardData.MainType),
-            16f, typeTextColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.29f), new Vector2(1f, 0.42f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 희귀도
-        CreateCardLabel(
-            entryObject.transform, "RarityText",
-            CardRarityRules.GetDisplayName(cardData.Rarity),
-            16f, accentColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.17f), new Vector2(1f, 0.29f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 수량 영역
-        CreateCardImage(
-            entryObject.transform, "CountBackground",
-            new Color(0.10f, 0.09f, 0.16f, 1f),
-            new Vector2(0f, 0f), new Vector2(1f, 0f),
-            new Vector2(8f, 8f), new Vector2(-8f, 40f)
-        );
-
-        CreateCardLabel(
-            entryObject.transform, "CountText", countText,
-            19f, accentColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0f), new Vector2(1f, 0f),
-            new Vector2(8f, 8f), new Vector2(-8f, 40f)
-        );
+        if (entryObject == null) { return; }
 
         generatedEntries.Add(entryObject);
-    }
-
-    private void CreateCardImage(
-        Transform parent,
-        string objectName,
-        Color imageColor,
-        Vector2 anchorMin,
-        Vector2 anchorMax,
-        Vector2 offsetMin,
-        Vector2 offsetMax
-    )
-    {
-        GameObject imageObject =
-            new GameObject(objectName, typeof(RectTransform));
-
-        imageObject.transform.SetParent(parent, false);
-
-        Image image = imageObject.AddComponent<Image>();
-        image.color = imageColor;
-        image.raycastTarget = false;
-
-        RectTransform imageRect = imageObject.GetComponent<RectTransform>();
-        imageRect.anchorMin = anchorMin;
-        imageRect.anchorMax = anchorMax;
-        imageRect.offsetMin = offsetMin;
-        imageRect.offsetMax = offsetMax;
-    }
-
-    private void CreateCardLabel(
-        Transform parent,
-        string objectName,
-        string content,
-        float fontSize,
-        Color textColor,
-        TextAlignmentOptions alignment,
-        Vector2 anchorMin,
-        Vector2 anchorMax,
-        Vector2 offsetMin,
-        Vector2 offsetMax
-    )
-    {
-        GameObject labelObject =
-            new GameObject(objectName, typeof(RectTransform));
-
-        labelObject.transform.SetParent(parent, false);
-
-        TextMeshProUGUI label =
-            labelObject.AddComponent<TextMeshProUGUI>();
-
-        label.text = content;
-        label.fontSize = fontSize;
-        label.color = textColor;
-        label.alignment = alignment;
-        label.raycastTarget = false;
-        label.overflowMode = TextOverflowModes.Ellipsis;
-
-        RectTransform labelRect =
-            labelObject.GetComponent<RectTransform>();
-
-        labelRect.anchorMin = anchorMin;
-        labelRect.anchorMax = anchorMax;
-        labelRect.offsetMin = offsetMin;
-        labelRect.offsetMax = offsetMax;
     }
 
     private void ClearEntries()

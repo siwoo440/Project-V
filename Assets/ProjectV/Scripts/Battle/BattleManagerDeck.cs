@@ -6,21 +6,35 @@ using UnityEngine.UI; // Unity UI 기능
 
 public partial class BattleManager // 분리된 전투 기능
 {
-    private void ApplyProgressDeck() // 진행 데이터 덱 적용
+    private void ApplyProgressDeck() // 전투에 사용할 사본 덱 구성
     {
-        if (!useProgressDeck) { return; } // 씬 덱 사용 설정
+        battleDeck.Clear();
 
         PlayerProgressManager progress =
             PlayerProgressManager.Instance;
 
-        if (progress == null) { return; } // 진행 데이터 없음
+        if (useProgressDeck && progress != null)
+        {
+            // 덱을 비운 상태도 그대로 반영해 덱 검증이 사유를 알려주도록 한다.
+            battleDeck.AddRange(progress.CurrentDeck); // 플레이어 덱 적용
 
-        // 덱을 비운 상태도 그대로 반영해 덱 검증이 사유를 알려주도록 한다.
-        deckCards.Clear();
-        deckCards.AddRange(progress.CurrentDeck); // 플레이어 덱 적용
+            Debug.Log(
+                $"플레이어 덱을 적용했습니다. {battleDeck.Count}장"
+            ); // 덱 적용 기록
+
+            return;
+        }
+
+        // 씬에 직접 넣은 덱은 강화되지 않은 임시 사본으로 다룬다.
+        for (int i = 0; i < deckCards.Count; i++)
+        {
+            if (deckCards[i] == null) { continue; }
+
+            battleDeck.Add(new CardCopy(deckCards[i], i + 1));
+        }
 
         Debug.Log(
-            $"플레이어 덱을 적용했습니다. {deckCards.Count}장"
+            $"씬 설정 덱을 적용했습니다. {battleDeck.Count}장"
         ); // 덱 적용 기록
     }
 
@@ -40,7 +54,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         bool isValid = DeckValidator.TryValidate(
-            deckCards,
+            battleDeck,
             requiredDeckSize,
             ownershipSource,
             out string errorMessage
@@ -119,10 +133,10 @@ public partial class BattleManager // 분리된 전투 기능
                 break;
             }
 
-            CardData drawnCard = drawPile[0];
+            CardCopy drawnCard = drawPile[0];
             drawPile.RemoveAt(0);
 
-            if (drawnCard == null)
+            if (drawnCard == null || drawnCard.CardData == null)
             {
                 AddBattleLog(
                     BattleLogCategory.System,
@@ -138,7 +152,7 @@ public partial class BattleManager // 분리된 전투 기능
         UpdateDeckStatusUI();
     }
 
-    private void ShuffleCards(List<CardData> cards)
+    private void ShuffleCards(List<CardCopy> cards)
     {
         if (cards == null || cards.Count <= 1) { return; }
 
@@ -146,7 +160,7 @@ public partial class BattleManager // 분리된 전투 기능
         {
             int randomIndex = Random.Range(0, i + 1);
 
-            CardData temporaryCard = cards[i];
+            CardCopy temporaryCard = cards[i];
             cards[i] = cards[randomIndex];
             cards[randomIndex] = temporaryCard;
         }
@@ -171,9 +185,9 @@ public partial class BattleManager // 분리된 전투 기능
         return true;
     }
 
-    private void CreateCardButton(CardData cardData)
+    private void CreateCardButton(CardCopy cardCopy)
     {
-        if (cardData == null) { return; }
+        if (cardCopy == null || cardCopy.CardData == null) { return; }
         if (cardButtonPrefab == null || handPanel == null) { return; }
 
         Button newCardButton = Instantiate(
@@ -185,30 +199,31 @@ public partial class BattleManager // 분리된 전투 기능
             newCardButton.GetComponentInChildren<TMP_Text>();
 
         string monsterName =
-            cardData.SummonMonster != null
-                ? cardData.SummonMonster.MonsterName
+            cardCopy.SummonMonster != null
+                ? cardCopy.SummonMonster.MonsterName
                 : "없음";
 
         if (cardText != null)
         {
             cardText.text =
-                $"{cardData.CardName}\n" +
-                $"비용 {cardData.ManaCost}\n" +
+                $"{cardCopy.CardName} Lv.{cardCopy.EnhanceLevel}\n" +
+                $"비용 {cardCopy.ManaCost}\n" +
                 $"소환 {monsterName}";
         }
 
         newCardButton.onClick.RemoveAllListeners();
         newCardButton.onClick.AddListener(
-            () => TryPlayCard(cardData, newCardButton)
+            () => TryPlayCard(cardCopy, newCardButton)
         );
 
         handButtons.Add(newCardButton);
     }
-    private void TryPlayCard(CardData cardData, Button cardButton) // 카드 사용 처리
+    private void TryPlayCard(CardCopy cardCopy, Button cardButton) // 카드 사용 처리
     {
         if (!isPlayerTurn || isBattleEnded) { return; } // 카드 사용 차단
+        if (cardCopy == null || cardCopy.CardData == null) { return; } // 빈 카드 차단
 
-        if (cardData.SummonMonster == null) // 마물 데이터 누락 확인
+        if (cardCopy.SummonMonster == null) // 마물 데이터 누락 확인
         {
             resultText.text = "마물 데이터가 없습니다"; // 데이터 누락 안내
             return; // 카드 사용 차단
@@ -220,17 +235,26 @@ public partial class BattleManager // 분리된 전투 기능
             return; // 카드 사용 차단
         }
 
-        if (currentMana < cardData.ManaCost) // 마나 부족 확인
+        if (currentMana < cardCopy.ManaCost) // 마나 부족 확인
         {
             resultText.text = "마나가 부족합니다"; // 마나 부족 안내
             return; // 카드 사용 차단
         }
 
-        currentMana -= cardData.ManaCost; // 카드 비용 차감
-        SummonMonster(cardData.SummonMonster); // 마물 필드 소환
-        AddBattleLog(BattleLogCategory.PlayerAction, $"{cardData.CardName}: {cardData.SummonMonster.MonsterName}을 소환했습니다."); // 카드 소환 기록
+        currentMana -= cardCopy.ManaCost; // 카드 비용 차감
 
-        discardPile.Add(cardData); // 사용 카드 버린 더미 이동
+        SummonMonster(
+            cardCopy.SummonMonster,
+            cardCopy.EnhanceLevel
+        ); // 강화 단계를 반영해 마물 소환
+
+        AddBattleLog(
+            BattleLogCategory.PlayerAction,
+            $"{cardCopy.CardName} Lv.{cardCopy.EnhanceLevel}: " +
+            $"{cardCopy.SummonMonster.MonsterName}을 소환했습니다."
+        ); // 카드 소환 기록
+
+        discardPile.Add(cardCopy); // 사용 카드 버린 더미 이동
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         Destroy(cardButton.gameObject); // 카드 버튼 제거
         resultText.text = string.Empty; // 안내 텍스트 초기화
@@ -245,8 +269,7 @@ public partial class BattleManager // 분리된 전투 기능
             handButton => handButton == null
         );
 
-        int configuredDeckCount =
-            deckCards != null ? deckCards.Count : 0;
+        int configuredDeckCount = battleDeck.Count;
 
         deckStatusText.text =
             $"드로우 {drawPile.Count} | " +
@@ -254,10 +277,4 @@ public partial class BattleManager // 분리된 전투 기능
             $"버림 {discardPile.Count}\n" +
             $"덱 {configuredDeckCount} / {requiredDeckSize}";
     }
-
-
-
-
-
-
 }
