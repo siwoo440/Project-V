@@ -350,12 +350,20 @@ public partial class BattleManager // 마물 고유 효과 처리
             previewedHeroineTarget = null; // 예고 대상 해제
         }
 
+        MonsterType defeatedType = defeatedMonster.Data != null
+            ? defeatedMonster.Data.MainType
+            : MonsterType.None; // 사망 계열 기록
+
         fieldMonsters.Remove(defeatedMonster); // 자리를 먼저 비운다
+
+        RefreshSynergies(); // 사망 직후 시너지 갱신
 
         ExecuteMonsterEffects(
             defeatedMonster,
             MonsterEffectTrigger.Death
         ); // 빈 자리를 사용할 수 있도록 제거 후 사망 효과 실행
+
+        OnMonsterDefeatedForSynergy(defeatedType); // 사망 시너지 처리
 
         Destroy(defeatedMonster.gameObject); // 오브젝트 제거
     }

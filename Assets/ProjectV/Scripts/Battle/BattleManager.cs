@@ -58,6 +58,12 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [Header("히로인 AI")] // 히로인 AI 구분
     [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
 
+    [Header("타입 시너지")] // 타입 시너지 구분
+    [SerializeField]
+    private List<SynergyData> synergyDataList = new List<SynergyData>(); // 시너지 데이터 목록
+
+    [SerializeField] private TMP_Text synergyText; // 시너지 표시 텍스트
+
     [Header("전투 설정")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30;              // 플레이어 최대 체력
     [SerializeField] private int playerDefense = 0;             // 플레이어 방어력
@@ -148,6 +154,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
 
         if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
         AddBattleLog( BattleLogCategory.System, $"덱 준비 완료: {drawPile.Count}장"  );
+        RefreshSynergies(); // 시너지 초기화
         DrawCards(startingHandCount);
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
@@ -158,6 +165,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
 
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
+        ApplyTurnEndSynergies(); // 턴 종료 시너지 처리
         isPlayerTurn = false; // 플레이어 턴 종료
         ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
@@ -209,6 +217,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
 
         ApplyMonsterStartTurnStatusEffects();
+        ApplyTurnStartSynergies(); // 턴 시작 시너지 처리
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
 

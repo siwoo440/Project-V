@@ -499,6 +499,23 @@ public static class SceneUIBuilder
             new Vector2(1f, 0.5f), new Vector2(-140f, -190f), new Vector2(220f, 70f));
         StyleButtonByName("SkillButton", ButtonColor, 26f);
 
+        // 좌측 시너지 표시 (기획서 7.9)
+        GameObject synergyPanel = EnsurePanel("SynergyPanel", canvas.transform, PanelDeepColor);
+        SetAnchored(synergyPanel, new Vector2(0f, 0.5f), new Vector2(150f, -60f), new Vector2(260f, 300f));
+
+        TextMeshProUGUI synergyTitle = EnsureText(
+            "SynergyTitleText", synergyPanel.transform, "시너지",
+            22f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(synergyTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(220f, 30f));
+
+        TextMeshProUGUI synergyText = EnsureText(
+            "SynergyText", synergyPanel.transform, "활성 시너지 없음",
+            18f, TextColor, TextAlignmentOptions.TopLeft);
+
+        SetStretch(synergyText.gameObject, new Vector4(16f, 48f, 16f, 16f));
+
         GameObject battleManagerObject = FindInScene("BattleManager");
 
         if (battleManagerObject != null)
@@ -509,6 +526,8 @@ public static class SceneUIBuilder
             if (battleManager != null)
             {
                 AssignReference(battleManager, "skillButton", skillButton);
+                AssignReference(battleManager, "synergyText", synergyText);
+                ApplySynergyDataList(battleManager);
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);
@@ -992,6 +1011,52 @@ public static class SceneUIBuilder
         if (target == null) { return; }
 
         target.transform.SetAsLastSibling();
+    }
+
+    // 프로젝트의 시너지 데이터를 전투 관리자에 연결한다.
+    private static void ApplySynergyDataList(BattleManager battleManager)
+    {
+        SerializedObject serializedManager = new SerializedObject(battleManager);
+
+        SerializedProperty listProperty =
+            serializedManager.FindProperty("synergyDataList");
+
+        if (listProperty == null)
+        {
+            Debug.LogWarning("synergyDataList 항목을 찾지 못했습니다.");
+            return;
+        }
+
+        string[] assetGuids = AssetDatabase.FindAssets("t:SynergyData");
+        List<SynergyData> synergyAssets = new List<SynergyData>();
+
+        foreach (string assetGuid in assetGuids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+
+            SynergyData synergyData =
+                AssetDatabase.LoadAssetAtPath<SynergyData>(assetPath);
+
+            if (synergyData == null) { continue; }
+
+            synergyAssets.Add(synergyData);
+        }
+
+        synergyAssets.Sort(
+            (left, right) => left.MonsterType.CompareTo(right.MonsterType)
+        ); // 타입 순서로 정렬
+
+        listProperty.arraySize = synergyAssets.Count;
+
+        for (int i = 0; i < synergyAssets.Count; i++)
+        {
+            listProperty.GetArrayElementAtIndex(i).objectReferenceValue =
+                synergyAssets[i];
+        }
+
+        serializedManager.ApplyModifiedPropertiesWithoutUndo();
+
+        Debug.Log($"시너지 데이터 {synergyAssets.Count}종을 연결했습니다.");
     }
 
     // ---------- 데이터 기본값 ----------

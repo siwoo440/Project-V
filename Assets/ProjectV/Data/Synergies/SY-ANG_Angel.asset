@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e2447f599b14b1588c69e4057d4b754, type: 3}
+  m_Name: SY-ANG_Angel
+  m_EditorClassIdentifier: Assembly-CSharp::SynergyData
+  monsterType: 9
+  stages:
+  - requiredCount: 2
+    effectType: 6
+    amount: 2
+    applyToAllAllies: 0
+    description: 플레이어 턴 시작 시 플레이어 HP 2 회복
+  - requiredCount: 3
+    effectType: 3
+    amount: 3
+    applyToAllAllies: 1
+    description: 모든 아군 DEF +3

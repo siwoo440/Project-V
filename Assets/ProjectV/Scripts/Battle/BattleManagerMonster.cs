@@ -387,10 +387,14 @@ public partial class BattleManager // 분리된 전투 기능
         fieldMonsters.Add(newMonsterUnit);
         newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);
 
+        RefreshSynergies(); // 소환 직후 시너지 갱신
+
         ExecuteMonsterEffects(
             newMonsterUnit,
             MonsterEffectTrigger.Summon
         ); // 소환 효과 실행
+
+        OnMonsterSummonedForSynergy(newMonsterUnit); // 소환 시너지 처리
 
         RefreshHeroineTargetPreview();
     }

@@ -51,17 +51,24 @@ public class MonsterUnit : MonoBehaviour
 
     private int currentCooldown;
 
+    private int synergyMaxHpBonus;
+    private int synergyAttackBonus;
+    private int synergyDefenseBonus;
+    private int synergyLustBonus;
+
     private int runtimeMaxHp;
     private int runtimeAttack;
     private int runtimeLustDamage;
     private int runtimeDefense;
 
     public int Attack => GetCurrentAttack();
-    public int LustDamage => runtimeLustDamage;
+    public int LustDamage =>
+        Mathf.Max(0, runtimeLustDamage + synergyLustBonus);
     public int Defense => GetCurrentDefense();
     public int CurrentShield => currentShield;
     public int CurrentHp => currentHp;
-    public int MaxHp => runtimeMaxHp;
+    public int MaxHp =>
+        Mathf.Max(1, runtimeMaxHp + synergyMaxHpBonus);
 
     public StatusEffectData AttackStatusEffect =>
         monsterData != null ? monsterData.AttackStatusEffect : null;
@@ -112,6 +119,10 @@ public class MonsterUnit : MonoBehaviour
         currentHp = MaxHp;
         currentShield = Mathf.Max(0, monsterData.StartingShield);
         currentCooldown = 0; // 재사용 대기시간 초기화
+        synergyMaxHpBonus = 0; // 시너지 보정 초기화
+        synergyAttackBonus = 0;
+        synergyDefenseBonus = 0;
+        synergyLustBonus = 0;
         actionState = MonsterActionState.Summoning;
 
         activeStatusEffects.Clear();
@@ -248,6 +259,32 @@ public class MonsterUnit : MonoBehaviour
         return totalPoisonDamage;
     }
 
+    // 시너지 보정을 통째로 다시 설정한다. 해제 시 원복을 보장하기 위해 누적하지 않는다.
+    public void ApplySynergyBonus(
+        int maxHpBonus,
+        int attackBonus,
+        int defenseBonus,
+        int lustBonus
+    )
+    {
+        bool changed =
+            synergyMaxHpBonus != maxHpBonus ||
+            synergyAttackBonus != attackBonus ||
+            synergyDefenseBonus != defenseBonus ||
+            synergyLustBonus != lustBonus;
+
+        if (!changed) { return; }
+
+        synergyMaxHpBonus = maxHpBonus;
+        synergyAttackBonus = attackBonus;
+        synergyDefenseBonus = defenseBonus;
+        synergyLustBonus = lustBonus;
+
+        currentHp = Mathf.Min(currentHp, MaxHp); // 최대 체력 축소 시 보정
+
+        UpdateMonsterUI();
+    }
+
     public void StartCooldown() // 스킬 사용 후 대기시간 적용
     {
         MonsterEffectData skill = ActiveSkill;
@@ -379,7 +416,7 @@ public class MonsterUnit : MonoBehaviour
             }
         }
 
-        return Mathf.Max(0, currentAttack);
+        return Mathf.Max(0, currentAttack + synergyAttackBonus);
     }
 
     private int GetCurrentDefense()
@@ -401,7 +438,7 @@ public class MonsterUnit : MonoBehaviour
             }
         }
 
-        return Mathf.Max(0, currentDefense);
+        return Mathf.Max(0, currentDefense + synergyDefenseBonus);
     }
 
     private void UpdateBackgroundColor()
