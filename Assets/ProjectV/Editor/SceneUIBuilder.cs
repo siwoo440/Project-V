@@ -197,9 +197,71 @@ public static class SceneUIBuilder
         SetAnchored(deckCountText.gameObject,
             new Vector2(1f, 1f), new Vector2(-320f, -72f), new Vector2(560f, 60f));
 
+        // 프리셋 줄
+        for (int i = 0; i < 5; i++)
+        {
+            Button presetButton = EnsureButton(
+                $"PresetButton{i + 1}", canvas.transform, $"덱 {i + 1}", ButtonColor);
+
+            SetAnchored(presetButton.gameObject,
+                new Vector2(0f, 1f), new Vector2(180f + i * 150f, -150f), new Vector2(140f, 56f));
+
+            StyleButtonByName($"PresetButton{i + 1}", ButtonColor, 20f);
+        }
+
+        TMP_InputField presetNameInput = EnsureInputField(
+            "PresetNameInput", canvas.transform, "프리셋 이름");
+
+        SetAnchored(presetNameInput.gameObject,
+            new Vector2(0f, 1f), new Vector2(1010f, -150f), new Vector2(300f, 56f));
+
+        Button copyPresetButton = EnsureButton(
+            "CopyPresetButton", canvas.transform, "덱 복사", ButtonColor);
+
+        SetAnchored(copyPresetButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(1320f, -150f), new Vector2(220f, 56f));
+
+        StyleButtonByName("CopyPresetButton", ButtonColor, 20f);
+
+        // 필터와 정렬 줄
+        Button typeFilterButton = EnsureButton(
+            "TypeFilterButton", canvas.transform, "계열: 전체", ButtonColor);
+
+        SetAnchored(typeFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(200f, -216f), new Vector2(220f, 52f));
+
+        Button rarityFilterButton = EnsureButton(
+            "RarityFilterButton", canvas.transform, "희귀도: 전체", ButtonColor);
+
+        SetAnchored(rarityFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(430f, -216f), new Vector2(220f, 52f));
+
+        Button manaFilterButton = EnsureButton(
+            "ManaFilterButton", canvas.transform, "마나: 전체", ButtonColor);
+
+        SetAnchored(manaFilterButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(660f, -216f), new Vector2(200f, 52f));
+
+        TMP_InputField searchInput = EnsureInputField(
+            "SearchInput", canvas.transform, "카드 이름 검색");
+
+        SetAnchored(searchInput.gameObject,
+            new Vector2(0f, 1f), new Vector2(900f, -216f), new Vector2(300f, 52f));
+
+        Button sortButton = EnsureButton(
+            "SortButton", canvas.transform, "정렬: 이름순", ButtonColor);
+
+        SetAnchored(sortButton.gameObject,
+            new Vector2(0f, 1f), new Vector2(1230f, -216f), new Vector2(260f, 52f));
+
+        StyleButtonByName("TypeFilterButton", ButtonColor, 19f);
+        StyleButtonByName("RarityFilterButton", ButtonColor, 19f);
+        StyleButtonByName("ManaFilterButton", ButtonColor, 19f);
+        StyleButtonByName("SortButton", ButtonColor, 19f);
+
         // 좌측 보유 카드
         GameObject ownedPanel = EnsurePanel("OwnedCardsPanel", canvas.transform, PanelColor);
-        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(500f, -10f), new Vector2(860f, 720f));
+        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(500f, -70f), new Vector2(860f, 620f));
 
         TextMeshProUGUI ownedTitle = EnsureText(
             "OwnedCardsTitleText", ownedPanel.transform, "보유 카드",
@@ -214,7 +276,7 @@ public static class SceneUIBuilder
 
         // 우측 현재 덱
         GameObject deckPanel = EnsurePanel("CurrentDeckPanel", canvas.transform, PanelDeepColor);
-        SetAnchored(deckPanel, new Vector2(1f, 0.5f), new Vector2(-500f, -10f), new Vector2(860f, 720f));
+        SetAnchored(deckPanel, new Vector2(1f, 0.5f), new Vector2(-500f, -70f), new Vector2(860f, 620f));
 
         TextMeshProUGUI deckTitle = EnsureText(
             "CurrentDeckTitleText", deckPanel.transform, "현재 덱",
@@ -270,6 +332,14 @@ public static class SceneUIBuilder
         AssignReference(flow, "currentDeckContent", deckContent.transform);
         AssignReference(flow, "deckCountText", deckCountText);
         AssignReference(flow, "messageText", messageText);
+        AssignReference(flow, "presetNameInput", presetNameInput);
+        AssignReference(flow, "copyPresetButton", copyPresetButton);
+        AssignReference(flow, "typeFilterButton", typeFilterButton);
+        AssignReference(flow, "rarityFilterButton", rarityFilterButton);
+        AssignReference(flow, "manaFilterButton", manaFilterButton);
+        AssignReference(flow, "sortButton", sortButton);
+        AssignReference(flow, "searchInput", searchInput);
+        ApplyPresetButtonList(flow);
     }
 
     private static void BuildStageSelectScene()
@@ -827,6 +897,74 @@ public static class SceneUIBuilder
         PrefabUtility.UnloadPrefabContents(prefabRoot);
 
         Debug.Log("손패 카드 프리팹을 정리했습니다.");
+    }
+
+    // 프리셋 버튼 5개를 덱 편성 컨트롤러에 연결한다.
+    private static void ApplyPresetButtonList(DeckBuilderFlow flow)
+    {
+        SerializedObject serializedFlow = new SerializedObject(flow);
+
+        SerializedProperty listProperty =
+            serializedFlow.FindProperty("presetButtons");
+
+        if (listProperty == null)
+        {
+            Debug.LogWarning("presetButtons 항목을 찾지 못했습니다.");
+            return;
+        }
+
+        listProperty.arraySize = 5;
+
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject presetObject = FindInScene($"PresetButton{i + 1}");
+
+            listProperty.GetArrayElementAtIndex(i).objectReferenceValue =
+                presetObject == null ? null : presetObject.GetComponent<Button>();
+        }
+
+        serializedFlow.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // 한 줄 입력 필드를 만든다.
+    private static TMP_InputField EnsureInputField(
+        string objectName,
+        Transform parent,
+        string placeholderText)
+    {
+        GameObject fieldObject = EnsureObject(objectName, parent);
+
+        Image fieldImage = fieldObject.AddComponentIfMissing<Image>();
+        fieldImage.color = new Color(0.10f, 0.09f, 0.16f, 1f);
+
+        GameObject textArea = EnsureObject(objectName + "TextArea", fieldObject.transform);
+        SetStretch(textArea, new Vector4(12f, 8f, 12f, 8f));
+        textArea.AddComponentIfMissing<RectMask2D>();
+
+        TextMeshProUGUI placeholder = EnsureText(
+            objectName + "Placeholder", textArea.transform, placeholderText,
+            19f, SubTextColor, TextAlignmentOptions.MidlineLeft);
+
+        SetStretch(placeholder.gameObject, Vector4.zero);
+
+        TextMeshProUGUI inputText = EnsureText(
+            objectName + "Text", textArea.transform, string.Empty,
+            19f, TextColor, TextAlignmentOptions.MidlineLeft);
+
+        SetStretch(inputText.gameObject, Vector4.zero);
+
+        TMP_InputField inputField =
+            fieldObject.AddComponentIfMissing<TMP_InputField>();
+
+        inputField.textViewport = textArea.GetComponent<RectTransform>();
+        inputField.textComponent = inputText;
+        inputField.placeholder = placeholder;
+        inputField.lineType = TMP_InputField.LineType.SingleLine;
+        inputField.targetGraphic = fieldImage;
+        inputField.caretColor = TextColor;
+        inputField.customCaretColor = true;
+
+        return inputField;
     }
 
     // 세로 스크롤 목록을 만들고 항목이 들어갈 Content 오브젝트를 반환한다.

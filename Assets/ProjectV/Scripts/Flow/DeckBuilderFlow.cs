@@ -12,6 +12,20 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
     [SerializeField] private Button clearDeckButton; // 덱 비우기
     [SerializeField] private Button fillDeckButton;  // 보유 카드로 채우기
 
+    [Header("덱 프리셋")]
+    [SerializeField]
+    private List<Button> presetButtons = new List<Button>(); // 프리셋 선택 버튼
+
+    [SerializeField] private TMP_InputField presetNameInput; // 프리셋 이름 입력
+    [SerializeField] private Button copyPresetButton;        // 직전 프리셋 복사
+
+    [Header("필터와 정렬")]
+    [SerializeField] private Button typeFilterButton;    // 계열 필터
+    [SerializeField] private Button rarityFilterButton;  // 희귀도 필터
+    [SerializeField] private Button manaFilterButton;    // 마나 필터
+    [SerializeField] private Button sortButton;          // 정렬 방식
+    [SerializeField] private TMP_InputField searchInput; // 이름 검색
+
     [Header("카드 목록")]
     [SerializeField] private Transform ownedCardsContent;  // 보유 카드 배치 영역
     [SerializeField] private Transform currentDeckContent; // 현재 덱 배치 영역
@@ -21,8 +35,40 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
     [SerializeField] private TMP_Text deckStatsText; // 계열 및 희귀도 분포
     [SerializeField] private TMP_Text messageText;   // 안내 문구
 
+    private static readonly MonsterType[] TypeFilters =
+    {
+        MonsterType.None, MonsterType.Tentacle, MonsterType.Slime,
+        MonsterType.Goblin, MonsterType.Demon, MonsterType.Undead,
+        MonsterType.Beast, MonsterType.Spirit, MonsterType.Machine,
+        MonsterType.Angel,
+    }; // 0번은 전체
+
+    private static readonly CardRarity[] RarityFilters =
+    {
+        CardRarity.Common, CardRarity.Rare,
+        CardRarity.Special, CardRarity.Legendary,
+    };
+
+    private static readonly string[] ManaFilterNames =
+    {
+        "전체", "0~2", "3~5", "6 이상",
+    };
+
+    private static readonly CardSortMode[] SortModes =
+    {
+        CardSortMode.Name, CardSortMode.ManaAsc, CardSortMode.ManaDesc,
+        CardSortMode.Rarity, CardSortMode.MonsterType,
+    };
+
     private readonly List<GameObject> generatedEntries =
         new List<GameObject>(); // 생성한 항목 목록
+
+    private int typeFilterIndex;   // 0이면 전체
+    private int rarityFilterIndex; // 0이면 전체
+    private int manaFilterIndex;   // 0이면 전체
+    private int sortModeIndex;     // 정렬 방식 번호
+    private string searchText = string.Empty; // 이름 검색어
+    private int previousPresetIndex = -1;     // 직전 선택 프리셋
 
     private void Awake()
     {
@@ -49,31 +95,351 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
 
         messageText =
             SceneUIBinder.Bind(messageText, "MessageText");
+
+        presetNameInput =
+            SceneUIBinder.Bind(presetNameInput, "PresetNameInput");
+
+        copyPresetButton =
+            SceneUIBinder.Bind(copyPresetButton, "CopyPresetButton");
+
+        typeFilterButton =
+            SceneUIBinder.Bind(typeFilterButton, "TypeFilterButton");
+
+        rarityFilterButton =
+            SceneUIBinder.Bind(rarityFilterButton, "RarityFilterButton");
+
+        manaFilterButton =
+            SceneUIBinder.Bind(manaFilterButton, "ManaFilterButton");
+
+        sortButton =
+            SceneUIBinder.Bind(sortButton, "SortButton");
+
+        searchInput =
+            SceneUIBinder.Bind(searchInput, "SearchInput");
+
+        BindPresetButtons();
+    }
+
+    private void BindPresetButtons() // 프리셋 버튼 연결
+    {
+        presetButtons.RemoveAll(presetButton => presetButton == null);
+
+        if (presetButtons.Count >= PlayerProgressManager.PresetCount) { return; }
+
+        presetButtons.Clear();
+
+        for (int i = 0; i < PlayerProgressManager.PresetCount; i++)
+        {
+            Button presetButton = SceneUIBinder.Bind<Button>(
+                null,
+                $"PresetButton{i + 1}"
+            );
+
+            if (presetButton == null) { continue; }
+
+            presetButtons.Add(presetButton);
+        }
     }
 
     private void Start()
     {
-        if (backButton != null)
+        AddClickListener(backButton, SceneFlow.ReturnToPreviousScene);
+        AddClickListener(clearDeckButton, ClearDeck);
+        AddClickListener(fillDeckButton, FillDeck);
+        AddClickListener(copyPresetButton, CopyPreviousPreset);
+        AddClickListener(typeFilterButton, CycleTypeFilter);
+        AddClickListener(rarityFilterButton, CycleRarityFilter);
+        AddClickListener(manaFilterButton, CycleManaFilter);
+        AddClickListener(sortButton, CycleSortMode);
+
+        for (int i = 0; i < presetButtons.Count; i++)
         {
-            backButton.onClick.RemoveAllListeners();
-            backButton.onClick.AddListener(
-                SceneFlow.ReturnToPreviousScene
+            int presetIndex = i;
+
+            AddClickListener(
+                presetButtons[i],
+                () => SelectPreset(presetIndex)
             );
         }
 
-        if (clearDeckButton != null)
+        if (searchInput != null)
         {
-            clearDeckButton.onClick.RemoveAllListeners();
-            clearDeckButton.onClick.AddListener(ClearDeck);
+            searchInput.onValueChanged.RemoveAllListeners();
+            searchInput.onValueChanged.AddListener(OnSearchTextChanged);
         }
 
-        if (fillDeckButton != null)
+        if (presetNameInput != null)
         {
-            fillDeckButton.onClick.RemoveAllListeners();
-            fillDeckButton.onClick.AddListener(FillDeck);
+            presetNameInput.onEndEdit.RemoveAllListeners();
+            presetNameInput.onEndEdit.AddListener(OnPresetNameChanged);
         }
 
         Refresh(); // 목록 갱신
+    }
+
+    private void AddClickListener(
+        Button targetButton,
+        UnityEngine.Events.UnityAction clickAction
+    )
+    {
+        if (targetButton == null) { return; }
+
+        targetButton.onClick.RemoveAllListeners();
+        targetButton.onClick.AddListener(clickAction);
+    }
+
+    // ---------- 프리셋 ----------
+
+    public void SelectPreset(int presetIndex)
+    {
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return; }
+
+        int currentIndex = progress.SelectedPresetIndex;
+
+        if (progress.SelectPreset(presetIndex))
+        {
+            previousPresetIndex = currentIndex; // 복사 대상 기록
+            ShowMessage($"{progress.GetPresetName(presetIndex)}을 선택했습니다.");
+        }
+
+        Refresh();
+    }
+
+    public void CopyPreviousPreset()
+    {
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return; }
+
+        if (previousPresetIndex < 0)
+        {
+            ShowMessage("복사할 프리셋이 없습니다. 다른 프리셋을 먼저 선택하세요.");
+            return;
+        }
+
+        bool copied = progress.CopyPresetToSelected(previousPresetIndex);
+
+        ShowMessage(
+            copied
+                ? $"{progress.GetPresetName(previousPresetIndex)} 구성을 복사했습니다."
+                : "복사하지 못했습니다."
+        );
+
+        Refresh();
+    }
+
+    private void OnPresetNameChanged(string newName)
+    {
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return; }
+        if (string.IsNullOrWhiteSpace(newName)) { return; }
+
+        progress.RenameSelectedPreset(newName);
+        ShowMessage("프리셋 이름을 변경했습니다.");
+        Refresh();
+    }
+
+    // ---------- 필터와 정렬 ----------
+
+    private void CycleTypeFilter()
+    {
+        typeFilterIndex = (typeFilterIndex + 1) % TypeFilters.Length;
+        Refresh();
+    }
+
+    private void CycleRarityFilter()
+    {
+        rarityFilterIndex = (rarityFilterIndex + 1) % (RarityFilters.Length + 1);
+        Refresh();
+    }
+
+    private void CycleManaFilter()
+    {
+        manaFilterIndex = (manaFilterIndex + 1) % ManaFilterNames.Length;
+        Refresh();
+    }
+
+    private void CycleSortMode()
+    {
+        sortModeIndex = (sortModeIndex + 1) % SortModes.Length;
+        Refresh();
+    }
+
+    private void OnSearchTextChanged(string newText)
+    {
+        searchText = newText == null ? string.Empty : newText.Trim();
+        Refresh();
+    }
+
+    private bool PassesFilter(CardData cardData)
+    {
+        if (cardData == null) { return false; }
+
+        if (typeFilterIndex > 0)
+        {
+            MonsterType filterType = TypeFilters[typeFilterIndex];
+
+            if (cardData.SummonMonster == null) { return false; }
+            if (!cardData.SummonMonster.HasType(filterType)) { return false; }
+        }
+
+        if (rarityFilterIndex > 0)
+        {
+            CardRarity filterRarity = RarityFilters[rarityFilterIndex - 1];
+
+            if (cardData.Rarity != filterRarity) { return false; }
+        }
+
+        if (manaFilterIndex > 0)
+        {
+            int manaCost = cardData.ManaCost;
+
+            bool inRange =
+                (manaFilterIndex == 1 && manaCost <= 2) ||
+                (manaFilterIndex == 2 && manaCost >= 3 && manaCost <= 5) ||
+                (manaFilterIndex == 3 && manaCost >= 6);
+
+            if (!inRange) { return false; }
+        }
+
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            if (cardData.CardName == null) { return false; }
+            if (!cardData.CardName.Contains(searchText)) { return false; }
+        }
+
+        return true;
+    }
+
+    private void SortOwnedCards(List<OwnedCardData> ownedCardList)
+    {
+        CardSortMode sortMode = SortModes[sortModeIndex];
+
+        ownedCardList.Sort((left, right) =>
+        {
+            CardData leftCard = left.CardData;
+            CardData rightCard = right.CardData;
+
+            switch (sortMode)
+            {
+                case CardSortMode.ManaAsc:
+                    return leftCard.ManaCost.CompareTo(rightCard.ManaCost);
+
+                case CardSortMode.ManaDesc:
+                    return rightCard.ManaCost.CompareTo(leftCard.ManaCost);
+
+                case CardSortMode.Rarity:
+                    return rightCard.Rarity.CompareTo(leftCard.Rarity);
+
+                case CardSortMode.MonsterType:
+                    return leftCard.MainType.CompareTo(rightCard.MainType);
+
+                default:
+                    return string.Compare(
+                        leftCard.CardName,
+                        rightCard.CardName,
+                        System.StringComparison.Ordinal
+                    );
+            }
+        });
+    }
+
+    private void UpdateControlLabels(PlayerProgressManager progress)
+    {
+        for (int i = 0; i < presetButtons.Count; i++)
+        {
+            Button presetButton = presetButtons[i];
+
+            if (presetButton == null) { continue; }
+
+            SetButtonLabel(presetButton, progress.GetPresetName(i));
+
+            Image presetImage = presetButton.GetComponent<Image>();
+
+            if (presetImage != null)
+            {
+                presetImage.color = i == progress.SelectedPresetIndex
+                    ? new Color(0.42f, 0.34f, 0.16f, 1f)
+                    : new Color(0.20f, 0.16f, 0.31f, 1f); // 선택 프리셋 강조
+            }
+        }
+
+        if (presetNameInput != null && !presetNameInput.isFocused)
+        {
+            presetNameInput.SetTextWithoutNotify(
+                progress.GetPresetName(progress.SelectedPresetIndex)
+            );
+        }
+
+        SetButtonLabel(
+            copyPresetButton,
+            previousPresetIndex >= 0
+                ? $"{progress.GetPresetName(previousPresetIndex)} 복사"
+                : "덱 복사"
+        );
+
+        SetButtonLabel(
+            typeFilterButton,
+            typeFilterIndex == 0
+                ? "계열: 전체"
+                : $"계열: {MonsterTypeRules.GetDisplayName(TypeFilters[typeFilterIndex])}"
+        );
+
+        SetButtonLabel(
+            rarityFilterButton,
+            rarityFilterIndex == 0
+                ? "희귀도: 전체"
+                : $"희귀도: {CardRarityRules.GetDisplayName(RarityFilters[rarityFilterIndex - 1])}"
+        );
+
+        SetButtonLabel(
+            manaFilterButton,
+            $"마나: {ManaFilterNames[manaFilterIndex]}"
+        );
+
+        SetButtonLabel(
+            sortButton,
+            $"정렬: {GetSortModeName(SortModes[sortModeIndex])}"
+        );
+    }
+
+    private string GetSortModeName(CardSortMode sortMode)
+    {
+        switch (sortMode)
+        {
+            case CardSortMode.ManaAsc:
+                return "마나 낮은 순";
+
+            case CardSortMode.ManaDesc:
+                return "마나 높은 순";
+
+            case CardSortMode.Rarity:
+                return "희귀도순";
+
+            case CardSortMode.MonsterType:
+                return "계열순";
+
+            default:
+                return "이름순";
+        }
+    }
+
+    private void SetButtonLabel(Button targetButton, string label)
+    {
+        if (targetButton == null) { return; }
+
+        TMP_Text buttonLabel =
+            targetButton.GetComponentInChildren<TMP_Text>(true);
+
+        if (buttonLabel == null) { return; }
+
+        buttonLabel.text = label;
     }
 
     // 보유 카드를 덱에 1장 추가한다.
@@ -154,6 +520,7 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
             return;
         }
 
+        UpdateControlLabels(progress);
         BuildOwnedCardList(progress);
         BuildDeckList(progress);
         UpdateDeckTexts(progress);
@@ -161,11 +528,21 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
 
     private void BuildOwnedCardList(PlayerProgressManager progress)
     {
+        List<OwnedCardData> visibleCards = new List<OwnedCardData>();
+
         foreach (OwnedCardData ownedCard in progress.OwnedCards)
         {
             if (ownedCard == null) { continue; }
             if (ownedCard.CardData == null) { continue; }
+            if (!PassesFilter(ownedCard.CardData)) { continue; }
 
+            visibleCards.Add(ownedCard);
+        }
+
+        SortOwnedCards(visibleCards);
+
+        foreach (OwnedCardData ownedCard in visibleCards)
+        {
             CardData cardData = ownedCard.CardData;
             int deckCount = progress.GetDeckCardCount(cardData);
 
@@ -221,6 +598,7 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
         if (deckCountText != null)
         {
             deckCountText.text =
+                $"{progress.GetPresetName(progress.SelectedPresetIndex)}      " +
                 $"덱 {progress.CurrentDeck.Count} / " +
                 $"{progress.RequiredDeckSize}      " +
                 $"평균 마나 {progress.CurrentDeckAverageMana:0.00}";

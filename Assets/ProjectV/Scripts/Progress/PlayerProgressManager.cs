@@ -32,8 +32,10 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     private readonly List<OwnedMonsterData> ownedMonsters =
         new List<OwnedMonsterData>(); // 보유 마물 성장 목록
 
-    private readonly List<CardData> currentDeck =
-        new List<CardData>(); // 현재 전투 덱
+    private readonly List<DeckPreset> deckPresets =
+        new List<DeckPreset>(); // 덱 프리셋 목록
+
+    private int selectedPresetIndex; // 선택한 프리셋 번호
 
     private int gold; // 현재 골드
     private int totalExperience; // 전체 경험치
@@ -51,8 +53,39 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     public IReadOnlyList<OwnedMonsterData> OwnedMonsters =>
         ownedMonsters; // 보유 마물 목록 반환
 
+    public const int PresetCount = 5; // 덱 프리셋 수 (기획서 6.12.3)
+
+    public IReadOnlyList<DeckPreset> DeckPresets =>
+        deckPresets; // 프리셋 목록 반환
+
+    public int SelectedPresetIndex => selectedPresetIndex; // 선택 프리셋 번호 반환
+
+    public DeckPreset SelectedPreset // 선택한 프리셋 반환
+    {
+        get
+        {
+            EnsureDeckPresets();
+
+            return deckPresets[
+                Mathf.Clamp(selectedPresetIndex, 0, deckPresets.Count - 1)
+            ];
+        }
+    }
+
     public IReadOnlyList<CardData> CurrentDeck =>
-        currentDeck; // 현재 덱 반환
+        SelectedPreset.Cards; // 선택 프리셋의 덱 반환
+
+    public string GetPresetName(int presetIndex) // 프리셋 이름 반환
+    {
+        EnsureDeckPresets();
+
+        if (presetIndex < 0 || presetIndex >= deckPresets.Count)
+        {
+            return string.Empty;
+        }
+
+        return deckPresets[presetIndex].PresetName;
+    }
 
     public int RequiredDeckSize =>
         Mathf.Max(1, requiredDeckSize); // 필요 덱 장수 반환
@@ -78,18 +111,20 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     {
         get
         {
-            if (currentDeck.Count == 0) { return 0f; }
+            IReadOnlyList<CardData> deckCards = CurrentDeck;
+
+            if (deckCards.Count == 0) { return 0f; }
 
             int totalMana = 0;
 
-            foreach (CardData deckCard in currentDeck)
+            foreach (CardData deckCard in deckCards)
             {
                 if (deckCard == null) { continue; }
 
                 totalMana += deckCard.ManaCost;
             }
 
-            return (float)totalMana / currentDeck.Count;
+            return (float)totalMana / deckCards.Count;
         }
     }
 
@@ -300,7 +335,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
         int deckCount = 0;
 
-        foreach (CardData deckCard in currentDeck)
+        foreach (CardData deckCard in CurrentDeck)
         {
             if (deckCard == null) { continue; }
             if (deckCard.CardId != cardData.CardId) { continue; }
@@ -317,7 +352,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     )
     {
         bool canAdd = DeckValidator.TryAddCard(
-            currentDeck,
+            CurrentDeck,
             cardData,
             RequiredDeckSize,
             this,
@@ -326,7 +361,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
         if (!canAdd) { return false; }
 
-        currentDeck.Add(cardData);
+        SelectedPreset.Cards.Add(cardData);
         ProgressChanged?.Invoke();
 
         return true;
@@ -336,12 +371,14 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     {
         if (cardData == null) { return false; }
 
-        for (int i = currentDeck.Count - 1; i >= 0; i--)
-        {
-            if (currentDeck[i] == null) { continue; }
-            if (currentDeck[i].CardId != cardData.CardId) { continue; }
+        List<CardData> deckCards = SelectedPreset.Cards;
 
-            currentDeck.RemoveAt(i);
+        for (int i = deckCards.Count - 1; i >= 0; i--)
+        {
+            if (deckCards[i] == null) { continue; }
+            if (deckCards[i].CardId != cardData.CardId) { continue; }
+
+            deckCards.RemoveAt(i);
             ProgressChanged?.Invoke();
 
             return true;
@@ -352,9 +389,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     public void ClearDeck() // 덱 비우기
     {
-        if (currentDeck.Count == 0) { return; }
+        if (CurrentDeck.Count == 0) { return; }
 
-        currentDeck.Clear();
+        SelectedPreset.Cards.Clear();
         ProgressChanged?.Invoke();
     }
 
@@ -362,6 +399,59 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     {
         RebuildDeckFromOwnedCards();
         ProgressChanged?.Invoke();
+    }
+
+    private void EnsureDeckPresets() // 프리셋 5개 확보
+    {
+        while (deckPresets.Count < PresetCount)
+        {
+            deckPresets.Add(new DeckPreset($"덱 {deckPresets.Count + 1}"));
+        }
+
+        selectedPresetIndex =
+            Mathf.Clamp(selectedPresetIndex, 0, deckPresets.Count - 1);
+    }
+
+    public bool SelectPreset(int presetIndex) // 사용할 프리셋 선택
+    {
+        EnsureDeckPresets();
+
+        if (presetIndex < 0 || presetIndex >= deckPresets.Count)
+        {
+            return false;
+        }
+
+        if (selectedPresetIndex == presetIndex) { return false; }
+
+        selectedPresetIndex = presetIndex;
+        ProgressChanged?.Invoke();
+
+        return true;
+    }
+
+    public void RenameSelectedPreset(string presetName) // 프리셋 이름 변경
+    {
+        if (string.IsNullOrWhiteSpace(presetName)) { return; }
+
+        SelectedPreset.SetName(presetName);
+        ProgressChanged?.Invoke();
+    }
+
+    public bool CopyPresetToSelected(int sourceIndex) // 다른 프리셋 구성 복사
+    {
+        EnsureDeckPresets();
+
+        if (sourceIndex < 0 || sourceIndex >= deckPresets.Count)
+        {
+            return false;
+        }
+
+        if (sourceIndex == selectedPresetIndex) { return false; }
+
+        SelectedPreset.CopyFrom(deckPresets[sourceIndex]);
+        ProgressChanged?.Invoke();
+
+        return true;
     }
 
     public bool SetCurrentDeck(IReadOnlyList<CardData> deckCards) // 덱 교체
@@ -381,8 +471,8 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             return false;
         }
 
-        currentDeck.Clear();
-        currentDeck.AddRange(deckCards); // 덱 저장
+        SelectedPreset.Cards.Clear();
+        SelectedPreset.Cards.AddRange(deckCards); // 덱 저장
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
 
@@ -391,7 +481,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     private void RebuildDeckFromOwnedCards() // 보유 카드로 덱 구성
     {
-        currentDeck.Clear();
+        List<CardData> deckCards = SelectedPreset.Cards;
+
+        deckCards.Clear();
 
         foreach (OwnedCardData ownedCard in ownedCards)
         {
@@ -400,15 +492,15 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
             for (int i = 0; i < ownedCard.OwnedCount; i++)
             {
-                currentDeck.Add(ownedCard.CardData); // 보유 수량만큼 편성
+                deckCards.Add(ownedCard.CardData); // 보유 수량만큼 편성
             }
         }
 
-        if (currentDeck.Count != RequiredDeckSize)
+        if (deckCards.Count != RequiredDeckSize)
         {
             Debug.LogWarning(
                 $"시작 덱이 {RequiredDeckSize}장이 아닙니다. " +
-                $"현재 {currentDeck.Count}장."
+                $"현재 {deckCards.Count}장."
             ); // 시작 덱 장수 경고
         }
     }
@@ -418,7 +510,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         gold = Mathf.Max(0, startingGold); // 시작 골드
         totalExperience = 0; // 전체 경험치 초기화
         monsterEssence = 0; // 마물의 정수 초기화
-        currentDeck.Clear(); // 현재 덱 초기화
+        deckPresets.Clear(); // 덱 프리셋 초기화
+        selectedPresetIndex = 0;
+        EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화
 
