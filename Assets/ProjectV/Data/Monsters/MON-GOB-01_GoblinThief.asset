@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4725c9519f415c5418512917ea8ecfc5, type: 3}
+  m_Name: MON-GOB-01_GoblinThief
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterData
+  monsterId: MON-GOB-01
+  monsterName: 고블린 도적
+  rarity: 0
+  mainType: 3
+  subType: 0
+  isBossOrigin: 0
+  maxHp: 18
+  attack: 9
+  lustDamage: 2
+  defense: 2
+  startingShield: 0
+  hpGrowthPerLevel: 2
+  attackGrowthPerLevel: 2
+  lustGrowthPerLevel: 0
+  defenseGrowthPerLevel: 0
+  isTaunting: 0
+  captureRewardCard: {fileID: 11400000, guid: e0f329c433364665bac4093c93af8d27, type: 2}
+  attackStatusEffect: {fileID: 0}
