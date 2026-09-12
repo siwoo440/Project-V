@@ -6,12 +6,12 @@ using UnityEngine.UI; // Unity UI 기능
 
 public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
 {
-    [Header("Panel")] // 전투 로그 패널 설정
+    [Header("패널")] // 전투 로그 패널 설정
     [SerializeField] private GameObject logPanel; // 전투 로그 패널 오브젝트
     [SerializeField] private GameObject openButtonObject; // 전투 로그 열기 버튼 오브젝트
     [SerializeField] private bool startOpened = true; // 게임 시작 시 패널 열림 여부
 
-    [Header("Log UI")] // 전투 로그 표시 설정
+    [Header("로그 UI")] // 전투 로그 표시 설정
     [SerializeField] private TMP_Text logText; // 전체 전투 로그 텍스트
     [SerializeField] private ScrollRect scrollRect; // 전투 로그 스크롤 영역
     [SerializeField] private TMP_Text filterNameText; // 현재 필터 이름 텍스트
@@ -141,7 +141,7 @@ public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
 
         logText.text = visibleLogEntries.Count > 0
             ? string.Join("\n", visibleLogEntries) // 필터 결과 로그 표시
-            : "<color=#AAAAAA>No matching logs.</color>"; // 필터 결과 없음 표시
+            : "<color=#AAAAAA>표시할 로그가 없습니다.</color>"; // 필터 결과 없음 표시
     }
 
     private bool ShouldDisplayEntry(BattleLogEntry logEntry) // 현재 필터의 로그 표시 여부 확인
@@ -160,14 +160,14 @@ public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
         string categoryName = GetCategoryName(logEntry.Category); // 로그 분류 이름 확인
         string categoryColor = GetCategoryColor(logEntry.Category); // 로그 분류 색상 확인
 
-        return $"<color=#{categoryColor}>[T{logEntry.TurnNumber:00}][{categoryName}]</color> {logEntry.Message}"; // 최종 로그 문구 반환
+        return $"<color=#{categoryColor}>[{logEntry.TurnNumber:00}턴][{categoryName}]</color> {logEntry.Message}"; // 최종 로그 문구 반환
     }
 
     private void UpdateFilterNameText() // 현재 필터 이름 표시
     {
         if (filterNameText == null) { return; } // 필터 이름 텍스트 누락 차단
 
-        filterNameText.text = $"Filter: {GetFilterName(currentFilter)}"; // 현재 필터 이름 적용
+        filterNameText.text = $"필터: {GetFilterName(currentFilter)}"; // 현재 필터 이름 적용
     }
 
     private void RequestScrollToBottom() // 최신 로그 자동 스크롤 요청
@@ -202,12 +202,12 @@ public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
     {
         switch (filter) // 로그 필터 확인
         {
-            case BattleLogFilter.All: return "All"; // 전체 필터 이름
-            case BattleLogFilter.System: return "System"; // 시스템 필터 이름
-            case BattleLogFilter.PlayerAction: return "Player"; // 플레이어 필터 이름
-            case BattleLogFilter.HeroineAction: return "Heroine"; // 히로인 필터 이름
-            case BattleLogFilter.StatusEffect: return "Status"; // 상태 효과 필터 이름
-            default: return "Unknown"; // 미지원 필터 이름
+            case BattleLogFilter.All: return "전체"; // 전체 필터 이름
+            case BattleLogFilter.System: return "시스템"; // 시스템 필터 이름
+            case BattleLogFilter.PlayerAction: return "플레이어"; // 플레이어 필터 이름
+            case BattleLogFilter.HeroineAction: return "히로인"; // 히로인 필터 이름
+            case BattleLogFilter.StatusEffect: return "상태"; // 상태 효과 필터 이름
+            default: return "알 수 없음"; // 미지원 필터 이름
         }
     }
 
@@ -215,11 +215,11 @@ public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
     {
         switch (category) // 로그 분류 확인
         {
-            case BattleLogCategory.System: return "System"; // 시스템 분류 이름
-            case BattleLogCategory.PlayerAction: return "Player"; // 플레이어 분류 이름
-            case BattleLogCategory.HeroineAction: return "Heroine"; // 히로인 분류 이름
-            case BattleLogCategory.StatusEffect: return "Status"; // 상태 효과 분류 이름
-            default: return "Unknown"; // 미지원 분류 이름
+            case BattleLogCategory.System: return "시스템"; // 시스템 분류 이름
+            case BattleLogCategory.PlayerAction: return "플레이어"; // 플레이어 분류 이름
+            case BattleLogCategory.HeroineAction: return "히로인"; // 히로인 분류 이름
+            case BattleLogCategory.StatusEffect: return "상태"; // 상태 효과 분류 이름
+            default: return "알 수 없음"; // 미지원 분류 이름
         }
     }
 

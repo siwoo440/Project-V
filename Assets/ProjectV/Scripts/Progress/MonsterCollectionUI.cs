@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 public class MonsterCollectionUI : MonoBehaviour
 {
-    [Header("Collection Panel")]
+    [Header("도감 패널")]
     [SerializeField] private GameObject collectionPanel;
 
-    [Header("Collection UI")]
+    [Header("도감 UI")]
     [SerializeField] private TMP_Text summaryText;
     [SerializeField] private Transform listContainer;
     [SerializeField] private Button monsterButtonPrefab;
@@ -67,12 +67,12 @@ public class MonsterCollectionUI : MonoBehaviour
             if (summaryText != null)
             {
                 summaryText.text =
-                    "Missing Player Progress Manager";
+                    "진행 데이터가 없습니다";
             }
 
             if (detailText != null)
             {
-                detailText.text = "No Monster Data";
+                detailText.text = "마물 데이터가 없습니다";
             }
 
             return;
@@ -81,17 +81,17 @@ public class MonsterCollectionUI : MonoBehaviour
         if (summaryText != null)
         {
             summaryText.text =
-                $"Gold: {progress.Gold} | " +
-                $"Essence: {progress.MonsterEssence} | " +
-                $"Total EXP: {progress.TotalExperience} | " +
-                $"Owned: {progress.OwnedMonsters.Count}";
+                $"골드 {progress.Gold} | " +
+                $"정수 {progress.MonsterEssence} | " +
+                $"누적 경험치 {progress.TotalExperience} | " +
+                $"보유 마물 {progress.OwnedMonsters.Count}";
         }
 
         if (progress.OwnedMonsters.Count == 0)
         {
             if (detailText != null)
             {
-                detailText.text = "No Owned Monsters";
+                detailText.text = "보유한 마물이 없습니다";
             }
 
             return;
@@ -156,24 +156,24 @@ public class MonsterCollectionUI : MonoBehaviour
         if (ownedMonster == null ||
             ownedMonster.MonsterData == null)
         {
-            detailText.text = "No Monster Data";
+            detailText.text = "마물 데이터가 없습니다";
             return;
         }
 
         detailText.text =
             $"{ownedMonster.MonsterData.MonsterName}\n" +
-            $"ID: {ownedMonster.MonsterData.MonsterId}\n" +
-            $"Rarity: " +
+            $"ID {ownedMonster.MonsterData.MonsterId}\n" +
+            $"희귀도 " +
             $"{CardRarityRules.GetDisplayName(ownedMonster.MonsterData.Rarity)}\n" +
-            $"Level: {ownedMonster.Level}\n" +
-            $"EXP: {ownedMonster.CurrentExperience} / " +
+            $"레벨 {ownedMonster.Level}\n" +
+            $"경험치 {ownedMonster.CurrentExperience} / " +
             $"{ownedMonster.RequiredExperience}\n" +
-            $"Copies: {GetOwnedCardCount(ownedMonster)} / " +
+            $"보유 {GetOwnedCardCount(ownedMonster)} / " +
             $"{ownedMonster.MonsterData.MaxOwnedCopies}\n\n" +
-            $"HP: {ownedMonster.MaxHp}\n" +
-            $"ATK: {ownedMonster.Attack}\n" +
-            $"LST: {ownedMonster.LustDamage}\n" +
-            $"DEF: {ownedMonster.Defense}";
+            $"HP {ownedMonster.MaxHp}\n" +
+            $"공격 {ownedMonster.Attack}\n" +
+            $"성욕 {ownedMonster.LustDamage}\n" +
+            $"방어 {ownedMonster.Defense}";
     }
 
     private int GetOwnedCardCount(

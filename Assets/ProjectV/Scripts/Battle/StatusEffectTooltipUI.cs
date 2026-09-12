@@ -29,7 +29,7 @@ public class StatusEffectTooltipUI : MonoBehaviour // 상태 효과 툴팁 UI �
             statusNameText.color = statusData.DisplayColor; // 상태 효과 색상 적용
         }
 
-        if (categoryText != null) { categoryText.text = statusData.IsNegative ? "Debuff" : "Buff"; } // 상태 분류 표시
+        if (categoryText != null) { categoryText.text = statusData.IsNegative ? "디버프" : "버프"; } // 상태 분류 표시
         if (effectText != null) { effectText.text = CreateEffectDescription(statusData); } // 상태 효과 설명 표시
         if (remainingTurnsText != null) { remainingTurnsText.text = CreateDurationDescription(statusData, remainingTurns); } // 지속시간 표시
 
@@ -74,21 +74,21 @@ public class StatusEffectTooltipUI : MonoBehaviour // 상태 효과 툴팁 UI �
 
         if (!string.IsNullOrWhiteSpace(statusData.Description)) // 직접 작성한 설명 확인
         {
-            return $"{statusData.Description}\nEffect: {effectValue}"; // 설명과 수치 표시
+            return $"{statusData.Description}\n효과 {effectValue}"; // 설명과 수치 표시
         }
 
-        return $"Effect: {effectValue}"; // 기본 수치 설명 표시
+        return $"효과 {effectValue}"; // 기본 수치 설명 표시
     }
 
     private string GetEffectValueText(StatusEffectData statusData) // 상태 효과 수치 문구 생성
     {
-        if (statusData == null) { return "None"; } // 상태 데이터 누락 처리
+        if (statusData == null) { return "없음"; } // 상태 데이터 누락 처리
 
         switch (statusData.StatusType) // 상태 효과 종류 확인
         {
-            case StatusEffectType.DefenseUp: return $"Defense +{statusData.Amount}"; // 방어력 증가 수치
-            case StatusEffectType.AttackDown: return $"Attack -{statusData.Amount}"; // 공격력 감소 수치
-            case StatusEffectType.Poison: return $"HP -{statusData.Amount} per action"; // 독 피해 수치
+            case StatusEffectType.DefenseUp: return $"방어 +{statusData.Amount}"; // 방어력 증가 수치
+            case StatusEffectType.AttackDown: return $"공격 -{statusData.Amount}"; // 공격력 감소 수치
+            case StatusEffectType.Poison: return $"행동당 HP -{statusData.Amount}"; // 독 피해 수치
             default: return statusData.Amount.ToString(); // 기본 상태 효과 수치
         }
     }
@@ -99,9 +99,9 @@ public class StatusEffectTooltipUI : MonoBehaviour // 상태 효과 툴팁 UI �
 
         switch (statusData.DurationTiming) // 지속시간 감소 시점 확인
         {
-            case StatusDurationTiming.AfterPlayerTurn: return $"Remaining: {safeRemainingTurns} Player Turns"; // 플레이어 턴 기준 표시
-            case StatusDurationTiming.AfterHeroineTurn: return $"Remaining: {safeRemainingTurns} Heroine Actions"; // 히로인 행동 기준 표시
-            default: return $"Remaining: {safeRemainingTurns}"; // 기본 지속시간 표시
+            case StatusDurationTiming.AfterPlayerTurn: return $"남은 플레이어 턴 {safeRemainingTurns}"; // 플레이어 턴 기준 표시
+            case StatusDurationTiming.AfterHeroineTurn: return $"남은 히로인 행동 {safeRemainingTurns}"; // 히로인 행동 기준 표시
+            default: return $"남은 턴 {safeRemainingTurns}"; // 기본 지속시간 표시
         }
     }
 }

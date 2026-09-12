@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA011_Poison Curse
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA010
-  displayName: Poison Curse
+  displayName: 독 저주
   actionType: 4
   targetType: 1
   damage: 0

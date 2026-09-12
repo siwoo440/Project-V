@@ -1,36 +1,49 @@
 using UnityEngine; // Unity 기본 기능
 
-[CreateAssetMenu(fileName = "NewMonsterData", menuName = "Project V/Monster Data")] // 마물 데이터 생성 메뉴
+[CreateAssetMenu(fileName = "NewMonsterData", menuName = "Project V/마물 데이터")] // 마물 데이터 생성 메뉴
 public class MonsterData : ScriptableObject // 마물 데이터 정의
 {
-    [Header("Monster Information")] // 마물 정보 구분
+    [Header("마물 정보")] // 마물 정보 구분
     [SerializeField] private string monsterId = "M000"; // 마물 고유 ID
-    [SerializeField] private string monsterName = "New Monster"; // 마물 표시 이름
+    [SerializeField] private string monsterName = "새 마물"; // 마물 표시 이름
     [SerializeField] private CardRarity rarity = CardRarity.Common; // 마물 희귀도
+    [SerializeField] private MonsterType mainType = MonsterType.None; // 마물 주 타입
+    [SerializeField] private MonsterType subType = MonsterType.None; // 마물 보조 타입
+    [SerializeField] private bool isBossOrigin; // 보스 출신 여부
     [SerializeField] private int maxHp = 5; // 마물 최대 체력
     [SerializeField] private int attack = 1; // 마물 공격력
     [SerializeField, Min(0)] private int lustDamage = 5; // 성욕 피해
     [SerializeField] private int defense = 0; // 마물 방어력
     [SerializeField] private int startingShield = 0; // 마물 시작 보호막
 
-    [Header("Level Growth")]
+    [Header("레벨 성장")]
     [SerializeField, Min(0)] private int hpGrowthPerLevel = 1;
     [SerializeField, Min(0)] private int attackGrowthPerLevel = 1;
     [SerializeField, Min(0)] private int lustGrowthPerLevel = 1;
     [SerializeField, Min(0)] private int defenseGrowthPerLevel = 0;
 
-    [Header("Target Rules")]
+    [Header("대상 규칙")]
     [SerializeField] private bool isTaunting;
 
-    [Header("Card Link")] // 카드 연결 구분
+    [Header("카드 연결")] // 카드 연결 구분
     [SerializeField] private CardData captureRewardCard; // 포획 보상 카드
 
-    [Header("Attack Status Effect")] // 공격 상태 효과 구분
+    [Header("공격 상태 효과")] // 공격 상태 효과 구분
     [SerializeField] private StatusEffectData attackStatusEffect; // 공격 시 부여 상태 효과
 
     public string MonsterId => monsterId; // 마물 ID 반환
     public string MonsterName => monsterName; // 마물 이름 반환
     public CardRarity Rarity => rarity; // 마물 희귀도 반환
+    public MonsterType MainType => mainType; // 주 타입 반환
+    public MonsterType SubType => subType; // 보조 타입 반환
+    public bool IsBossOrigin => isBossOrigin; // 보스 출신 여부 반환
+
+    public bool HasType(MonsterType monsterType) // 타입 보유 여부
+    {
+        if (monsterType == MonsterType.None) { return false; }
+
+        return mainType == monsterType || subType == monsterType;
+    }
     public CardData CaptureRewardCard => captureRewardCard; // 포획 보상 카드 반환
 
     public int MaxOwnedCopies =>

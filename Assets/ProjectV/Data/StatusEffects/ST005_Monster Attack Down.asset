@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ST005_Monster Attack Down
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST005
-  displayName: Weakness
+  displayName: 약화
   statusType: 1
   amount: 1
   isNegative: 1
@@ -21,4 +21,4 @@ MonoBehaviour:
   durationTiming: 0
   icon: {fileID: 0}
   displayColor: {r: 0.1765557, g: 0.17254901, b: 0.7490196, a: 1}
-  description: Reduces HP attack power.
+  description: HP 공격력을 감소시킨다.

@@ -6,6 +6,24 @@ using UnityEngine.UI; // Unity UI 기능
 
 public partial class BattleManager // 분리된 전투 기능
 {
+    private void ApplyProgressDeck() // 진행 데이터 덱 적용
+    {
+        if (!useProgressDeck) { return; } // 씬 덱 사용 설정
+
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return; } // 진행 데이터 없음
+        if (progress.CurrentDeck.Count == 0) { return; } // 구성된 덱 없음
+
+        deckCards.Clear();
+        deckCards.AddRange(progress.CurrentDeck); // 플레이어 덱 적용
+
+        Debug.Log(
+            $"플레이어 덱을 적용했습니다. {deckCards.Count}장"
+        ); // 덱 적용 기록
+    }
+
     private bool ValidateBattleDeckBeforeStart()
     {
         if (!validateDeckOnStart) { return true; }
@@ -16,8 +34,8 @@ public partial class BattleManager // 분리된 전투 기능
         if (ownershipSource == null)
         {
             Debug.LogWarning(
-                "Missing Player Progress Manager. " +
-                "Card ownership check is skipped."
+                "진행 데이터가 없어 " +
+                "카드 보유 검증을 생략합니다."
             ); // 보유 검증 생략 경고
         }
 
@@ -40,18 +58,18 @@ public partial class BattleManager // 분리된 전투 기능
             battleLogUI.AddEntry(
                 0,
                 BattleLogCategory.System,
-                $"Deck validation failed: {errorMessage}"
+                $"덱 검증 실패: {errorMessage}"
             );
         }
 
         if (turnText != null)
         {
-            turnText.text = "Deck Error";
+            turnText.text = "덱 오류";
         }
 
         if (turnNumberText != null)
         {
-            turnNumberText.text = "Turn 0";
+            turnNumberText.text = "0턴";
         }
 
         if (resultText != null)
@@ -85,7 +103,7 @@ public partial class BattleManager // 분리된 전투 기능
             {
                 AddBattleLog(
                     BattleLogCategory.System,
-                    $"Hand is full. ({handButtons.Count} / {maxHandSize})"
+                    $"손패가 가득 찼습니다. ({handButtons.Count} / {maxHandSize})"
                 );
 
                 break;
@@ -95,7 +113,7 @@ public partial class BattleManager // 분리된 전투 기능
             {
                 AddBattleLog(
                     BattleLogCategory.System,
-                    "No cards available to draw."
+                    "드로우할 카드가 없습니다."
                 );
 
                 break;
@@ -108,7 +126,7 @@ public partial class BattleManager // 분리된 전투 기능
             {
                 AddBattleLog(
                     BattleLogCategory.System,
-                    "An empty card was removed from the draw pile."
+                    "빈 카드를 드로우 더미에서 제거했습니다."
                 );
 
                 continue;
@@ -145,7 +163,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"Discard pile reshuffled: {drawPile.Count} cards."
+            $"버린 카드 더미를 다시 섞었습니다. {drawPile.Count}장"
         );
 
         UpdateDeckStatusUI();
@@ -169,14 +187,14 @@ public partial class BattleManager // 분리된 전투 기능
         string monsterName =
             cardData.SummonMonster != null
                 ? cardData.SummonMonster.MonsterName
-                : "None";
+                : "없음";
 
         if (cardText != null)
         {
             cardText.text =
                 $"{cardData.CardName}\n" +
-                $"Cost: {cardData.ManaCost}\n" +
-                $"Summon: {monsterName}";
+                $"비용 {cardData.ManaCost}\n" +
+                $"소환 {monsterName}";
         }
 
         newCardButton.onClick.RemoveAllListeners();
@@ -192,25 +210,25 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (cardData.SummonMonster == null) // 마물 데이터 누락 확인
         {
-            resultText.text = "Missing Monster Data"; // 데이터 누락 안내
+            resultText.text = "마물 데이터가 없습니다"; // 데이터 누락 안내
             return; // 카드 사용 차단
         }
 
         if (fieldMonsters.Count >= maxFieldMonsterCount) // 필드 최대 수 확인
         {
-            resultText.text = "Field Full"; // 필드 초과 안내
+            resultText.text = "마물 필드가 가득 찼습니다"; // 필드 초과 안내
             return; // 카드 사용 차단
         }
 
         if (currentMana < cardData.ManaCost) // 마나 부족 확인
         {
-            resultText.text = "Not Enough Mana"; // 마나 부족 안내
+            resultText.text = "마나가 부족합니다"; // 마나 부족 안내
             return; // 카드 사용 차단
         }
 
         currentMana -= cardData.ManaCost; // 카드 비용 차감
         SummonMonster(cardData.SummonMonster); // 마물 필드 소환
-        AddBattleLog(BattleLogCategory.PlayerAction, $"{cardData.CardName}: Summoned {cardData.SummonMonster.MonsterName}."); // 카드 소환 기록
+        AddBattleLog(BattleLogCategory.PlayerAction, $"{cardData.CardName}: {cardData.SummonMonster.MonsterName}을 소환했습니다."); // 카드 소환 기록
 
         discardPile.Add(cardData); // 사용 카드 버린 더미 이동
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
@@ -231,10 +249,10 @@ public partial class BattleManager // 분리된 전투 기능
             deckCards != null ? deckCards.Count : 0;
 
         deckStatusText.text =
-            $"Draw: {drawPile.Count} | " +
-            $"Hand: {handButtons.Count} / {maxHandSize} | " +
-            $"Discard: {discardPile.Count}\n" +
-            $"Deck: {configuredDeckCount} / {requiredDeckSize}";
+            $"드로우 {drawPile.Count} | " +
+            $"손패 {handButtons.Count} / {maxHandSize} | " +
+            $"버림 {discardPile.Count}\n" +
+            $"덱 {configuredDeckCount} / {requiredDeckSize}";
     }
 
 

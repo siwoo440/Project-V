@@ -13,6 +13,4 @@ MonoBehaviour:
   m_Name: C004_ImpBolt
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardId: C004
-  cardName: Imp Bolt
-  manaCost: 1
-  summonMonster: {fileID: 11400000, guid: 456c1123496133c4fa45c66eee51423e, type: 2}
+  cardName: 임프 마탄

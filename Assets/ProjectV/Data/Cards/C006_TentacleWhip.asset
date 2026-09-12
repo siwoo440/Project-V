@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: C006_TentacleWhip
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardId: C006
-  cardName: Tentacle Whip
+  cardName: 촉수 채찍
   manaCost: 3
   summonMonster: {fileID: 11400000, guid: 0582fa6d199557b4eac0cd937caf454a, type: 2}

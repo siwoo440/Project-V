@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M003_PoisonSlime
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M003
-  monsterName: Poison Slime
+  monsterName: 독 슬라임
   rarity: 0
+  mainType: 2
+  subType: 0
+  isBossOrigin: 0
   maxHp: 6
   attack: 2
   lustDamage: 5

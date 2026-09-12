@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M005_Skeleton
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M005
-  monsterName: Skeleton
+  monsterName: 스켈레톤
   rarity: 2
+  mainType: 5
+  subType: 0
+  isBossOrigin: 0
   maxHp: 9
   attack: 3
   lustDamage: 12

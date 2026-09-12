@@ -3,19 +3,19 @@ using UnityEngine;
 
 [CreateAssetMenu(
     fileName = "NewBattleRewardData",
-    menuName = "Project V/Battle Reward Data"
+    menuName = "Project V/전투 보상 데이터"
 )]
 public class BattleRewardData : ScriptableObject
 {
-    [Header("Currency Reward")]
+    [Header("재화 보상")]
     [SerializeField, Min(0)] private int minimumGold = 10;
     [SerializeField, Min(0)] private int maximumGold = 20;
 
-    [Header("Experience Reward")]
+    [Header("경험치 보상")]
     [SerializeField, Min(0)] private int minimumExperience = 5;
     [SerializeField, Min(0)] private int maximumExperience = 10;
 
-    [Header("Capture Reward")]
+    [Header("포획 보상")]
     [SerializeField, Range(0f, 1f)]
     private float captureChance = 0.3f;
 

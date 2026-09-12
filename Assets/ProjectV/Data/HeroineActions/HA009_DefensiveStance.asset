@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA009_DefensiveStance
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA009
-  displayName: Defensive Stance
+  displayName: 방어 태세
   actionType: 4
   targetType: 5
   damage: 0

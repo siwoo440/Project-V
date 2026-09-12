@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA006_SoulPierce
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA006
-  displayName: Soul Pierce
+  displayName: 영혼 관통
   actionType: 0
   targetType: 4
   damage: 2

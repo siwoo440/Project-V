@@ -1,5 +1,28 @@
+using UnityEngine; // Unity 기본 기능
+
 public static class CardRarityRules // 희귀도 규칙 정의
 {
+    public static Color GetDisplayColor(CardRarity rarity) // 희귀도 표시 색상
+    {
+        switch (rarity)
+        {
+            case CardRarity.Common:
+                return new Color(0.78f, 0.78f, 0.80f, 1f); // 회색
+
+            case CardRarity.Rare:
+                return new Color(0.42f, 0.66f, 1f, 1f); // 파란색
+
+            case CardRarity.Special:
+                return new Color(0.72f, 0.48f, 1f, 1f); // 보라색
+
+            case CardRarity.Legendary:
+                return new Color(1f, 0.82f, 0.36f, 1f); // 금색
+
+            default:
+                return Color.white;
+        }
+    }
+
     public static int GetMaxCopies(CardRarity rarity) // 보유 및 편성 제한 수량
     {
         switch (rarity)
@@ -47,19 +70,19 @@ public static class CardRarityRules // 희귀도 규칙 정의
         switch (rarity)
         {
             case CardRarity.Common:
-                return "Common";
+                return "일반";
 
             case CardRarity.Rare:
-                return "Rare";
+                return "희귀";
 
             case CardRarity.Special:
-                return "Special";
+                return "특수";
 
             case CardRarity.Legendary:
-                return "Legendary";
+                return "전설";
 
             default:
-                return "Unknown";
+                return "알 수 없음";
         }
     }
 }

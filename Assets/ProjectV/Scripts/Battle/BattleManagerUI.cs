@@ -33,7 +33,7 @@ public partial class BattleManager // 분리된 전투 기능
     }
     private void ShowPlayerTurn() // 플레이어 턴 UI 표시
     {
-        turnText.text = "Player Turn"; // 플레이어 턴 문구 설정
+        turnText.text = "플레이어 턴"; // 플레이어 턴 문구 설정
         endTurnButton.interactable = true; // 턴 종료 버튼 활성화
         SetAttackButtonsInteractable(false); // 공격 버튼 초기 비활성화
         SetHandInteractable(true); // 손패 버튼 활성화
@@ -70,20 +70,20 @@ public partial class BattleManager // 분리된 전투 기능
     private void UpdateBattleUI() // 전투 수치 UI 갱신
     {
         int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 히로인 방어력 계산
-        turnNumberText.text = $"Turn {turnNumber}"; // 턴 번호 표시
-        playerHpText.text = $"Player HP: {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
-        playerShieldText.text = $"Shield: {playerCurrentShield}"; // 플레이어 보호막 표시
-        manaText.text = $"Mana: {currentMana} / {maximumMana}"; // 마나 표시
-        heroineHpText.text = $"Heroine HP: {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
-        heroineDefenseText.text = $"DEF: {currentHeroineDefense}"; // 현재 히로인 방어력 표시
-        heroineShieldText.text = $"Shield: {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
+        turnNumberText.text = $"{turnNumber}턴"; // 턴 번호 표시
+        playerHpText.text = $"플레이어 HP {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
+        playerShieldText.text = $"보호막 {playerCurrentShield}"; // 플레이어 보호막 표시
+        manaText.text = $"마나 {currentMana} / {maximumMana}"; // 마나 표시
+        heroineHpText.text = $"히로인 HP {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
+        heroineDefenseText.text = $"방어 {currentHeroineDefense}"; // 현재 히로인 방어력 표시
+        heroineShieldText.text = $"보호막 {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
         if (heroineStatusText != null) { heroineStatusText.text = GetHeroineStatusDisplay(); } // 히로인 상태 효과 표시
         RefreshHeroineStatusIcons(); // 히로인 상태 효과 아이콘 갱신
         if (lustText != null)
         {
             lustText.text = heroineLust >= heroineMaxLust
-                ? $"Lust: {heroineLust} / {heroineMaxLust} MAX"
-                : $"Lust: {heroineLust} / {heroineMaxLust}";
+                ? $"성욕 {heroineLust} / {heroineMaxLust} 최대"
+                : $"성욕 {heroineLust} / {heroineMaxLust}";
         }
 
         if (heroineLustSlider != null)

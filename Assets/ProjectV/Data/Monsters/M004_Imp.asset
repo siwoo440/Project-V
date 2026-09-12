@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M004_Imp
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M004
-  monsterName: Imp
+  monsterName: 임프
   rarity: 1
+  mainType: 4
+  subType: 0
+  isBossOrigin: 0
   maxHp: 5
   attack: 2
   lustDamage: 12

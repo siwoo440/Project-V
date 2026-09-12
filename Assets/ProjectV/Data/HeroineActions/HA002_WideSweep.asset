@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA002_WideSweep
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA002
-  displayName: Wide Sweep
+  displayName: 광역 베기
   actionType: 1
   targetType: 3
   damage: 2

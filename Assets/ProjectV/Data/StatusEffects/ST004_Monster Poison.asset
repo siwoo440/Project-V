@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ST004_Monster Poison
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST004
-  displayName: Monster Poison
+  displayName: 마물 독
   statusType: 2
   amount: 2
   isNegative: 1
@@ -21,4 +21,4 @@ MonoBehaviour:
   durationTiming: 0
   icon: {fileID: 0}
   displayColor: {r: 0.48235294, g: 0.17254902, b: 0.7490196, a: 1}
-  description: Takes direct HP damage at the start of the player turn.
+  description: 플레이어 턴이 시작될 때 HP 피해를 받는다.

@@ -18,15 +18,15 @@ public partial class BattleManager // 분리된 전투 기능
 
     private string GetLustGainText(int requestedAmount, int appliedAmount)
     {
-        if (requestedAmount <= 0) { return "Lust +0"; }
-        if (appliedAmount <= 0 && heroineLust >= heroineMaxLust) { return "Lust MAX"; }
+        if (requestedAmount <= 0) { return "성욕 +0"; }
+        if (appliedAmount <= 0 && heroineLust >= heroineMaxLust) { return "성욕 최대"; }
 
-        return $"Lust +{appliedAmount}";
+        return $"성욕 +{appliedAmount}";
     }
 
     private void ResolveHeroineAttack() // 선택된 히로인 행동 실행
     {
-        if (nextHeroineAction == null) { resultText.text = "No Available Heroine Action"; return; } // 행동 누락 차단
+        if (nextHeroineAction == null) { resultText.text = "사용 가능한 히로인 행동이 없습니다"; return; } // 행동 누락 차단
 
         if (nextHeroineAction.ActionType == HeroineActionType.GainShield) // 보호막 행동 확인
         {
@@ -70,12 +70,12 @@ public partial class BattleManager // 분리된 전투 기능
 
             case HeroineTargetType.Self:
                 ClearHeroineTargetPreview();
-                resultText.text = "Invalid Self Target Action";
+                resultText.text = "잘못된 자기 대상 행동입니다";
                 break;
 
             default:
                 ClearHeroineTargetPreview();
-                resultText.text = "Unknown Target Type";
+                resultText.text = "알 수 없는 대상 유형입니다";
                 break;
         }
     }
@@ -86,7 +86,7 @@ public partial class BattleManager // 분리된 전투 기능
         heroineCurrentShield = Mathf.Min(heroineMaxShield, heroineCurrentShield + safeShieldAmount); // 최대치 범위 내 보호막 증가
         int gainedShield = heroineCurrentShield - previousShield; // 실제 보호막 획득량 계산
 
-        resultText.text = $"{nextHeroineAction.DisplayName}: Shield +{gainedShield}"; // 보호막 행동 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: 보호막 +{gainedShield}"; // 보호막 행동 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 보호막 행동 기록
     }
 
@@ -107,7 +107,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (statusData == null)
         {
-            resultText.text = "Missing Status Effect Data";
+            resultText.text = "상태 효과 데이터가 없습니다";
             return;
         }
 
@@ -121,7 +121,7 @@ public partial class BattleManager // 분리된 전투 기능
             resultText.text =
                 $"{nextHeroineAction.DisplayName}: " +
                 $"{statusData.DisplayName} {amountText} " +
-                $"({statusData.DurationTurns} Turns)";
+                $"({statusData.DurationTurns}턴)";
 
             AddBattleLog(
                 BattleLogCategory.StatusEffect,
@@ -141,7 +141,7 @@ public partial class BattleManager // 분리된 전투 기능
             if (targetMonsters.Count == 0)
             {
                 resultText.text =
-                    $"{nextHeroineAction.DisplayName}: No Monster Target";
+                    $"{nextHeroineAction.DisplayName}: 대상 마물이 없습니다";
 
                 AddBattleLog(
                     BattleLogCategory.StatusEffect,
@@ -158,8 +158,8 @@ public partial class BattleManager // 분리된 전투 기능
 
             resultText.text =
                 $"{nextHeroineAction.DisplayName}: " +
-                $"{statusData.DisplayName} applied to " +
-                $"{targetMonsters.Count} monsters";
+                $"{statusData.DisplayName} 적용 대상 " +
+                $"{targetMonsters.Count}체";
 
             AddBattleLog(
                 BattleLogCategory.StatusEffect,
@@ -175,7 +175,7 @@ public partial class BattleManager // 분리된 전투 기능
         if (targetMonster == null)
         {
             resultText.text =
-                $"{nextHeroineAction.DisplayName}: No Monster Target";
+                $"{nextHeroineAction.DisplayName}: 대상 마물이 없습니다";
 
             AddBattleLog(
                 BattleLogCategory.StatusEffect,
@@ -189,9 +189,9 @@ public partial class BattleManager // 분리된 전투 기능
 
         resultText.text =
             $"{nextHeroineAction.DisplayName}: " +
-            $"{targetMonster.MonsterName} received " +
+            $"{targetMonster.MonsterName} 적용 " +
             $"{statusData.DisplayName} {amountText} " +
-            $"({statusData.DurationTurns} Turns)";
+            $"({statusData.DurationTurns}턴)";
 
         AddBattleLog(
             BattleLogCategory.StatusEffect,
@@ -216,13 +216,13 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (removedStatusNames.Count == 0) // 제거 상태 없음 확인
         {
-            resultText.text = $"{nextHeroineAction.DisplayName}: No Negative Status"; // 정화 대상 없음 표시
+            resultText.text = $"{nextHeroineAction.DisplayName}: 제거할 디버프가 없습니다"; // 정화 대상 없음 표시
             AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 정화 실패 기록
             return; // 정화 처리 종료
         }
 
         string removedStatusText = string.Join(", ", removedStatusNames); // 제거 상태 이름 결합
-        resultText.text = $"{nextHeroineAction.DisplayName}: Removed {removedStatusText}"; // 정화 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: {removedStatusText} 제거"; // 정화 결과 표시
         AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 정화 결과 기록
     }
     private void ReduceHeroineStatusDurations(StatusDurationTiming durationTiming) // 지정 시점 상태 효과 지속시간 감소
@@ -308,7 +308,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (totalPoisonDamage > 0) // 독 피해 발생 확인
         {
-            resultText.text = $"Poison: Heroine HP -{totalPoisonDamage}"; // 독 피해 결과 표시
+            resultText.text = $"독: 히로인 HP -{totalPoisonDamage}"; // 독 피해 결과 표시
             AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 독 피해 전투 로그 기록
         }
 
@@ -408,14 +408,14 @@ public partial class BattleManager // 분리된 전투 기능
         DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(attackPower, playerDefense, playerCurrentShield); // 플레이어 피해 계산
         playerCurrentShield = damageResult.RemainingShield; // 플레이어 남은 보호막 적용
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - damageResult.HpDamage); // 플레이어 실제 HP 피해 적용
-        resultText.text = $"{actionName}: {CreateDamageResultText("Player", damageResult)}"; // 플레이어 피해 결과 표시
+        resultText.text = $"{actionName}: {CreateDamageResultText("플레이어", damageResult)}"; // 플레이어 피해 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 플레이어 공격 기록
     }
 
 
     private string CreateDamageResultText(string targetName, DamageResult damageResult) // 피해 결과 문구 생성
     {
-        return $"{targetName}: Shield -{damageResult.ShieldAbsorbed}, HP -{damageResult.HpDamage}"; // 보호막과 HP 피해 문구 반환
+        return $"{targetName}: 보호막 -{damageResult.ShieldAbsorbed}, HP -{damageResult.HpDamage}"; // 보호막과 HP 피해 문구 반환
     }
 
     private void SelectNextHeroineAction() // AI 제약 조건 기반 행동 선택
@@ -519,63 +519,63 @@ public partial class BattleManager // 분리된 전투 기능
 
     private string GetHeroineTargetPreviewText()
     {
-        if (nextHeroineAction == null) { return "None"; }
+        if (nextHeroineAction == null) { return "없음"; }
 
         if (nextHeroineAction.TargetType == HeroineTargetType.AllMonsters)
         {
             return fieldMonsters.Count > 0
-                ? "All Monsters"
-                : "Player (No Monsters)";
+                ? "모든 마물"
+                : "플레이어 (마물 없음)";
         }
 
         if (previewedHeroineTarget != null &&
             !previewedHeroineTarget.IsDead)
         {
             return previewedHeroineTarget.IsTaunting
-                ? $"{previewedHeroineTarget.MonsterName} (Taunt)"
+                ? $"{previewedHeroineTarget.MonsterName} (도발)"
                 : previewedHeroineTarget.MonsterName;
         }
 
-        if (nextHeroineAction.TargetType == HeroineTargetType.Player) { return "Player"; }
-        if (nextHeroineAction.TargetType == HeroineTargetType.Self) { return "Self"; }
+        if (nextHeroineAction.TargetType == HeroineTargetType.Player) { return "플레이어"; }
+        if (nextHeroineAction.TargetType == HeroineTargetType.Self) { return "자신"; }
 
-        return "Player (No Monsters)";
+        return "플레이어 (마물 없음)";
     }
 
 
     private void UpdateHeroineIntentUI()
     {
         if (heroineIntentText == null) { return; }
-        if (nextHeroineAction == null) { heroineIntentText.text = "Next Action: None"; return; }
+        if (nextHeroineAction == null) { heroineIntentText.text = "다음 행동: 없음"; return; }
 
         string targetName = GetHeroineTargetPreviewText();
         string effectName =
             GetHeroineActionEffectDisplay(nextHeroineAction);
 
         heroineIntentText.text =
-            $"Next: {nextHeroineAction.DisplayName}\n" +
-            $"{effectName} / Target: {targetName}";
+            $"다음 행동: {nextHeroineAction.DisplayName}\n" +
+            $"{effectName} / 대상: {targetName}";
     }
 
 
     private string GetHeroineActionEffectDisplay(HeroineActionData actionData) // 행동 효과 표시 문구 반환
     {
-        if (actionData == null) { return "Effect: None"; } // 행동 데이터 누락 표시
-        if (actionData.ActionType == HeroineActionType.GainShield) { return $"Shield +{actionData.ShieldAmount}"; } // 보호막 효과 표시
+        if (actionData == null) { return "효과: 없음"; } // 행동 데이터 누락 표시
+        if (actionData.ActionType == HeroineActionType.GainShield) { return $"보호막 +{actionData.ShieldAmount}"; } // 보호막 효과 표시
         if (actionData.ActionType == HeroineActionType.Heal) { return $"HP +{actionData.HealAmount}"; } // 체력 회복 효과 표시
-        if (actionData.ActionType == HeroineActionType.Cleanse) { return $"Cleanse {actionData.CleanseCount} Negative Status"; } // 정화 행동 효과 표시
+        if (actionData.ActionType == HeroineActionType.Cleanse) { return $"디버프 {actionData.CleanseCount}개 제거"; } // 정화 행동 효과 표시
 
         if (actionData.ActionType == HeroineActionType.ApplyStatus) // 상태 효과 행동 확인
         {
             StatusEffectData statusData = actionData.AppliedStatusEffect; // 적용 상태 효과 확인
-            if (statusData == null) { return "Status: None"; } // 상태 효과 누락 표시
+            if (statusData == null) { return "상태 효과: 없음"; } // 상태 효과 누락 표시
 
             string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
-            return $"{statusData.DisplayName} {amountText} ({statusData.DurationTurns} Turns)"; // 상태 효과 문구 반환
+            return $"{statusData.DisplayName} {amountText} ({statusData.DurationTurns}턴)"; // 상태 효과 문구 반환
         }
 
         int currentAttack = GetHeroineCurrentAttack(actionData.Damage); // 상태 효과 포함 예고 공격력 계산
-        return $"Damage {currentAttack}"; // 현재 공격 피해 효과 표시
+        return $"피해 {currentAttack}"; // 현재 공격 피해 효과 표시
     }
     private string GetStatusAmountDisplay(StatusEffectData statusData) // 상태 효과 수치 문구 반환
     {
@@ -604,7 +604,7 @@ public partial class BattleManager // 분리된 전투 기능
     }
     private string GetHeroineStatusDisplay() // 히로인 상태 효과 UI 문구 생성
     {
-        if (activeHeroineStatusEffects.Count == 0) { return "Status: None"; } // 활성 상태 효과 없음 표시
+        if (activeHeroineStatusEffects.Count == 0) { return "상태 효과: 없음"; } // 활성 상태 효과 없음 표시
 
         List<string> statusNames = new List<string>(); // 상태 효과 문구 목록 생성
 
@@ -617,9 +617,9 @@ public partial class BattleManager // 분리된 전투 기능
             statusNames.Add(statusName); // 상태 효과 문구 등록
         }
 
-        if (statusNames.Count == 0) { return "Status: None"; } // 표시 가능한 상태 없음 처리
+        if (statusNames.Count == 0) { return "상태 효과: 없음"; } // 표시 가능한 상태 없음 처리
 
-        return $"Status: {string.Join(", ", statusNames)}"; // 전체 상태 효과 문구 반환
+        return $"상태 효과: {string.Join(", ", statusNames)}"; // 전체 상태 효과 문구 반환
     }
     private void ClearHeroineStatusIcons() // 생성된 히로인 상태 아이콘 제거
     {
@@ -654,13 +654,13 @@ public partial class BattleManager // 분리된 전투 기능
     {
         switch (targetType) // 대상 규칙 확인
         {
-            case HeroineTargetType.FirstMonster: return "First Monster";    // 첫 번째 마물 대상 -> 첫 번째 마물 문구 반환
-            case HeroineTargetType.RandomMonster: return "Random Monster";   // 무작위 마물 대상 -> 무작위 마물 문구 반환
-            case HeroineTargetType.LowestHpMonster: return "Lowest HP Monster";// 최저 HP 마물 대상 -> 최저 HP 마물 문구 반환
-            case HeroineTargetType.AllMonsters: return "All Monsters";     // 전체 마물 대상 p -> 전체 마물 문구 반환
-            case HeroineTargetType.Player: return "Player";           // 플레이어 직접 대상 -> 플레이어 문구 반환
-            case HeroineTargetType.Self: return "Self";             // 히로인 자신 대상 -> 자기 자신 문구 반환
-            default: return "Unknown";          // 정의되지 않은 대상 -> 알 수 없는 대상 반환
+            case HeroineTargetType.FirstMonster: return "첫 번째 마물";    // 첫 번째 마물 대상 -> 첫 번째 마물 문구 반환
+            case HeroineTargetType.RandomMonster: return "무작위 마물";   // 무작위 마물 대상 -> 무작위 마물 문구 반환
+            case HeroineTargetType.LowestHpMonster: return "최저 HP 마물";// 최저 HP 마물 대상 -> 최저 HP 마물 문구 반환
+            case HeroineTargetType.AllMonsters: return "모든 마물";     // 전체 마물 대상 p -> 전체 마물 문구 반환
+            case HeroineTargetType.Player: return "플레이어";           // 플레이어 직접 대상 -> 플레이어 문구 반환
+            case HeroineTargetType.Self: return "자신";             // 히로인 자신 대상 -> 자기 자신 문구 반환
+            default: return "알 수 없음";          // 정의되지 않은 대상 -> 알 수 없는 대상 반환
         }
     }
 

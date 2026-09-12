@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA007_MagicBarrier
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA007
-  displayName: Magic Barrier
+  displayName: 마법 장막
   actionType: 2
   targetType: 5
   damage: 0

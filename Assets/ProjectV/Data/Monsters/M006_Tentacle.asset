@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M006_Tentacle
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M006
-  monsterName: Tentacle
+  monsterName: 촉수
   rarity: 3
+  mainType: 1
+  subType: 0
+  isBossOrigin: 0
   maxHp: 10
   attack: 4
   lustDamage: 8

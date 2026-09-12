@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA008_RecoveryPrayer
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA008
-  displayName: RecoveryPrayer
+  displayName: 회복의 기도
   actionType: 3
   targetType: 5
   damage: 0

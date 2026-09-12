@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class MonsterUnit : MonoBehaviour
 {
-    [Header("Monster UI")]
+    [Header("마물 UI")]
     [SerializeField] private TMP_Text monsterNameText;
     [SerializeField] private TMP_Text monsterHpText;
     [SerializeField] private TMP_Text monsterAttackText;
@@ -18,7 +18,7 @@ public class MonsterUnit : MonoBehaviour
     [SerializeField] private Button selectButton;
     [SerializeField] private Image backgroundImage;
 
-    [Header("Selection Colors")]
+    [Header("선택 색상")]
     [SerializeField]
     private Color normalColor =
         new Color(0.34f, 0.24f, 0.45f, 1f);
@@ -64,7 +64,7 @@ public class MonsterUnit : MonoBehaviour
         monsterData != null ? monsterData.AttackStatusEffect : null;
 
     public string MonsterName =>
-        monsterData != null ? monsterData.MonsterName : "Unknown";
+        monsterData != null ? monsterData.MonsterName : "알 수 없음";
 
     public bool IsTaunting =>
         monsterData != null && monsterData.IsTaunting;
@@ -330,34 +330,34 @@ public class MonsterUnit : MonoBehaviour
 
         if (monsterHpText != null)
         {
-            monsterHpText.text = $"HP: {currentHp} / {MaxHp}";
+            monsterHpText.text = $"HP {currentHp} / {MaxHp}";
         }
 
         if (monsterAttackText != null)
         {
-            monsterAttackText.text = $"ATK: {Attack}";
+            monsterAttackText.text = $"공격 {Attack}";
         }
 
         if (monsterLustDamageText != null)
         {
-            monsterLustDamageText.text = $"LST: {LustDamage}";
+            monsterLustDamageText.text = $"성욕 {LustDamage}";
         }
 
         if (monsterDefenseText != null)
         {
-            monsterDefenseText.text = $"DEF: {Defense}";
+            monsterDefenseText.text = $"방어 {Defense}";
         }
 
         if (monsterShieldText != null)
         {
-            monsterShieldText.text = $"Shield: {currentShield}";
+            monsterShieldText.text = $"보호막 {currentShield}";
         }
 
         if (monsterStateText != null)
         {
-            string tauntText = IsTaunting ? " | Taunt" : string.Empty;
+            string tauntText = IsTaunting ? " | 도발" : string.Empty;
             monsterStateText.text =
-                $"State: {GetStateLabel()}{tauntText}";
+                $"상태 {GetStateLabel()}{tauntText}";
         }
     }
 
@@ -405,10 +405,10 @@ public class MonsterUnit : MonoBehaviour
     {
         switch (actionState)
         {
-            case MonsterActionState.Summoning: return "Waiting";
-            case MonsterActionState.Ready: return "Ready";
-            case MonsterActionState.Acted: return "Acted";
-            default: return "Unknown";
+            case MonsterActionState.Summoning: return "대기";
+            case MonsterActionState.Ready: return "행동 가능";
+            case MonsterActionState.Acted: return "행동 완료";
+            default: return "알 수 없음";
         }
     }
     private void InitializeRuntimeStats()

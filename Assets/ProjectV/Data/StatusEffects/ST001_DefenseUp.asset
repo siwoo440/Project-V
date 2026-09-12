@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ST001_DefenseUp
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST001
-  displayName: Defense Up
+  displayName: 방어 강화
   statusType: 0
   amount: 2
   isNegative: 0
@@ -21,4 +21,4 @@ MonoBehaviour:
   durationTiming: 0
   icon: {fileID: 0}
   displayColor: {r: 0.23921569, g: 0.54509807, b: 1, a: 1}
-  description: Increases the Heroine's Defense while active.
+  description: 지속 중 히로인의 방어력을 증가시킨다.

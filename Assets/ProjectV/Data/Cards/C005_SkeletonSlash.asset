@@ -13,6 +13,4 @@ MonoBehaviour:
   m_Name: C005_SkeletonSlash
   m_EditorClassIdentifier: Assembly-CSharp::CardData
   cardId: C005
-  cardName: Skeleton Slash
-  manaCost: 2
-  summonMonster: {fileID: 11400000, guid: 56e235bb1120a1f4b900276e9bec3781, type: 2}
+  cardName: 스켈레톤 참격

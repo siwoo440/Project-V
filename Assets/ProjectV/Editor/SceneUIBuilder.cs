@@ -1,0 +1,1331 @@
+using System.Collections.Generic;
+using TMPro;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+// 씬 UI 생성 및 연결 도구
+// 기획서 11.2 해상도, 11.4.1 기본 색상, 11.4.2 희귀도 색상을 기준으로 구성한다.
+public static class SceneUIBuilder
+{
+    private const float ReferenceWidth = 1920f;
+    private const float ReferenceHeight = 1080f;
+
+    private static readonly Color BackgroundColor = new Color(0.05f, 0.05f, 0.07f, 1f);
+    private static readonly Color PanelColor = new Color(0.13f, 0.10f, 0.20f, 0.96f);
+    private static readonly Color PanelDeepColor = new Color(0.08f, 0.07f, 0.12f, 0.96f);
+    private static readonly Color ButtonColor = new Color(0.20f, 0.16f, 0.31f, 1f);
+    private static readonly Color AccentColor = new Color(1f, 0.82f, 0.36f, 1f);
+    private static readonly Color TextColor = new Color(0.93f, 0.92f, 0.96f, 1f);
+    private static readonly Color SubTextColor = new Color(0.62f, 0.60f, 0.70f, 1f);
+    private static readonly Color WarningColor = new Color(0.45f, 0.14f, 0.18f, 1f);
+
+    private const string SceneFolder = "Assets/ProjectV/Scenes/";
+    private const string MonsterUnitPrefabPath =
+        "Assets/ProjectV/Prefabs/UI/MonsterUnit.prefab";
+
+    // 기획서 6.8.2 시작 덱 구성
+    private static readonly string[] StartingCardIds =
+    {
+        "CRD-GOB-01", "CRD-GOB-02", "CRD-GOB-04", "CRD-SLM-01",
+        "CRD-SLM-02", "CRD-DEM-01", "CRD-SPI-01", "CRD-SPI-02",
+        "CRD-MEC-01", "CRD-UND-01", "CRD-ANG-01",
+    };
+
+    private static readonly int[] StartingCardCounts =
+    {
+        3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 1,
+    };
+
+    [MenuItem("Project V/씬 UI 다시 구성", false, 10)]
+    public static void RebuildAllScenes()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+        {
+            return;
+        }
+
+        string originalScenePath =
+            SceneManager.GetActiveScene().path;
+
+        BuildMonsterUnitPrefab();
+
+        BuildScene("00_Bootstrap", BuildBootstrapScene);
+        BuildScene("01_MainMenu", BuildMainMenuScene);
+        BuildScene("02_DeckBuilder", BuildDeckBuilderScene);
+        BuildScene("03_StageSelect", BuildStageSelectScene);
+        BuildScene("04_Story", BuildStoryScene);
+        BuildScene("BattleScene", BuildBattleSceneExtras);
+
+        if (!string.IsNullOrEmpty(originalScenePath))
+        {
+            EditorSceneManager.OpenScene(originalScenePath, OpenSceneMode.Single);
+        }
+
+        Debug.Log("씬 UI 구성을 완료했습니다.");
+    }
+
+    private static void BuildScene(string sceneName, System.Action buildAction)
+    {
+        string scenePath = SceneFolder + sceneName + ".unity";
+
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+
+        if (!scene.IsValid())
+        {
+            Debug.LogWarning("씬을 찾지 못했습니다: " + scenePath);
+            return;
+        }
+
+        buildAction();
+
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+
+        Debug.Log("씬 UI를 구성했습니다: " + sceneName);
+    }
+
+    // ---------- 씬별 구성 ----------
+
+    private static void BuildBootstrapScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+        EnsureBackground(canvas.transform);
+
+        TextMeshProUGUI loadingText = EnsureText(
+            "LoadingText", canvas.transform, "프로젝트 V",
+            72f, AccentColor, TextAlignmentOptions.Center);
+
+        SetAnchored(loadingText.gameObject,
+            new Vector2(0.5f, 0.5f), new Vector2(0f, 40f), new Vector2(900f, 120f));
+
+        TextMeshProUGUI hintText = EnsureText(
+            "LoadingHintText", canvas.transform, "불러오는 중...",
+            28f, SubTextColor, TextAlignmentOptions.Center);
+
+        SetAnchored(hintText.gameObject,
+            new Vector2(0.5f, 0.5f), new Vector2(0f, -50f), new Vector2(900f, 60f));
+
+        GameObject controller = EnsureObject("BootstrapController", null);
+        controller.AddComponentIfMissing<BootstrapFlow>();
+
+        GameObject progressObject = EnsureObject("PlayerProgressManager", null);
+        PlayerProgressManager progress =
+            progressObject.AddComponentIfMissing<PlayerProgressManager>();
+
+        ApplyStartingCards(progress);
+    }
+
+    private static void BuildMainMenuScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+        EnsureBackground(canvas.transform);
+
+        TextMeshProUGUI title = EnsureText(
+            "TitleText", canvas.transform, "프로젝트 V",
+            96f, AccentColor, TextAlignmentOptions.Center);
+
+        SetAnchored(title.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -180f), new Vector2(1200f, 140f));
+
+        TextMeshProUGUI subtitle = EnsureText(
+            "SubtitleText", canvas.transform, "소환사와 마물 카드 전투",
+            30f, SubTextColor, TextAlignmentOptions.Center);
+
+        SetAnchored(subtitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -290f), new Vector2(1200f, 60f));
+
+        GameObject panel = EnsurePanel("MainMenuPanel", canvas.transform, PanelColor);
+        SetAnchored(panel, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(560f, 520f));
+        ApplyVerticalLayout(panel, 24f, 48);
+
+        Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리", ButtonColor);
+        Button stageButton = EnsureButton("StageSelectButton", panel.transform, "지역 선택", ButtonColor);
+        Button deckButton = EnsureButton("DeckBuilderButton", panel.transform, "덱 편성", ButtonColor);
+        Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
+
+        storyButton.transform.SetSiblingIndex(0);
+        stageButton.transform.SetSiblingIndex(1);
+        deckButton.transform.SetSiblingIndex(2);
+        quitButton.transform.SetSiblingIndex(3);
+
+        TextMeshProUGUI progressText = EnsureText(
+            "ProgressText", canvas.transform, "골드 0    정수 0    보유 카드 0    덱 0",
+            26f, SubTextColor, TextAlignmentOptions.Center);
+
+        SetAnchored(progressText.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(1400f, 50f));
+
+        GameObject controller = EnsureObject("MainMenuController", null);
+        MainMenuFlow flow = controller.AddComponentIfMissing<MainMenuFlow>();
+
+        AssignReference(flow, "storyButton", storyButton);
+        AssignReference(flow, "stageSelectButton", stageButton);
+        AssignReference(flow, "deckBuilderButton", deckButton);
+        AssignReference(flow, "quitButton", quitButton);
+        AssignReference(flow, "progressText", progressText);
+    }
+
+    private static void BuildDeckBuilderScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+        EnsureBackground(canvas.transform);
+
+        TextMeshProUGUI title = EnsureText(
+            "TitleText", canvas.transform, "덱 편성",
+            56f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(title.gameObject,
+            new Vector2(0f, 1f), new Vector2(400f, -90f), new Vector2(700f, 80f));
+
+        SendToBack("DeckBuilderPanel");
+
+        GameObject ownedPanel = EnsurePanel("OwnedCardsPanel", canvas.transform, PanelColor);
+        SetAnchored(ownedPanel, new Vector2(0f, 0.5f), new Vector2(540f, -20f), new Vector2(920f, 660f));
+
+        TextMeshProUGUI ownedTitle = EnsureText(
+            "OwnedCardsTitleText", ownedPanel.transform, "보유 카드",
+            32f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(ownedTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(840f, 46f));
+
+        GameObject ownedContent = EnsureObject("OwnedCardsContent", ownedPanel.transform);
+        SetStretch(ownedContent, new Vector4(30f, 30f, 30f, 90f));
+        ApplyVerticalLayout(ownedContent, 6f, 0, TextAnchor.UpperLeft);
+
+        GameObject deckPanel = EnsurePanel("CurrentDeckPanel", canvas.transform, PanelDeepColor);
+        SetAnchored(deckPanel, new Vector2(1f, 0.5f), new Vector2(-500f, -20f), new Vector2(820f, 660f));
+
+        TextMeshProUGUI deckTitle = EnsureText(
+            "CurrentDeckTitleText", deckPanel.transform, "현재 덱",
+            32f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(deckTitle.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(740f, 46f));
+
+        GameObject deckContent = EnsureObject("CurrentDeckContent", deckPanel.transform);
+        SetStretch(deckContent, new Vector4(30f, 30f, 30f, 90f));
+        ApplyVerticalLayout(deckContent, 6f, 0, TextAnchor.UpperLeft);
+
+        TextMeshProUGUI deckCountText = EnsureText(
+            "DeckCountText", canvas.transform, "덱 0 / 30      평균 마나 0.00",
+            28f, TextColor, TextAlignmentOptions.Left);
+
+        SetAnchored(deckCountText.gameObject,
+            new Vector2(0f, 0f), new Vector2(600f, 120f), new Vector2(900f, 50f));
+
+        TextMeshProUGUI messageText = EnsureText(
+            "MessageText", canvas.transform, "",
+            24f, SubTextColor, TextAlignmentOptions.Left);
+
+        SetAnchored(messageText.gameObject,
+            new Vector2(0f, 0f), new Vector2(600f, 74f), new Vector2(1100f, 46f));
+
+        Button backButton = EnsureButton("BackButton", canvas.transform, "돌아가기", ButtonColor);
+        SetAnchored(backButton.gameObject,
+            new Vector2(1f, 0f), new Vector2(-200f, 100f), new Vector2(280f, 68f));
+
+        GameObject controller = EnsureObject("DeckBuilderController", null);
+        DeckBuilderFlow flow = controller.AddComponentIfMissing<DeckBuilderFlow>();
+
+        AssignReference(flow, "backButton", backButton);
+        AssignReference(flow, "ownedCardsContent", ownedContent.transform);
+        AssignReference(flow, "currentDeckContent", deckContent.transform);
+        AssignReference(flow, "deckCountText", deckCountText);
+        AssignReference(flow, "messageText", messageText);
+    }
+
+    private static void BuildStageSelectScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+        EnsureBackground(canvas.transform);
+
+        TextMeshProUGUI title = EnsureText(
+            "TitleText", canvas.transform, "지역 선택",
+            56f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(title.gameObject,
+            new Vector2(0f, 1f), new Vector2(400f, -90f), new Vector2(700f, 80f));
+
+        SendToBack("Panel");
+
+        GameObject listPanel = EnsurePanel("StageListPanel", canvas.transform, PanelColor);
+        SetAnchored(listPanel, new Vector2(0f, 0.5f), new Vector2(480f, -20f), new Vector2(760f, 660f));
+
+        GameObject listContent = EnsureObject("StageListContent", listPanel.transform);
+        SetStretch(listContent, new Vector4(30f, 30f, 30f, 30f));
+        ApplyVerticalLayout(listContent, 12f, 0, TextAnchor.UpperLeft);
+
+        GameObject detailPanel = EnsurePanel("SelectedStagePanel", canvas.transform, PanelDeepColor);
+        SetAnchored(detailPanel, new Vector2(1f, 0.5f), new Vector2(-520f, -20f), new Vector2(880f, 660f));
+
+        TextMeshProUGUI stageNameText = EnsureText(
+            "StageNameText", detailPanel.transform, "스테이지 데이터 없음",
+            40f, AccentColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(stageNameText.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(780f, 70f));
+
+        TextMeshProUGUI stageDescriptionText = EnsureText(
+            "StageDescriptionText", detailPanel.transform, "",
+            24f, TextColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(stageDescriptionText.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -260f), new Vector2(780f, 320f));
+
+        Button startButton = EnsureButton("StartBattleButton", detailPanel.transform, "전투 시작", AccentColor);
+        SetAnchored(startButton.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(400f, 80f));
+
+        SetButtonLabelColor(startButton, new Color(0.10f, 0.08f, 0.05f, 1f));
+
+        Button deckButton = EnsureButton("DeckBuilderButton", canvas.transform, "덱 편성", ButtonColor);
+        SetAnchored(deckButton.gameObject,
+            new Vector2(0f, 0f), new Vector2(560f, 100f), new Vector2(300f, 68f));
+
+        Button backButton = EnsureButton("BackButton", canvas.transform, "돌아가기", ButtonColor);
+        SetAnchored(backButton.gameObject,
+            new Vector2(0f, 0f), new Vector2(880f, 100f), new Vector2(280f, 68f));
+
+        GameObject controller = EnsureObject("StageSelectController", null);
+        StageSelectFlow flow = controller.AddComponentIfMissing<StageSelectFlow>();
+
+        AssignReference(flow, "startBattleButton", startButton);
+        AssignReference(flow, "deckBuilderButton", deckButton);
+        AssignReference(flow, "backButton", backButton);
+        AssignReference(flow, "stageListContent", listContent.transform);
+        AssignReference(flow, "stageNameText", stageNameText);
+        AssignReference(flow, "stageDescriptionText", stageDescriptionText);
+
+        ApplyDefaultStages(flow);
+    }
+
+    private static void BuildStoryScene()
+    {
+        Canvas canvas = EnsureCanvas();
+        EnsureEventSystem();
+
+        GameObject background = EnsurePanel("BackgroundImage", canvas.transform,
+            new Color(0.07f, 0.06f, 0.10f, 1f));
+        SetStretch(background, Vector4.zero);
+        background.transform.SetSiblingIndex(0);
+
+        SendToBack("StoryPanel");
+
+        GameObject character = EnsurePanel("CharacterImage", canvas.transform,
+            new Color(0.20f, 0.16f, 0.28f, 0.55f));
+        SetAnchored(character, new Vector2(0.5f, 0f), new Vector2(0f, 340f), new Vector2(520f, 720f));
+
+        GameObject dialoguePanel = EnsurePanel("DialoguePanel", canvas.transform, PanelDeepColor);
+        SetAnchored(dialoguePanel, new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(1560f, 320f));
+
+        TextMeshProUGUI speakerNameText = EnsureText(
+            "SpeakerNameText", dialoguePanel.transform, "화자",
+            34f, AccentColor, TextAlignmentOptions.Left);
+
+        SetAnchored(speakerNameText.gameObject,
+            new Vector2(0f, 1f), new Vector2(260f, -46f), new Vector2(460f, 56f));
+
+        TextMeshProUGUI dialogueText = EnsureText(
+            "DialogueText", dialoguePanel.transform, "",
+            28f, TextColor, TextAlignmentOptions.TopLeft);
+
+        SetAnchored(dialogueText.gameObject,
+            new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(1440f, 170f));
+
+        Button nextButton = EnsureButton("NextButton", canvas.transform, "다음", ButtonColor);
+        SetAnchored(nextButton.gameObject,
+            new Vector2(1f, 0f), new Vector2(-260f, 100f), new Vector2(260f, 68f));
+
+        Button skipButton = EnsureButton("SkipButton", canvas.transform, "건너뛰기", ButtonColor);
+        SetAnchored(skipButton.gameObject,
+            new Vector2(1f, 1f), new Vector2(-160f, -70f), new Vector2(220f, 60f));
+
+        GameObject controller = EnsureObject("StoryController", null);
+        StoryFlow flow = controller.AddComponentIfMissing<StoryFlow>();
+
+        AssignReference(flow, "nextButton", nextButton);
+        AssignReference(flow, "skipButton", skipButton);
+        AssignReference(flow, "speakerNameText", speakerNameText);
+        AssignReference(flow, "dialogueText", dialogueText);
+
+        ApplyDefaultStoryLines(flow);
+    }
+
+    private static void BuildBattleSceneExtras()
+    {
+        Canvas canvas = FindCanvas();
+
+        if (canvas == null)
+        {
+            Debug.LogWarning("전투 캔버스를 찾지 못했습니다.");
+            return;
+        }
+
+        BuildBattleLayout(canvas);
+
+        Button returnButton = EnsureButton("ReturnButton", canvas.transform, "지역 선택", ButtonColor);
+        SetAnchored(returnButton.gameObject,
+            new Vector2(0f, 0f), new Vector2(560f, 62f), new Vector2(200f, 56f));
+
+        TextMeshProUGUI progressText = EnsureText(
+            "BattleProgressText", canvas.transform, "",
+            20f, SubTextColor, TextAlignmentOptions.Left);
+
+        SetAnchored(progressText.gameObject,
+            new Vector2(0f, 0f), new Vector2(530f, 22f), new Vector2(840f, 32f));
+
+        GameObject controller = EnsureObject("BattleReturnController", null);
+        BattleReturnFlow flow = controller.AddComponentIfMissing<BattleReturnFlow>();
+
+        AssignReference(flow, "returnButton", returnButton);
+        AssignReference(flow, "progressText", progressText);
+    }
+
+    // 전투 화면 전체 배치 (기획서 11.7 기준)
+    private static void BuildBattleLayout(Canvas canvas)
+    {
+        GameObject background = Locate("Background");
+
+        if (background != null)
+        {
+            SetStretch(background, Vector4.zero);
+            background.transform.SetSiblingIndex(0);
+
+            Image backgroundImage = background.GetComponent<Image>();
+
+            if (backgroundImage != null)
+            {
+                backgroundImage.color = BackgroundColor;
+            }
+        }
+
+        // 좌상단 플레이어 정보
+        PlaceByName("PlayerPanel", new Vector2(0f, 1f), new Vector2(240f, -100f), new Vector2(420f, 160f));
+        StylePanelByName("PlayerPanel", PanelColor);
+        LayoutByName("PlayerPanel", 4f, 16, TextAnchor.UpperCenter);
+        StyleRow("PlayerTitleText", 26f, AccentColor, TextAlignmentOptions.Center, 32f);
+        StyleRow("PlayerHPText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        StyleRow("PlayerShieldText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        StyleRow("ManaText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+
+        // 상단 중앙 턴 정보
+        PlaceByName("TurnPanel", new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(360f, 100f));
+        StylePanelByName("TurnPanel", PanelColor);
+        LayoutByName("TurnPanel", 2f, 12, TextAnchor.UpperCenter);
+        StyleRow("TurnText", 28f, AccentColor, TextAlignmentOptions.Center, 34f);
+        StyleRow("TurnNumberText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+
+        // 우상단 히로인 정보
+        PlaceByName("HeroinePanel", new Vector2(1f, 1f), new Vector2(-250f, -180f), new Vector2(460f, 320f));
+        StylePanelByName("HeroinePanel", PanelColor);
+        LayoutByName("HeroinePanel", 4f, 16, TextAnchor.UpperCenter);
+        StyleRow("HeroineNameText", 28f, AccentColor, TextAlignmentOptions.Center, 34f);
+        StyleRow("HeroineHPText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        StyleRow("HeroineDefenseText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        StyleRow("HeroineShieldText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        StyleRow("LustText", 22f, TextColor, TextAlignmentOptions.Center, 28f);
+        SetLayoutHeight("HeroineLustSlider", 22f);
+        StyleRow("HeroineStatusText", 20f, SubTextColor, TextAlignmentOptions.Center, 26f);
+        SetLayoutHeight("HeroineStatusIconContainer", 44f);
+
+        // 우측 히로인 행동 예고
+        PlaceByName("HeroineIntentPanel", new Vector2(1f, 0.5f), new Vector2(-250f, 250f), new Vector2(460f, 150f));
+        StylePanelByName("HeroineIntentPanel", PanelDeepColor);
+        StretchByName("HeroineIntentText", new Vector4(20f, 16f, 20f, 16f));
+        StyleTextByName("HeroineIntentText", 21f, TextColor, TextAlignmentOptions.TopLeft);
+
+        // 중앙 마물 필드
+        PlaceByName("MonsterFieldPanel", new Vector2(0.5f, 0.5f), new Vector2(0f, 80f), new Vector2(1240f, 300f));
+        StylePanelByName("MonsterFieldPanel", PanelDeepColor);
+        PlaceByName("FieldGuideText", new Vector2(0.5f, 1f), new Vector2(0f, -26f), new Vector2(1180f, 36f));
+        StyleTextByName("FieldGuideText", 22f, AccentColor, TextAlignmentOptions.Left);
+        StretchByName("MonsterFieldContainer", new Vector4(24f, 56f, 24f, 20f));
+        HorizontalLayoutByName("MonsterFieldContainer", 10f, 0, TextAnchor.MiddleCenter);
+
+        // 전투 안내 문구
+        PlaceByName("ResultText", new Vector2(0.5f, 0f), new Vector2(0f, 372f), new Vector2(1400f, 44f));
+        StyleTextByName("ResultText", 24f, AccentColor, TextAlignmentOptions.Center);
+
+        // 손패
+        GameObject handPanel = Locate("HandPanel");
+
+        if (handPanel != null)
+        {
+            SetAnchored(handPanel, new Vector2(0.5f, 0f), new Vector2(0f, 130f), new Vector2(1860f, 210f));
+            HorizontalLayoutByName("HandPanel", -40f, 0, TextAnchor.MiddleCenter);
+        }
+
+        // 손패 레이아웃에 섞여 있던 안내 요소 분리
+        GameObject handGuide = Locate("HandGuideText");
+
+        if (handGuide != null && canvas != null)
+        {
+            handGuide.transform.SetParent(canvas.transform, false);
+            SetAnchored(handGuide, new Vector2(0f, 0f), new Vector2(190f, 256f), new Vector2(320f, 34f));
+            StyleTextByName("HandGuideText", 22f, AccentColor, TextAlignmentOptions.Left);
+        }
+
+        GameObject deckStatus = Locate("DeckStatusText");
+
+        if (deckStatus != null && canvas != null)
+        {
+            deckStatus.transform.SetParent(canvas.transform, false);
+            SetAnchored(deckStatus, new Vector2(1f, 0f), new Vector2(-460f, 256f), new Vector2(880f, 34f));
+            StyleTextByName("DeckStatusText", 22f, TextColor, TextAlignmentOptions.Right);
+        }
+
+        SetActiveByName("CardPanel", false); // 비어 있는 손패 컨테이너 숨김
+
+        // 우측 행동 버튼
+        PlaceByName("HpAttackButton", new Vector2(1f, 0.5f), new Vector2(-150f, 60f), new Vector2(240f, 70f));
+        PlaceByName("LustAttackButton", new Vector2(1f, 0.5f), new Vector2(-150f, -20f), new Vector2(240f, 70f));
+        PlaceByName("EndTurnButton", new Vector2(1f, 0.5f), new Vector2(-150f, -100f), new Vector2(240f, 70f));
+        StyleButtonByName("HpAttackButton", ButtonColor, 26f);
+        StyleButtonByName("LustAttackButton", ButtonColor, 26f);
+        StyleButtonByName("EndTurnButton", AccentColor, 26f);
+        SetButtonLabelColorByName("EndTurnButton", new Color(0.10f, 0.08f, 0.05f, 1f));
+
+        // 좌하단 보조 버튼
+        PlaceByName("BattleLogOpenButton", new Vector2(0f, 0f), new Vector2(130f, 62f), new Vector2(200f, 56f));
+        PlaceByName("OpenCollectionButton", new Vector2(0f, 0f), new Vector2(345f, 62f), new Vector2(200f, 56f));
+        StyleButtonByName("BattleLogOpenButton", ButtonColor, 22f);
+        StyleButtonByName("OpenCollectionButton", ButtonColor, 22f);
+
+        // 전투 로그 패널
+        PlaceByName("BattleLogPanel", new Vector2(0f, 0.5f), new Vector2(340f, 20f), new Vector2(620f, 760f));
+        StylePanelByName("BattleLogPanel", PanelDeepColor);
+        PlaceByName("BattleLogTitleText", new Vector2(0.5f, 1f), new Vector2(-30f, -34f), new Vector2(500f, 40f));
+        StyleTextByName("BattleLogTitleText", 26f, AccentColor, TextAlignmentOptions.Left);
+        PlaceByName("BattleLogCloseButton", new Vector2(1f, 1f), new Vector2(-44f, -34f), new Vector2(56f, 44f));
+        StyleButtonByName("BattleLogCloseButton", ButtonColor, 22f);
+        PlaceByName("BattleLogFilterNameText", new Vector2(0.5f, 1f), new Vector2(0f, -76f), new Vector2(560f, 32f));
+        StyleTextByName("BattleLogFilterNameText", 20f, SubTextColor, TextAlignmentOptions.Left);
+        PlaceByName("BattleLogFilterButtons", new Vector2(0.5f, 1f), new Vector2(0f, -122f), new Vector2(560f, 52f));
+        HorizontalLayoutByName("BattleLogFilterButtons", 8f, 0, TextAnchor.MiddleCenter);
+        StyleFilterButton("AllLogButton");
+        StyleFilterButton("SystemLogButton");
+        StyleFilterButton("PlayerLogButton");
+        StyleFilterButton("HeroineLogButton");
+        StretchByName("BattleLogScrollView", new Vector4(24f, 160f, 24f, 24f));
+        StyleTextByName("BattleLogText", 20f, TextColor, TextAlignmentOptions.TopLeft);
+
+        // 전투 결과 패널
+        PlaceByName("BattleResultPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 480f));
+        StylePanelByName("BattleResultPanel", PanelColor);
+        LayoutByName("BattleResultPanel", 18f, 44, TextAnchor.UpperCenter);
+        StyleRow("OutcomeText", 38f, AccentColor, TextAlignmentOptions.Center, 52f);
+        StyleRow("RewardText", 24f, TextColor, TextAlignmentOptions.Center, 90f);
+        StyleRow("CaptureText", 24f, TextColor, TextAlignmentOptions.Center, 130f);
+        SetLayoutHeight("ContinueButton", 68f);
+        StyleButtonByName("ContinueButton", AccentColor, 26f);
+        SetButtonLabelColorByName("ContinueButton", new Color(0.10f, 0.08f, 0.05f, 1f));
+
+        // 마물 도감 패널
+        PlaceByName("MonsterCollectionPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1200f, 720f));
+        StylePanelByName("MonsterCollectionPanel", PanelColor);
+        PlaceByName("CollectionSummaryText", new Vector2(0.5f, 1f), new Vector2(-40f, -44f), new Vector2(1040f, 44f));
+        StyleTextByName("CollectionSummaryText", 24f, AccentColor, TextAlignmentOptions.Left);
+        PlaceByName("CollectionCloseButton", new Vector2(1f, 1f), new Vector2(-52f, -44f), new Vector2(64f, 48f));
+        StyleButtonByName("CollectionCloseButton", ButtonColor, 22f);
+        PlaceByName("MonsterListScrollView", new Vector2(0f, 0.5f), new Vector2(310f, -34f), new Vector2(560f, 560f));
+        PlaceByName("MonsterDetailText", new Vector2(1f, 0.5f), new Vector2(-320f, -34f), new Vector2(560f, 560f));
+        StyleTextByName("MonsterDetailText", 21f, TextColor, TextAlignmentOptions.TopLeft);
+
+        // 상태 효과 툴팁
+        PlaceByName("StatusEffectTooltip", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380f, 230f));
+        StylePanelByName("StatusEffectTooltip", PanelDeepColor);
+        LayoutByName("StatusEffectTooltip", 6f, 18, TextAnchor.UpperLeft);
+        StyleRow("StatusNameText", 24f, AccentColor, TextAlignmentOptions.Left, 32f);
+        StyleRow("CategoryText", 20f, SubTextColor, TextAlignmentOptions.Left, 26f);
+        StyleRow("EffectText", 20f, TextColor, TextAlignmentOptions.Left, 76f);
+        StyleRow("RemainingTurnsText", 20f, SubTextColor, TextAlignmentOptions.Left, 26f);
+
+        // 겹침 방지를 위한 표시 순서 정리
+        SendToFront("BattleLogPanel");
+        SendToFront("MonsterCollectionController");
+        SendToFront("BattleResultController");
+        SendToFront("StatusEffectTooltip");
+    }
+
+    // 마물 카드 프리팹 정리 (텍스트가 카드 밖으로 넘치는 문제 해결)
+    private static void BuildMonsterUnitPrefab()
+    {
+        GameObject prefabRoot =
+            PrefabUtility.LoadPrefabContents(MonsterUnitPrefabPath);
+
+        if (prefabRoot == null)
+        {
+            Debug.LogWarning(
+                "마물 카드 프리팹을 찾지 못했습니다: " + MonsterUnitPrefabPath);
+            return;
+        }
+
+        RectTransform rootRect = prefabRoot.GetComponent<RectTransform>();
+
+        if (rootRect != null)
+        {
+            rootRect.sizeDelta = new Vector2(130f, 220f);
+        }
+
+        Image cardImage = prefabRoot.GetComponent<Image>();
+
+        if (cardImage != null)
+        {
+            cardImage.color = new Color(0.18f, 0.15f, 0.27f, 1f);
+        }
+
+        VerticalLayoutGroup layout =
+            prefabRoot.AddComponentIfMissing<VerticalLayoutGroup>();
+
+        layout.spacing = 2f;
+        layout.padding = new RectOffset(6, 6, 8, 8);
+        layout.childAlignment = TextAnchor.UpperCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+
+        string[] rowNames =
+        {
+            "MonsterNameText",
+            "MonsterHPText",
+            "MonsterAttackText",
+            "MonsterLustDamageText",
+            "MonsterDefenseText",
+            "MonsterShieldText",
+            "MonsterStateText",
+            "MonsterStatusIconContainer",
+        };
+
+        float[] rowSizes = { 17f, 15f, 15f, 15f, 15f, 15f, 14f, 0f };
+        float[] rowHeights = { 24f, 20f, 20f, 20f, 20f, 20f, 20f, 28f };
+
+        for (int i = 0; i < rowNames.Length; i++)
+        {
+            Transform row = FindRecursive(prefabRoot.transform, rowNames[i]);
+
+            if (row == null)
+            {
+                Debug.LogWarning("마물 카드 항목을 찾지 못했습니다: " + rowNames[i]);
+                continue;
+            }
+
+            row.SetSiblingIndex(i);
+
+            RectTransform rowRect = row.GetComponent<RectTransform>();
+
+            if (rowRect != null)
+            {
+                rowRect.sizeDelta = new Vector2(0f, rowHeights[i]);
+            }
+
+            TextMeshProUGUI rowText = row.GetComponent<TextMeshProUGUI>();
+
+            if (rowText != null)
+            {
+                rowText.fontSize = rowSizes[i];
+                rowText.alignment = TextAlignmentOptions.Center;
+                rowText.raycastTarget = false;
+                rowText.color = i == 0 ? AccentColor : TextColor;
+                rowText.overflowMode = TextOverflowModes.Truncate;
+            }
+
+            LayoutElement rowLayout =
+                row.gameObject.AddComponentIfMissing<LayoutElement>();
+
+            rowLayout.minHeight = rowHeights[i];
+            rowLayout.preferredHeight = rowHeights[i];
+        }
+
+        PrefabUtility.SaveAsPrefabAsset(prefabRoot, MonsterUnitPrefabPath);
+        PrefabUtility.UnloadPrefabContents(prefabRoot);
+
+        Debug.Log("마물 카드 프리팹을 정리했습니다.");
+    }
+
+    // ---------- 기존 오브젝트 배치 도우미 ----------
+
+    private static GameObject Locate(string objectName)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null)
+        {
+            Debug.LogWarning("배치할 오브젝트를 찾지 못했습니다: " + objectName);
+        }
+
+        return target;
+    }
+
+    private static void PlaceByName(
+        string objectName,
+        Vector2 anchor,
+        Vector2 position,
+        Vector2 size)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        SetAnchored(target, anchor, position, size);
+    }
+
+    private static void StretchByName(string objectName, Vector4 offsets)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        SetStretch(target, offsets);
+    }
+
+    private static void StyleTextByName(
+        string objectName,
+        float fontSize,
+        Color textColor,
+        TextAlignmentOptions alignment)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        TextMeshProUGUI text = target.GetComponent<TextMeshProUGUI>();
+
+        if (text == null) { return; }
+
+        text.fontSize = fontSize;
+        text.color = textColor;
+        text.alignment = alignment;
+        text.raycastTarget = false;
+        text.overflowMode = TextOverflowModes.Overflow;
+    }
+
+    private static void StyleRow(
+        string objectName,
+        float fontSize,
+        Color textColor,
+        TextAlignmentOptions alignment,
+        float rowHeight)
+    {
+        StyleTextByName(objectName, fontSize, textColor, alignment);
+        SetLayoutHeight(objectName, rowHeight);
+    }
+
+    private static void StylePanelByName(string objectName, Color panelColor)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        Image panelImage = target.AddComponentIfMissing<Image>();
+        panelImage.color = panelColor;
+        panelImage.raycastTarget = false;
+    }
+
+    private static void StyleButtonByName(
+        string objectName,
+        Color buttonColor,
+        float labelSize)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        Image buttonImage = target.AddComponentIfMissing<Image>();
+        buttonImage.color = buttonColor;
+        buttonImage.raycastTarget = true;
+
+        TextMeshProUGUI label =
+            target.GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (label != null)
+        {
+            label.fontSize = labelSize;
+            label.color = TextColor;
+            label.alignment = TextAlignmentOptions.Center;
+            label.raycastTarget = false;
+
+            RectTransform labelRect = label.GetComponent<RectTransform>();
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+        }
+    }
+
+    private static void SetButtonLabelColorByName(string objectName, Color labelColor)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        TextMeshProUGUI label =
+            target.GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (label != null)
+        {
+            label.color = labelColor;
+        }
+    }
+
+    private static void StyleFilterButton(string objectName)
+    {
+        StyleButtonByName(objectName, ButtonColor, 18f);
+        SetLayoutHeight(objectName, 44f);
+    }
+
+    private static void LayoutByName(
+        string objectName,
+        float spacing,
+        int padding,
+        TextAnchor alignment)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        ApplyVerticalLayout(target, spacing, padding, alignment);
+    }
+
+    private static void HorizontalLayoutByName(
+        string objectName,
+        float spacing,
+        int padding,
+        TextAnchor alignment)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        HorizontalLayoutGroup layout =
+            target.AddComponentIfMissing<HorizontalLayoutGroup>();
+
+        layout.spacing = spacing;
+        layout.padding = new RectOffset(padding, padding, padding, padding);
+        layout.childAlignment = alignment;
+        layout.childControlWidth = false;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+    }
+
+    private static void SetLayoutHeight(string objectName, float height)
+    {
+        GameObject target = Locate(objectName);
+
+        if (target == null) { return; }
+
+        LayoutElement layout = target.AddComponentIfMissing<LayoutElement>();
+        layout.minHeight = height;
+        layout.preferredHeight = height;
+    }
+
+    private static void SetActiveByName(string objectName, bool isActive)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null) { return; }
+
+        target.SetActive(isActive);
+    }
+
+    private static void SendToFront(string objectName)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null) { return; }
+
+        target.transform.SetAsLastSibling();
+    }
+
+    // ---------- 데이터 기본값 ----------
+
+    private static void ApplyStartingCards(PlayerProgressManager progress)
+    {
+        SerializedObject serializedProgress = new SerializedObject(progress);
+
+        SerializedProperty deckSizeProperty =
+            serializedProgress.FindProperty("requiredDeckSize");
+
+        if (deckSizeProperty != null)
+        {
+            deckSizeProperty.intValue = 30;
+        }
+
+        SerializedProperty cardsProperty =
+            serializedProgress.FindProperty("startingCards");
+
+        if (cardsProperty == null)
+        {
+            Debug.LogWarning("startingCards 항목을 찾지 못했습니다.");
+            return;
+        }
+
+        if (cardsProperty.arraySize > 0)
+        {
+            serializedProgress.ApplyModifiedPropertiesWithoutUndo();
+            return; // 이미 설정된 목록 유지
+        }
+
+        List<CardData> startingCards = new List<CardData>();
+        List<int> startingCounts = new List<int>();
+
+        for (int i = 0; i < StartingCardIds.Length; i++)
+        {
+            CardData cardData = FindCardById(StartingCardIds[i]);
+
+            if (cardData == null)
+            {
+                Debug.LogWarning("시작 카드를 찾지 못했습니다: " + StartingCardIds[i]);
+                continue;
+            }
+
+            startingCards.Add(cardData);
+            startingCounts.Add(StartingCardCounts[i]);
+        }
+
+        cardsProperty.arraySize = startingCards.Count;
+
+        for (int i = 0; i < startingCards.Count; i++)
+        {
+            SerializedProperty entry = cardsProperty.GetArrayElementAtIndex(i);
+            entry.FindPropertyRelative("cardData").objectReferenceValue = startingCards[i];
+            entry.FindPropertyRelative("count").intValue = startingCounts[i];
+        }
+
+        serializedProgress.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void ApplyDefaultStages(StageSelectFlow flow)
+    {
+        SerializedObject serializedFlow = new SerializedObject(flow);
+        SerializedProperty stages = serializedFlow.FindProperty("stages");
+
+        if (stages == null || stages.arraySize > 0) { return; }
+
+        string[] names = { "지역 1 - 일반전", "지역 1 - 포획전", "지역 1 - 히로인전" };
+        string[] types = { "일반전", "포획전", "히로인전" };
+        int[] levels = { 1, 2, 3 };
+        bool[] unlocked = { true, true, false };
+        string[] descriptions =
+        {
+            "서브 히로인과의 기본 전투다. 현재 플레이어 덱을 사용한다.",
+            "포획전이다. 대상 마물을 쓰러뜨리면 해당 카드를 보유 목록에 추가한다.",
+            "메인 히로인전이다. 지역 해금 조건을 충족하면 열린다.",
+        };
+
+        stages.arraySize = names.Length;
+
+        for (int i = 0; i < names.Length; i++)
+        {
+            SerializedProperty entry = stages.GetArrayElementAtIndex(i);
+            entry.FindPropertyRelative("stageName").stringValue = names[i];
+            entry.FindPropertyRelative("stageType").stringValue = types[i];
+            entry.FindPropertyRelative("recommendedLevel").intValue = levels[i];
+            entry.FindPropertyRelative("description").stringValue = descriptions[i];
+            entry.FindPropertyRelative("isUnlocked").boolValue = unlocked[i];
+        }
+
+        serializedFlow.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void ApplyDefaultStoryLines(StoryFlow flow)
+    {
+        SerializedObject serializedFlow = new SerializedObject(flow);
+        SerializedProperty lines = serializedFlow.FindProperty("storyLines");
+
+        if (lines == null || lines.arraySize > 0) { return; }
+
+        string[] speakers = { "그리모어", "도윤", "그리모어" };
+        string[] dialogues =
+        {
+            "너는 이 세계의 소환사로 불려왔다.",
+            "내가 포획한 마물이 그대로 내 전투 카드가 되는 거군.",
+            "지역을 골라 시작해라. 덱 구성이 모든 것을 결정한다.",
+        };
+
+        lines.arraySize = speakers.Length;
+
+        for (int i = 0; i < speakers.Length; i++)
+        {
+            SerializedProperty entry = lines.GetArrayElementAtIndex(i);
+            entry.FindPropertyRelative("speakerName").stringValue = speakers[i];
+            entry.FindPropertyRelative("dialogue").stringValue = dialogues[i];
+        }
+
+        serializedFlow.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static CardData FindCardById(string cardId)
+    {
+        string[] assetGuids = AssetDatabase.FindAssets("t:CardData");
+
+        foreach (string assetGuid in assetGuids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+
+            CardData cardData =
+                AssetDatabase.LoadAssetAtPath<CardData>(assetPath);
+
+            if (cardData == null) { continue; }
+            if (cardData.CardId != cardId) { continue; }
+
+            return cardData;
+        }
+
+        return null;
+    }
+
+    // ---------- UI 생성 도우미 ----------
+
+    private static Canvas FindCanvas()
+    {
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            Canvas canvas = root.GetComponentInChildren<Canvas>(true);
+
+            if (canvas != null) { return canvas; }
+        }
+
+        return null;
+    }
+
+    private static Canvas EnsureCanvas()
+    {
+        Canvas canvas = FindCanvas();
+
+        if (canvas == null)
+        {
+            GameObject canvasObject = new GameObject("Canvas");
+            canvas = canvasObject.AddComponent<Canvas>();
+            canvasObject.AddComponent<CanvasScaler>();
+            canvasObject.AddComponent<GraphicRaycaster>();
+        }
+
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
+        CanvasScaler scaler = canvas.gameObject.AddComponentIfMissing<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(ReferenceWidth, ReferenceHeight);
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 1f; // 16:9 안전 영역 유지
+
+        canvas.gameObject.AddComponentIfMissing<GraphicRaycaster>();
+
+        return canvas;
+    }
+
+    private static void EnsureEventSystem()
+    {
+        EventSystem eventSystem = null;
+
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            eventSystem = root.GetComponentInChildren<EventSystem>(true);
+
+            if (eventSystem != null) { break; }
+        }
+
+        if (eventSystem == null)
+        {
+            GameObject eventSystemObject = new GameObject("EventSystem");
+            eventSystem = eventSystemObject.AddComponent<EventSystem>();
+        }
+
+        ApplyInputModule(eventSystem.gameObject);
+    }
+
+    // 프로젝트의 입력 처리 설정에 맞는 입력 모듈을 적용한다.
+    private static void ApplyInputModule(GameObject target)
+    {
+#if ENABLE_INPUT_SYSTEM
+        StandaloneInputModule legacyModule =
+            target.GetComponent<StandaloneInputModule>();
+
+        if (legacyModule != null)
+        {
+            Object.DestroyImmediate(legacyModule); // 레거시 입력 모듈 제거
+        }
+
+        if (target.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>() == null)
+        {
+            target.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+        }
+#else
+        if (target.GetComponent<StandaloneInputModule>() == null)
+        {
+            target.AddComponent<StandaloneInputModule>();
+        }
+#endif
+    }
+
+    private static void EnsureBackground(Transform canvasTransform)
+    {
+        GameObject background = EnsurePanel("Background", canvasTransform, BackgroundColor);
+        SetStretch(background, Vector4.zero);
+        background.transform.SetSiblingIndex(0);
+    }
+
+    private static void SendToBack(string objectName)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null) { return; }
+
+        target.transform.SetSiblingIndex(1); // 배경 바로 위로 이동
+    }
+
+    private static GameObject FindInScene(string objectName)
+    {
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            if (root.name == objectName) { return root; }
+
+            Transform found = FindRecursive(root.transform, objectName);
+
+            if (found != null) { return found.gameObject; }
+        }
+
+        return null;
+    }
+
+    private static Transform FindRecursive(Transform parent, string objectName)
+    {
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+
+            if (child.name == objectName) { return child; }
+
+            Transform found = FindRecursive(child, objectName);
+
+            if (found != null) { return found; }
+        }
+
+        return null;
+    }
+
+    private static GameObject EnsureObject(string objectName, Transform parent)
+    {
+        GameObject target = FindInScene(objectName);
+
+        if (target == null)
+        {
+            target = new GameObject(objectName, typeof(RectTransform));
+        }
+
+        if (parent != null && target.transform.parent != parent)
+        {
+            target.transform.SetParent(parent, false);
+        }
+
+        if (parent != null && target.GetComponent<RectTransform>() == null)
+        {
+            target.AddComponent<RectTransform>();
+        }
+
+        return target;
+    }
+
+    private static GameObject EnsurePanel(string objectName, Transform parent, Color panelColor)
+    {
+        GameObject panel = EnsureObject(objectName, parent);
+
+        Image panelImage = panel.AddComponentIfMissing<Image>();
+        panelImage.color = panelColor;
+        panelImage.raycastTarget = false;
+
+        return panel;
+    }
+
+    private static TextMeshProUGUI EnsureText(
+        string objectName,
+        Transform parent,
+        string content,
+        float fontSize,
+        Color textColor,
+        TextAlignmentOptions alignment)
+    {
+        GameObject textObject = EnsureObject(objectName, parent);
+
+        TextMeshProUGUI text =
+            textObject.AddComponentIfMissing<TextMeshProUGUI>();
+
+        if (string.IsNullOrEmpty(text.text) || !string.IsNullOrEmpty(content))
+        {
+            text.text = content;
+        }
+
+        text.fontSize = fontSize;
+        text.color = textColor;
+        text.alignment = alignment;
+        text.raycastTarget = false;
+
+        return text;
+    }
+
+    private static Button EnsureButton(
+        string objectName,
+        Transform parent,
+        string label,
+        Color buttonColor)
+    {
+        GameObject buttonObject = EnsureObject(objectName, parent);
+
+        Image buttonImage = buttonObject.AddComponentIfMissing<Image>();
+        buttonImage.color = buttonColor;
+        buttonImage.raycastTarget = true;
+
+        Button button = buttonObject.AddComponentIfMissing<Button>();
+        button.targetGraphic = buttonImage;
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(1f, 0.96f, 0.82f, 1f);
+        colors.pressedColor = new Color(0.80f, 0.76f, 0.66f, 1f);
+        colors.disabledColor = new Color(0.45f, 0.45f, 0.48f, 1f);
+        button.colors = colors;
+
+        LayoutElement layout = buttonObject.AddComponentIfMissing<LayoutElement>();
+        layout.minHeight = 68f;
+        layout.preferredHeight = 68f;
+
+        TextMeshProUGUI buttonLabel = EnsureButtonLabel(buttonObject, label);
+        buttonLabel.fontSize = 30f;
+        buttonLabel.alignment = TextAlignmentOptions.Center;
+
+        return button;
+    }
+
+    private static TextMeshProUGUI EnsureButtonLabel(GameObject buttonObject, string label)
+    {
+        TextMeshProUGUI existingLabel =
+            buttonObject.GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (existingLabel == null)
+        {
+            GameObject labelObject = new GameObject("Label", typeof(RectTransform));
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            existingLabel = labelObject.AddComponent<TextMeshProUGUI>();
+        }
+
+        existingLabel.text = label;
+        existingLabel.color = TextColor;
+        existingLabel.raycastTarget = false;
+
+        RectTransform labelRect =
+            existingLabel.GetComponent<RectTransform>();
+
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = Vector2.zero;
+        labelRect.offsetMax = Vector2.zero;
+
+        return existingLabel;
+    }
+
+    private static void SetButtonLabelColor(Button button, Color labelColor)
+    {
+        TextMeshProUGUI label =
+            button.GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (label != null)
+        {
+            label.color = labelColor;
+        }
+    }
+
+    private static void ApplyVerticalLayout(
+        GameObject target,
+        float spacing,
+        int padding,
+        TextAnchor alignment = TextAnchor.MiddleCenter)
+    {
+        VerticalLayoutGroup layout =
+            target.AddComponentIfMissing<VerticalLayoutGroup>();
+
+        layout.spacing = spacing;
+        layout.padding = new RectOffset(padding, padding, padding, padding);
+        layout.childAlignment = alignment;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
+    }
+
+    private static RectTransform SetAnchored(
+        GameObject target,
+        Vector2 anchor,
+        Vector2 position,
+        Vector2 size)
+    {
+        RectTransform rect = target.GetComponent<RectTransform>();
+
+        if (rect == null) { rect = target.AddComponent<RectTransform>(); }
+
+        rect.anchorMin = anchor;
+        rect.anchorMax = anchor;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+
+        return rect;
+    }
+
+    private static RectTransform SetStretch(GameObject target, Vector4 offsets)
+    {
+        RectTransform rect = target.GetComponent<RectTransform>();
+
+        if (rect == null) { rect = target.AddComponent<RectTransform>(); }
+
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = new Vector2(offsets.x, offsets.w);
+        rect.offsetMax = new Vector2(-offsets.z, -offsets.y);
+
+        return rect;
+    }
+
+    private static void AssignReference(
+        Component target,
+        string fieldName,
+        Object value)
+    {
+        SerializedObject serializedTarget = new SerializedObject(target);
+        SerializedProperty property = serializedTarget.FindProperty(fieldName);
+
+        if (property == null)
+        {
+            Debug.LogWarning(
+                $"{target.GetType().Name}에 {fieldName} 항목이 없습니다.");
+            return;
+        }
+
+        property.objectReferenceValue = value;
+        serializedTarget.ApplyModifiedPropertiesWithoutUndo();
+    }
+}
+
+public static class SceneUIBuilderExtensions
+{
+    public static T AddComponentIfMissing<T>(this GameObject target) where T : Component
+    {
+        T component = target.GetComponent<T>();
+
+        if (component == null)
+        {
+            component = target.AddComponent<T>();
+        }
+
+        return component;
+    }
+}

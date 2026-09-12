@@ -1,11 +1,11 @@
 using UnityEngine; // Unity 기본 기능
 
-[CreateAssetMenu(fileName = "NewHeroineActionData", menuName = "Project V/Heroine Action Data")] // 히로인 행동 데이터 생성 메뉴
+[CreateAssetMenu(fileName = "NewHeroineActionData", menuName = "Project V/히로인 행동 데이터")] // 히로인 행동 데이터 생성 메뉴
 public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 정의
 {
-    [Header("Action Information")] // 행동 기본 정보 구분
+    [Header("행동 정보")] // 행동 기본 정보 구분
     [SerializeField] private string actionId = "HA000"; // 행동 고유 ID
-    [SerializeField] private string displayName = "New Action"; // 행동 표시 이름
+    [SerializeField] private string displayName = "새 행동"; // 행동 표시 이름
     [SerializeField] private HeroineActionType actionType = HeroineActionType.SingleAttack; // 행동 종류
     [SerializeField] private HeroineTargetType targetType = HeroineTargetType.FirstMonster; // 행동 대상 규칙
     [SerializeField] private int damage = 1; // 행동 피해량
@@ -16,16 +16,16 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private int cleanseCount = 1; // 한 번에 제거할 상태 효과 수
     [SerializeField] private int weight = 1; // 행동 선택 가중치
 
-    [Header("Target Rules")]
+    [Header("대상 규칙")]
     [SerializeField] private bool ignoreTaunt; // 도발 무시
 
-    [Header("AI Restrictions")] // AI 제약 조건 구분
+    [Header("AI 제약")] // AI 제약 조건 구분
     [Min(0)] // 쿨타임 최소값 제한
     [SerializeField] private int cooldownTurns = 0; // 행동 사용 후 쿨타임
     [Min(1)] // 연속 사용 최소값 제한
     [SerializeField] private int maxConsecutiveUses = 1; // 최대 연속 사용 횟수
 
-    [Header("HP Condition")] // HP 조건 구분
+    [Header("HP 조건")] // HP 조건 구분
     [Range(0f, 1f)] // 최소 HP 비율 범위
     [SerializeField] private float minimumHpRatio = 0f; // 최소 HP 비율
     [Range(0f, 1f)] // 최대 HP 비율 범위

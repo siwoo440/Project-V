@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA004_DesperateStrike
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA004
-  displayName: Desperate Strike
+  displayName: 필사의 일격
   actionType: 0
   targetType: 2
   damage: 5

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA005_ChaoticStrike
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA005
-  displayName: Chaotic Strike
+  displayName: 혼란의 일격
   actionType: 0
   targetType: 1
   damage: 4

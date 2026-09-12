@@ -16,18 +16,24 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     public static PlayerProgressManager Instance { get; private set; }
 
-    [Header("Starting Progress")]
+    [Header("시작 진행 데이터")]
     [SerializeField, Min(0)] private int startingGold;
 
     [SerializeField]
     private List<StartingCardEntry> startingCards =
         new List<StartingCardEntry>(); // 시작 보유 카드 목록
 
+    [Header("덱")]
+    [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
+
     private readonly List<OwnedCardData> ownedCards =
         new List<OwnedCardData>(); // 보유 카드 목록
 
     private readonly List<OwnedMonsterData> ownedMonsters =
         new List<OwnedMonsterData>(); // 보유 마물 성장 목록
+
+    private readonly List<CardData> currentDeck =
+        new List<CardData>(); // 현재 전투 덱
 
     private int gold; // 현재 골드
     private int totalExperience; // 전체 경험치
@@ -44,6 +50,48 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     public IReadOnlyList<OwnedMonsterData> OwnedMonsters =>
         ownedMonsters; // 보유 마물 목록 반환
+
+    public IReadOnlyList<CardData> CurrentDeck =>
+        currentDeck; // 현재 덱 반환
+
+    public int RequiredDeckSize =>
+        Mathf.Max(1, requiredDeckSize); // 필요 덱 장수 반환
+
+    public int TotalOwnedCardCount // 보유 카드 총 수량
+    {
+        get
+        {
+            int totalCount = 0;
+
+            foreach (OwnedCardData ownedCard in ownedCards)
+            {
+                if (ownedCard == null) { continue; }
+
+                totalCount += ownedCard.OwnedCount;
+            }
+
+            return totalCount;
+        }
+    }
+
+    public float CurrentDeckAverageMana // 덱 평균 마나 비용
+    {
+        get
+        {
+            if (currentDeck.Count == 0) { return 0f; }
+
+            int totalMana = 0;
+
+            foreach (CardData deckCard in currentDeck)
+            {
+                if (deckCard == null) { continue; }
+
+                totalMana += deckCard.ManaCost;
+            }
+
+            return (float)totalMana / currentDeck.Count;
+        }
+    }
 
     private void Awake()
     {
@@ -176,7 +224,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             ownedCards.Add(new OwnedCardData(cardData)); // 신규 카드 등록
 
             Debug.Log(
-                $"New card added: {cardData.CardName} " +
+                $"신규 카드 등록: {cardData.CardName} " +
                 $"({CardRarityRules.GetDisplayName(cardData.Rarity)}) " +
                 $"1 / {cardData.MaxCopies}"
             ); // 신규 보유 확인
@@ -187,7 +235,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         if (ownedCard.TryAddCopy())
         {
             Debug.Log(
-                $"Card copy added: {cardData.CardName} " +
+                $"카드 추가 보유: {cardData.CardName} " +
                 $"{ownedCard.OwnedCount} / {ownedCard.MaxOwnedCount}"
             ); // 중복 보유 확인
 
@@ -197,7 +245,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         if (!convertExcessToEssence)
         {
             Debug.LogWarning(
-                $"Card ownership limit reached: {cardData.CardName} " +
+                $"카드 보유 한도 도달: {cardData.CardName} " +
                 $"{ownedCard.OwnedCount} / {ownedCard.MaxOwnedCount}"
             ); // 시작 데이터 초과 경고
 
@@ -209,9 +257,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         monsterEssence += essenceReward; // 마물의 정수 지급
 
         Debug.Log(
-            $"Card converted to essence: {cardData.CardName} " +
+            $"카드를 정수로 변환: {cardData.CardName} " +
             $"({CardRarityRules.GetDisplayName(cardData.Rarity)}), " +
-            $"Essence +{essenceReward}"
+            $"정수 +{essenceReward}"
         ); // 초과 변환 확인
 
         return essenceReward;
@@ -228,7 +276,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         if (rewardCard == null)
         {
             Debug.LogWarning(
-                $"Capture reward card is missing: " +
+                $"포획 보상 카드가 없습니다: " +
                 $"{monsterData.MonsterName}"
             ); // 보상 카드 누락 경고
 
@@ -246,11 +294,61 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         ownedMonsters.Add(new OwnedMonsterData(monsterData)); // 성장 데이터 등록
     }
 
+    public bool SetCurrentDeck(IReadOnlyList<CardData> deckCards) // 덱 교체
+    {
+        if (deckCards == null) { return false; } // 빈 목록 차단
+
+        bool isValid = DeckValidator.TryValidate(
+            deckCards,
+            RequiredDeckSize,
+            this,
+            out string errorMessage
+        ); // 보유 및 편성 검증
+
+        if (!isValid)
+        {
+            Debug.LogWarning($"덱 변경 실패: {errorMessage}");
+            return false;
+        }
+
+        currentDeck.Clear();
+        currentDeck.AddRange(deckCards); // 덱 저장
+
+        ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+
+        return true;
+    }
+
+    private void RebuildDeckFromOwnedCards() // 보유 카드로 덱 구성
+    {
+        currentDeck.Clear();
+
+        foreach (OwnedCardData ownedCard in ownedCards)
+        {
+            if (ownedCard == null) { continue; }
+            if (ownedCard.CardData == null) { continue; }
+
+            for (int i = 0; i < ownedCard.OwnedCount; i++)
+            {
+                currentDeck.Add(ownedCard.CardData); // 보유 수량만큼 편성
+            }
+        }
+
+        if (currentDeck.Count != RequiredDeckSize)
+        {
+            Debug.LogWarning(
+                $"시작 덱이 {RequiredDeckSize}장이 아닙니다. " +
+                $"현재 {currentDeck.Count}장."
+            ); // 시작 덱 장수 경고
+        }
+    }
+
     private void InitializeStartingProgress()
     {
         gold = Mathf.Max(0, startingGold); // 시작 골드
         totalExperience = 0; // 전체 경험치 초기화
         monsterEssence = 0; // 마물의 정수 초기화
+        currentDeck.Clear(); // 현재 덱 초기화
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화
 
@@ -264,5 +362,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
                 AddCard(startingCard.CardData, false); // 시작 카드 지급
             }
         }
+
+        RebuildDeckFromOwnedCards(); // 시작 덱 구성
     }
 }

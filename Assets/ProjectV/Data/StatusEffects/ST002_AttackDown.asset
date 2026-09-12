@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ST002_AttackDown
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST002
-  displayName: Attack Down
+  displayName: 공격 약화
   statusType: 1
   amount: 2
   isNegative: 1
@@ -21,4 +21,4 @@ MonoBehaviour:
   durationTiming: 1
   icon: {fileID: 0}
   displayColor: {r: 0.90588236, g: 0.43529412, b: 0.31764707, a: 1}
-  description: Reduces damage dealt by the Heroine's attacks.
+  description: 히로인의 공격 피해를 감소시킨다.

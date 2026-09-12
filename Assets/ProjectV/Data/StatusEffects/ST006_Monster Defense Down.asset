@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ST006_Monster Defense Down
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST006
-  displayName: Armor Break
+  displayName: 방어 붕괴
   statusType: 4
   amount: 1
   isNegative: 1
@@ -21,4 +21,4 @@ MonoBehaviour:
   durationTiming: 0
   icon: {fileID: 0}
   displayColor: {r: 0.7490196, g: 0.48091894, b: 0.17254901, a: 1}
-  description: Reduces defense.
+  description: 방어력을 감소시킨다.

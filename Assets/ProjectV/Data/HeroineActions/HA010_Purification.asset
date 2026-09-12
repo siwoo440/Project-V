@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA010_Purification
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA010
-  displayName: Purification
+  displayName: 정화
   actionType: 5
   targetType: 5
   damage: 0

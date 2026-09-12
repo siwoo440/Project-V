@@ -6,7 +6,7 @@ using UnityEngine.UI; // Unity UI 기능
 
 public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관리
 {
-    [Header("Battle UI")] // 전투 UI 구분
+    [Header("전투 UI")] // 전투 UI 구분
     [SerializeField] private TMP_Text turnText;             // 턴 상태 텍스트
     [SerializeField] private TMP_Text turnNumberText;       // 턴 번호 텍스트
     [SerializeField] private TMP_Text playerHpText;         // 플레이어 체력 텍스트
@@ -30,33 +30,34 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private Button monsterAttackButton;    // 마물 공격 버튼
     [SerializeField] private Button lustAttackButton; // 성욕 공격 버튼
 
-    [Header("Card UI")] // 카드 UI 구분
+    [Header("카드 UI")] // 카드 UI 구분
     [SerializeField] private Transform handPanel;       // 손패 카드 배치 영역
     [SerializeField] private Button cardButtonPrefab;   // 카드 버튼 프리팹
     [SerializeField] private TMP_Text deckStatusText; // 덱 수량 텍스트
 
-    [Header("Monster Field")] // 마물 필드 구분
+    [Header("마물 필드")] // 마물 필드 구분
     [SerializeField] private Transform monsterFieldContainer;// 마물 배치 영역
     [SerializeField] private MonsterUnit monsterUnitPrefab;  // 마물 UI 프리팹
     [SerializeField] private int maxFieldMonsterCount = 8;   // 최대 필드 마물 수
 
-    [Header("Deck Settings")] // 덱 설정 구분
+    [Header("덱 설정")] // 덱 설정 구분
     [SerializeField] private List<CardData> deckCards = new List<CardData>(); // 전투 시작 덱 목록
     [SerializeField] private int startingHandCount = 3; // 시작 손패 수
     [SerializeField] private int turnDrawCount = 1;     // 턴 시작 드로우 수
     [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
     [SerializeField, Min(1)] private int maxHandSize = 10; // 최대 손패
+    [SerializeField] private bool useProgressDeck = true; // 진행 데이터 덱 사용
     [SerializeField] private bool validateDeckOnStart = true; // 전투 시작 검증
     [SerializeField] private bool shuffleDeckAtBattleStart = true; // 시작 셔플
 
-    [Header("Battle Result")]
+    [Header("전투 결과")]
     [SerializeField] private BattleRewardData battleRewardData;
     [SerializeField] private BattleResultUI battleResultUI;
 
-    [Header("Heroine AI")] // 히로인 AI 구분
+    [Header("히로인 AI")] // 히로인 AI 구분
     [SerializeField] private List<HeroineActionData> heroineActions = new List<HeroineActionData>(); // 히로인 행동 데이터 목록
 
-    [Header("Battle Settings")] // 전투 설정 구분
+    [Header("전투 설정")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30;              // 플레이어 최대 체력
     [SerializeField] private int playerDefense = 0;             // 플레이어 방어력
     [SerializeField] private int playerStartingShield = 2;      // 플레이어 시작 보호막
@@ -108,6 +109,8 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
             battleResultUI.Hide();
         }
 
+        ApplyProgressDeck(); // 진행 데이터 덱 적용
+
         if (!ValidateBattleDeckBeforeStart()) { return; }
 
         playerCurrentHp = playerMaxHp; // 플레이어 체력 초기화
@@ -131,8 +134,8 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
-        AddBattleLog(BattleLogCategory.System, "Battle started."); // 전투 시작 기록
-        AddBattleLog(BattleLogCategory.System, "Player turn started.");
+        AddBattleLog(BattleLogCategory.System, "전투를 시작했습니다."); // 전투 시작 기록
+        AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
         discardPile.Clear(); // 버린 카드 더미 초기화
@@ -143,7 +146,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         drawPile.AddRange(deckCards);
 
         if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
-        AddBattleLog( BattleLogCategory.System, $"Deck prepared: {drawPile.Count} cards."  );
+        AddBattleLog( BattleLogCategory.System, $"덱 준비 완료: {drawPile.Count}장"  );
         DrawCards(startingHandCount);
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
@@ -153,19 +156,19 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     {
         if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
 
-        AddBattleLog(BattleLogCategory.System, "Player turn ended."); // 플레이어 턴 종료 기록
+        AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
         isPlayerTurn = false; // 플레이어 턴 종료
         ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
         SetMonsterInteractable(false); // 마물 선택 비활성화
-        turnText.text = "Heroine Turn"; // 히로인 턴 표시
+        turnText.text = "히로인 턴"; // 히로인 턴 표시
         StartCoroutine(HeroineTurnRoutine()); // 히로인 행동 시작
     }
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {
-        AddBattleLog(BattleLogCategory.System, "Heroine turn started."); // 히로인 턴 시작 기록
+        AddBattleLog(BattleLogCategory.System, "히로인 턴을 시작했습니다."); // 히로인 턴 시작 기록
         ReduceHeroineStatusDurations( StatusDurationTiming.AfterPlayerTurn );
         ReduceMonsterStatusDurations( StatusDurationTiming.AfterPlayerTurn );
         ApplyHeroineStartTurnStatusEffects();
@@ -201,7 +204,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     {
         turnNumber += 1;
-        AddBattleLog(BattleLogCategory.System, "Player turn started.");
+        AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
 
         ApplyMonsterStartTurnStatusEffects();
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택

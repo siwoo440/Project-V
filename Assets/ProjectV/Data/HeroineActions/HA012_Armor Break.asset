@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HA012_Armor Break
   m_EditorClassIdentifier: Assembly-CSharp::HeroineActionData
   actionId: HA012
-  displayName: Armor Break
+  displayName: 방어 붕괴
   actionType: 4
   targetType: 2
   damage: 0

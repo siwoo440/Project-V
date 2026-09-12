@@ -13,8 +13,11 @@ MonoBehaviour:
   m_Name: M002_Goblin
   m_EditorClassIdentifier: Assembly-CSharp::MonsterData
   monsterId: M002
-  monsterName: Goblin
+  monsterName: 고블린
   rarity: 0
+  mainType: 3
+  subType: 0
+  isBossOrigin: 0
   maxHp: 8
   attack: 3
   lustDamage: 5

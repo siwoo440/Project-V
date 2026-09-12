@@ -60,10 +60,10 @@ public partial class BattleManager // 분리된 전투 기능
     {
         switch (outcome)
         {
-            case BattleOutcome.VictoryHp: return "Victory - HP Depleted";
-            case BattleOutcome.VictoryLust: return "Victory - Lust MAX";
-            case BattleOutcome.Defeat: return "Defeat";
-            default: return "Unknown Result";
+            case BattleOutcome.VictoryHp: return "승리 - HP 소진";
+            case BattleOutcome.VictoryLust: return "승리 - 성욕 최대";
+            case BattleOutcome.Defeat: return "패배";
+            default: return "알 수 없는 결과";
         }
     }
     private void AddBattleResultLogs(BattleResultData resultData)
@@ -75,22 +75,22 @@ public partial class BattleManager // 분리된 전투 기능
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"Battle ended: {outcomeName}."
+            $"전투 종료: {outcomeName}"
         );
 
         if (!resultData.IsVictory) { return; }
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"Rewards: Gold +{resultData.GoldReward}, " +
-            $"EXP +{resultData.ExperienceReward}."
+            $"보상: 골드 +{resultData.GoldReward}, " +
+            $"경험치 +{resultData.ExperienceReward}"
         );
 
         if (!resultData.CaptureAttempted)
         {
             AddBattleLog(
                 BattleLogCategory.System,
-                "Capture was not attempted."
+                "포획을 시도하지 않았습니다."
             );
 
             return;
@@ -100,7 +100,7 @@ public partial class BattleManager // 분리된 전투 기능
         {
             AddBattleLog(
                 BattleLogCategory.System,
-                "Capture failed."
+                "포획에 실패했습니다."
             );
 
             return;
@@ -108,7 +108,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"Captured {resultData.CapturedMonster.MonsterName}."
+            $"{resultData.CapturedMonster.MonsterName}을 포획했습니다."
         );
     }
     public void ClaimBattleRewards()
@@ -117,7 +117,7 @@ public partial class BattleManager // 분리된 전투 기능
         {
             if (resultText != null)
             {
-                resultText.text = "Missing Battle Result";
+                resultText.text = "전투 결과가 없습니다";
             }
 
             return;
@@ -127,7 +127,7 @@ public partial class BattleManager // 분리된 전투 기능
         {
             if (resultText != null)
             {
-                resultText.text = "Missing Player Progress Manager";
+                resultText.text = "진행 데이터가 없습니다";
             }
 
             return;
@@ -142,20 +142,20 @@ public partial class BattleManager // 분리된 전투 기능
         {
             if (resultText != null)
             {
-                resultText.text = "Rewards Already Claimed";
+                resultText.text = "이미 보상을 수령했습니다";
             }
 
             return;
         }
 
         string claimMessage = lastBattleResult.IsVictory
-    ? "Rewards Added to Player Progress"
-    : "Battle Result Confirmed"; // 기본 수령 문구
+    ? "보상을 진행 데이터에 반영했습니다"
+    : "전투 결과를 확인했습니다"; // 기본 수령 문구
 
         if (lastBattleResult.DuplicateConverted)
         {
             claimMessage =
-                $"Ownership Limit Reached: Monster Essence +" +
+                $"보유 한도 초과: 마물의 정수 +" +
                 $"{lastBattleResult.EssenceReward}"; // 초과 변환 문구
         }
 
@@ -192,7 +192,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (turnText != null)
         {
-            turnText.text = "Battle End";
+            turnText.text = "전투 종료";
         }
 
         if (resultText != null)
@@ -202,7 +202,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (heroineIntentText != null)
         {
-            heroineIntentText.text = "Next Action: None";
+            heroineIntentText.text = "다음 행동: 없음";
         }
 
         if (endTurnButton != null)

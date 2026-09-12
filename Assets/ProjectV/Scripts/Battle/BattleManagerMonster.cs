@@ -22,13 +22,13 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (selectedMonster == null || !selectedMonster.CanAttack)
         {
-            resultText.text = "Select Ready Monster";
+            resultText.text = "행동 가능한 마물을 선택하세요";
             return;
         }
 
         if (attackMode == MonsterAttackMode.Lust && selectedMonster.LustDamage <= 0)
         {
-            resultText.text = "Selected Monster Has No Lust Damage";
+            resultText.text = "선택한 마물은 성욕 피해가 없습니다";
             return;
         }
 
@@ -86,7 +86,7 @@ public partial class BattleManager // 분리된 전투 기능
             damageResult
         );
 
-        return $"[HP Attack] {damageText}";
+        return $"[HP 공격] {damageText}";
     }
 
     private string ExecuteMonsterLustAttack(MonsterUnit attackingMonster)
@@ -95,7 +95,7 @@ public partial class BattleManager // 분리된 전투 기능
         int appliedLustDamage = AddHeroineLust(requestedLustDamage);
         string lustGainText = GetLustGainText(requestedLustDamage, appliedLustDamage);
 
-        return $"[Lust Attack] {attackingMonster.MonsterName}: {lustGainText}";
+        return $"[성욕 공격] {attackingMonster.MonsterName}: {lustGainText}";
     }
 
     private string TryApplyMonsterAttackStatus(MonsterUnit attackingMonster) // 마물 공격 상태 효과 적용
@@ -109,7 +109,7 @@ public partial class BattleManager // 분리된 전투 기능
         ApplyOrRefreshHeroineStatus(statusData); // 상태 효과 적용 또는 갱신
 
         string amountText = GetStatusAmountDisplay(statusData); // 상태 효과 수치 문구 생성
-        return $"Heroine: {statusData.DisplayName} {amountText}"; // 상태 효과 적용 결과 반환
+        return $"히로인: {statusData.DisplayName} {amountText}"; // 상태 효과 적용 결과 반환
     }
 
     private List<MonsterUnit> GetLivingMonsterCandidates()
@@ -305,7 +305,7 @@ public partial class BattleManager // 분리된 전투 기능
             }
         }
 
-        resultText.text = $"{nextHeroineAction.DisplayName}: Shield -{totalShieldAbsorbed}, HP -{totalHpDamage}, Defeated {defeatedMonsterCount}"; // 광역 공격 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: 보호막 -{totalShieldAbsorbed}, HP -{totalHpDamage}, 사망 {defeatedMonsterCount}"; // 광역 공격 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광역 공격 기록
     }
 
@@ -335,7 +335,7 @@ public partial class BattleManager // 분리된 전투 기능
 
             fieldMonsters.Remove(targetMonster); // 필드 목록에서 대상 마물 제거
             Destroy(targetMonster.gameObject); // 대상 마물 오브젝트 제거
-            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} Defeated"; // 마물 사망 결과 표시
+            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} 사망"; // 마물 사망 결과 표시
         }
 
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 단일 공격 기록
@@ -358,13 +358,13 @@ public partial class BattleManager // 분리된 전투 기능
     private void SelectMonster(MonsterUnit monsterUnit)
     {
         if (!isPlayerTurn || isBattleEnded || monsterUnit == null) { return; }
-        if (!monsterUnit.CanAttack) { resultText.text = "Monster Cannot Attack"; return; }
+        if (!monsterUnit.CanAttack) { resultText.text = "행동할 수 없는 마물입니다"; return; }
         if (selectedMonster != null) { selectedMonster.SetSelected(false); }
 
         selectedMonster = monsterUnit;
         selectedMonster.SetSelected(true);
         SetAttackButtonsInteractable(true);
-        resultText.text = $"{selectedMonster.MonsterName} Selected";
+        resultText.text = $"{selectedMonster.MonsterName}을 선택했습니다";
     }
 
     private void ClearMonsterSelection()
@@ -457,7 +457,7 @@ public partial class BattleManager // 분리된 전투 기능
             {
                 AddBattleLog(
                     BattleLogCategory.StatusEffect,
-                    $"Poison: {monsterUnit.MonsterName} HP -{poisonDamage}"
+                    $"독: {monsterUnit.MonsterName} HP -{poisonDamage}"
                 );
             }
 
@@ -480,7 +480,7 @@ public partial class BattleManager // 분리된 전투 기능
 
             AddBattleLog(
                 BattleLogCategory.StatusEffect,
-                $"{defeatedMonsterName} defeated by Poison"
+                $"{defeatedMonsterName}이 독으로 사망했습니다"
             );
         }
     }
