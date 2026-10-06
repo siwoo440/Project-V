@@ -1,12 +1,18 @@
 using UnityEngine; // Unity 기본 기능
 
-public static class CardEnhanceRules // 마물 카드 강화 규칙 (기획서 6.9 / 9.11)
+public static class CardEnhanceRules // 마물 카드 강화 규칙 (기획서 6.9 / 9.11 / A.45)
 {
     public const int MinLevel = 1; // 최소 강화 단계
     public const int MaxLevel = 5; // 최대 강화 단계 (기획서 6.9.2)
 
-    // 단계가 올라갈수록 비용이 커진다. (Lv.1→2, 2→3, 3→4, 4→5)
-    private static readonly int[] StepMultipliers = { 1, 2, 3, 5 };
+    // 기획서 9.11.1: 정수 비용은 모든 희귀도가 같다. (Lv.1→2, 2→3, 3→4, 4→5)
+    private static readonly int[] EssenceCosts = { 5, 10, 20, 40 };
+
+    // 기획서 9.11.2: 골드 비용은 희귀도마다 다르다.
+    private static readonly int[] CommonGoldCosts = { 200, 500, 1000, 2000 };
+    private static readonly int[] RareGoldCosts = { 300, 750, 1500, 3000 };
+    private static readonly int[] SpecialGoldCosts = { 400, 1000, 2000, 4000 };
+    private static readonly int[] LegendaryGoldCosts = { 600, 1500, 3000, 6000 };
 
     public static int ClampLevel(int level) // 강화 단계 범위 보정
     {
@@ -18,50 +24,37 @@ public static class CardEnhanceRules // 마물 카드 강화 규칙 (기획서 6
         return level >= MaxLevel;
     }
 
-    public static int GetEssenceBaseCost(CardRarity rarity) // 희귀도별 기본 정수 비용
-    {
-        switch (rarity)
-        {
-            case CardRarity.Common: return 2;      // 일반
-            case CardRarity.Rare: return 4;        // 희귀
-            case CardRarity.Special: return 6;     // 특수
-            case CardRarity.Legendary: return 10;  // 전설
-            default: return 2;
-        }
-    }
-
-    public static int GetGoldBaseCost(CardRarity rarity) // 희귀도별 기본 골드 비용
-    {
-        switch (rarity)
-        {
-            case CardRarity.Common: return 100;    // 일반
-            case CardRarity.Rare: return 200;      // 희귀
-            case CardRarity.Special: return 350;   // 특수
-            case CardRarity.Legendary: return 600; // 전설
-            default: return 100;
-        }
-    }
-
-    private static int GetStepMultiplier(int currentLevel) // 단계별 배수 반환
+    private static int GetStepCost(int[] costs, int currentLevel) // 단계별 비용 반환
     {
         int stepIndex = ClampLevel(currentLevel) - MinLevel;
 
-        if (stepIndex < 0 || stepIndex >= StepMultipliers.Length)
+        if (stepIndex < 0 || stepIndex >= costs.Length)
         {
             return 0; // 최대 단계에는 다음 단계가 없다.
         }
 
-        return StepMultipliers[stepIndex];
+        return costs[stepIndex];
+    }
+
+    private static int[] GetGoldCosts(CardRarity rarity) // 희귀도별 골드 비용표
+    {
+        switch (rarity)
+        {
+            case CardRarity.Rare: return RareGoldCosts;           // 희귀
+            case CardRarity.Special: return SpecialGoldCosts;     // 특수
+            case CardRarity.Legendary: return LegendaryGoldCosts; // 전설
+            default: return CommonGoldCosts;                      // 일반
+        }
     }
 
     public static int GetEssenceCost(CardRarity rarity, int currentLevel) // 다음 단계 정수 비용
     {
-        return GetEssenceBaseCost(rarity) * GetStepMultiplier(currentLevel);
+        return GetStepCost(EssenceCosts, currentLevel);
     }
 
     public static int GetGoldCost(CardRarity rarity, int currentLevel) // 다음 단계 골드 비용
     {
-        return GetGoldBaseCost(rarity) * GetStepMultiplier(currentLevel);
+        return GetStepCost(GetGoldCosts(rarity), currentLevel);
     }
 
     public static int GetStatValue(int baseValue, int growthPerLevel, int enhanceLevel) // 강화 반영 능력치

@@ -34,6 +34,7 @@ public class EnhanceFlow : MonoBehaviour
 
     [Header("화면 텍스트")]
     [SerializeField] private TMP_Text resourceText; // 보유 골드와 정수
+    [SerializeField] private TMP_Text capText;      // 플레이어 레벨과 강화 상한
     [SerializeField] private TMP_Text messageText;  // 안내 문구
 
     private readonly CardFilterState filterState =
@@ -104,6 +105,9 @@ public class EnhanceFlow : MonoBehaviour
 
         resourceText =
             SceneUIBinder.Bind(resourceText, "ResourceText");
+
+        capText =
+            SceneUIBinder.Bind(capText, "EnhanceCapText");
 
         messageText =
             SceneUIBinder.Bind(messageText, "MessageText");
@@ -331,6 +335,11 @@ public class EnhanceFlow : MonoBehaviour
                 $"마물의 정수 {progress.MonsterEssence}";
         }
 
+        if (capText != null)
+        {
+            capText.text = BuildCapText(progress);
+        }
+
         if (slotCard == null)
         {
             ShowEmptySlot();
@@ -478,6 +487,25 @@ public class EnhanceFlow : MonoBehaviour
             enhanceButton,
             enhanceConfirmPending ? "확인: 되돌릴 수 없음" : "강화"
         );
+    }
+
+    // 플레이어 레벨이 마물 강화 상한을 정한다. (기획서 6.3.6)
+    private string BuildCapText(PlayerProgressManager progress)
+    {
+        int enhanceCap = progress.EnhanceLevelCap;
+
+        string capText =
+            $"플레이어 Lv.{progress.PlayerLevel}   " +
+            $"강화 상한 Lv.{enhanceCap}";
+
+        if (CardEnhanceRules.IsMaxLevel(enhanceCap)) { return capText; }
+
+        int nextCap = enhanceCap + 1;
+
+        return
+            $"{capText}   " +
+            $"(Lv.{PlayerLevelRules.GetEnhanceUnlockLevel(nextCap)}에 " +
+            $"Lv.{nextCap} 해금)";
     }
 
     private void ShowEmptySlot() // 강화대가 비어 있을 때 표시

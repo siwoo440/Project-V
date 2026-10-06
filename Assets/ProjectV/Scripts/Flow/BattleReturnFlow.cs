@@ -64,6 +64,7 @@ public class BattleReturnFlow : MonoBehaviour // 전투 씬 복귀 처리
         }
 
         progressText.text =
+            $"{progress.PlayerLevelText}    " +
             $"골드 {progress.Gold}    " +
             $"정수 {progress.MonsterEssence}    " +
             $"보유 카드 {progress.TotalOwnedCardCount}"; // 진행 요약 표시

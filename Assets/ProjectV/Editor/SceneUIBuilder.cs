@@ -164,7 +164,7 @@ public static class SceneUIBuilder
         quitButton.transform.SetSiblingIndex(4);
 
         TextMeshProUGUI progressText = EnsureText(
-            "ProgressText", canvas.transform, "골드 0    정수 0    보유 카드 0    덱 0",
+            "ProgressText", canvas.transform, "Lv.1 (0 / 100)    골드 0    정수 0    보유 카드 0    덱 0",
             26f, SubTextColor, TextAlignmentOptions.Center);
 
         SetAnchored(progressText.gameObject,
@@ -456,6 +456,13 @@ public static class SceneUIBuilder
         SetAnchored(enhanceTitle.gameObject,
             new Vector2(0.5f, 1f), new Vector2(0f, -34f), new Vector2(840f, 40f));
 
+        TextMeshProUGUI enhanceCapText = EnsureText(
+            "EnhanceCapText", enhancePanel.transform, "플레이어 Lv.1   강화 상한 Lv.1",
+            19f, SubTextColor, TextAlignmentOptions.Right);
+
+        SetAnchored(enhanceCapText.gameObject,
+            new Vector2(1f, 1f), new Vector2(-340f, -34f), new Vector2(620f, 40f));
+
         // 카드를 올려 두는 자리
         GameObject slotObject = EnsurePanel("EnhanceSlot", enhancePanel.transform, ButtonColor);
         SetAnchored(slotObject, new Vector2(0f, 1f), new Vector2(160f, -250f), new Vector2(240f, 330f));
@@ -558,6 +565,7 @@ public static class SceneUIBuilder
         AssignReference(flow, "enhanceButton", enhanceButton);
         AssignReference(flow, "clearSlotButton", clearSlotButton);
         AssignReference(flow, "resourceText", resourceText);
+        AssignReference(flow, "capText", enhanceCapText);
         AssignReference(flow, "messageText", messageText);
     }
 
@@ -877,11 +885,13 @@ public static class SceneUIBuilder
         StyleTextByName("BattleLogText", 20f, TextColor, TextAlignmentOptions.TopLeft);
 
         // 전투 결과 패널
-        PlaceByName("BattleResultPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 480f));
+        PlaceByName("BattleResultPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 600f));
         StylePanelByName("BattleResultPanel", PanelColor);
         LayoutByName("BattleResultPanel", 18f, 44, TextAnchor.UpperCenter);
+        EnsureResultLevelText(); // 플레이어 레벨 변화 줄
         StyleRow("OutcomeText", 38f, AccentColor, TextAlignmentOptions.Center, 52f);
         StyleRow("RewardText", 24f, TextColor, TextAlignmentOptions.Center, 90f);
+        StyleRow("ResultLevelText", 22f, AccentColor, TextAlignmentOptions.Center, 96f);
         StyleRow("CaptureText", 24f, TextColor, TextAlignmentOptions.Center, 130f);
         SetLayoutHeight("ContinueButton", 68f);
         StyleButtonByName("ContinueButton", AccentColor, 26f);
@@ -1509,6 +1519,44 @@ public static class SceneUIBuilder
         LayoutElement layout = target.AddComponentIfMissing<LayoutElement>();
         layout.minHeight = height;
         layout.preferredHeight = height;
+    }
+
+    // 전투 결과 패널의 보상 줄 아래에 플레이어 레벨 변화 줄을 만든다.
+    private static void EnsureResultLevelText()
+    {
+        GameObject resultPanel = FindInScene("BattleResultPanel");
+
+        if (resultPanel == null)
+        {
+            Debug.LogWarning("BattleResultPanel을 찾지 못했습니다.");
+            return;
+        }
+
+        TextMeshProUGUI levelText = EnsureText(
+            "ResultLevelText", resultPanel.transform, "",
+            22f, AccentColor, TextAlignmentOptions.Center);
+
+        GameObject rewardObject = FindInScene("RewardText");
+
+        if (rewardObject != null &&
+            rewardObject.transform.parent == resultPanel.transform)
+        {
+            levelText.transform.SetSiblingIndex(
+                rewardObject.transform.GetSiblingIndex() + 1
+            ); // 보상 줄 바로 아래
+        }
+
+        BattleResultUI resultUI = Object.FindFirstObjectByType<BattleResultUI>(
+            FindObjectsInactive.Include
+        );
+
+        if (resultUI == null)
+        {
+            Debug.LogWarning("BattleResultUI를 찾지 못했습니다.");
+            return;
+        }
+
+        AssignReference(resultUI, "levelText", levelText);
     }
 
     // 이전 구성에서 만든 오브젝트를 씬에서 지운다.

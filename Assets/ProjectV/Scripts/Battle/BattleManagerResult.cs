@@ -159,6 +159,13 @@ public partial class BattleManager // 분리된 전투 기능
                 $"{lastBattleResult.EssenceReward}"; // 초과 변환 문구
         }
 
+        if (lastBattleResult.LeveledUp)
+        {
+            claimMessage +=
+                $" / 레벨 업 Lv.{lastBattleResult.PlayerLevelBefore} → " +
+                $"Lv.{lastBattleResult.PlayerLevelAfter}"; // 레벨 상승 문구
+        }
+
         if (resultText != null)
         {
             resultText.text = claimMessage; // 전투 안내 갱신

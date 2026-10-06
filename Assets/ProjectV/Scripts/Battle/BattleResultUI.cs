@@ -11,6 +11,7 @@ public class BattleResultUI : MonoBehaviour
     [SerializeField] private TMP_Text outcomeText;
     [SerializeField] private TMP_Text rewardText;
     [SerializeField] private TMP_Text captureText;
+    [SerializeField] private TMP_Text levelText; // 플레이어 레벨 변화
 
     [Header("결과 버튼")]
     [SerializeField] private Button continueButton;
@@ -51,9 +52,20 @@ public class BattleResultUI : MonoBehaviour
 
             rewardText.text = resultData.IsVictory
                 ? $"골드 +{resultData.GoldReward}\n" +
-                  $"경험치 +{resultData.ExperienceReward}" +
+                  $"경험치 +{GetShownExperience(resultData)}" +
                   essenceRewardText
                 : "보상 없음"; // 전투 보상 표시
+        }
+
+        string levelMessage = GetLevelDisplayText(resultData); // 레벨 변화 문구
+
+        if (levelText != null)
+        {
+            levelText.text = levelMessage;
+        }
+        else if (rewardText != null && !string.IsNullOrEmpty(levelMessage))
+        {
+            rewardText.text += $"\n{levelMessage}"; // 전용 칸이 없으면 보상 칸에 이어 쓴다.
         }
 
         if (captureText != null)
@@ -73,6 +85,64 @@ public class BattleResultUI : MonoBehaviour
     public void OnContinueButtonClicked()
     {
         Hide();
+    }
+
+    // 최대 레벨에서는 경험치를 받지 않으므로(기획서 6.17.1) 실제로 반영되는 양을 보여준다.
+    private int GetShownExperience(BattleResultData resultData)
+    {
+        if (resultData.RewardsApplied)
+        {
+            return resultData.ExperienceGained; // 수령 후에는 반영된 양
+        }
+
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        return progress == null
+            ? resultData.ExperienceReward
+            : progress.PreviewExperienceGain(resultData.ExperienceReward);
+    }
+
+    // 계속 버튼을 누르면 패널이 닫히므로, 수령 전에도 예상 레벨 변화를 미리 보여준다.
+    private string GetLevelDisplayText(BattleResultData resultData)
+    {
+        PlayerProgressManager progress =
+            PlayerProgressManager.Instance;
+
+        if (progress == null) { return string.Empty; } // 단독 전투
+
+        int levelBefore = progress.PlayerLevel;
+        int totalExperienceAfter = progress.TotalExperience;
+
+        if (resultData.RewardsApplied)
+        {
+            levelBefore = resultData.PlayerLevelBefore; // 수령 후에는 기록된 값 사용
+        }
+        else if (resultData.IsVictory)
+        {
+            totalExperienceAfter += progress.PreviewExperienceGain(
+                resultData.ExperienceReward
+            ); // 수령 전에는 예상 값 계산
+        }
+
+        int levelAfter = PlayerLevelRules.GetLevel(totalExperienceAfter);
+
+        if (levelAfter <= levelBefore)
+        {
+            return $"플레이어 {PlayerLevelRules.GetLevelText(totalExperienceAfter)}";
+        }
+
+        string unlockSummary = PlayerLevelRules.GetUnlockSummary(
+            levelBefore,
+            levelAfter
+        ); // 오른 구간의 해금 내용
+
+        string levelUpText =
+            $"레벨 업! Lv.{levelBefore} → Lv.{levelAfter}";
+
+        return string.IsNullOrEmpty(unlockSummary)
+            ? levelUpText
+            : $"{levelUpText}\n{unlockSummary}";
     }
 
     private string GetOutcomeDisplayName(

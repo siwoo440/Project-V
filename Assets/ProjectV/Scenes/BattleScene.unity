@@ -11500,6 +11500,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgressManager
   startingGold: 2000
   startingMonsterEssence: 40
+  startingExperience: 720
   startingCards:
   - cardData: {fileID: 11400000, guid: e0f329c433364665bac4093c93af8d27, type: 2}
     count: 3
@@ -11524,7 +11525,6 @@ MonoBehaviour:
   - cardData: {fileID: 11400000, guid: eb553a381279489fa9021d2ba94b837a, type: 2}
     count: 1
   requiredDeckSize: 30
-  enhanceLevelCap: 5
 --- !u!4 &1838099544
 Transform:
   m_ObjectHideFlags: 0

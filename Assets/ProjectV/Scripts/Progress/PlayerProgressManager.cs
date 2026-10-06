@@ -19,6 +19,7 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     [Header("시작 진행 데이터")]
     [SerializeField, Min(0)] private int startingGold;
     [SerializeField, Min(0)] private int startingMonsterEssence; // 시작 마물의 정수
+    [SerializeField, Min(0)] private int startingExperience;     // 시작 누적 경험치
 
     [SerializeField]
     private List<StartingCardEntry> startingCards =
@@ -26,10 +27,6 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     [Header("덱")]
     [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
-
-    [Header("강화")]
-    // 기획서 6.9.6: 플레이어 레벨이 강화 상한을 정한다. 플레이어 레벨은 40일차에 붙인다.
-    [SerializeField, Range(1, 5)] private int enhanceLevelCap = 5;
 
     private readonly List<OwnedCardData> ownedCards =
         new List<OwnedCardData>(); // 보유 카드 목록
@@ -52,8 +49,33 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     public int TotalExperience => totalExperience; // 전체 경험치
     public int MonsterEssence => monsterEssence; // 마물의 정수
 
+    public int PlayerLevel =>
+        PlayerLevelRules.GetLevel(totalExperience); // 플레이어 레벨 (누적 경험치에서 계산)
+
+    public bool IsMaxPlayerLevel =>
+        PlayerLevelRules.IsMaxLevel(PlayerLevel); // 최대 레벨 도달 여부
+
+    public int ExperienceIntoLevel =>
+        PlayerLevelRules.GetExperienceIntoLevel(totalExperience); // 현재 레벨에서 쌓은 경험치
+
+    public int ExperienceToNextLevel =>
+        PlayerLevelRules.GetRequiredExperience(PlayerLevel); // 다음 레벨 필요 경험치
+
     public int EnhanceLevelCap =>
-        CardEnhanceRules.ClampLevel(enhanceLevelCap); // 강화 단계 상한 반환
+        PlayerLevelRules.GetEnhanceCap(PlayerLevel); // 플레이어 레벨에 따른 강화 상한 (기획서 6.3.6)
+
+    public string PlayerLevelText =>
+        PlayerLevelRules.GetLevelText(totalExperience); // 레벨 표시 문구
+
+    // 경험치를 받았을 때 실제로 반영될 양을 미리 계산한다. (최대 레벨에서는 0)
+    public int PreviewExperienceGain(int amount)
+    {
+        if (amount <= 0) { return 0; }
+
+        return PlayerLevelRules.ClampTotalExperience(
+            totalExperience + amount
+        ) - totalExperience;
+    }
 
     public IReadOnlyList<OwnedCardData> OwnedCards =>
         ownedCards; // 보유 카드 목록 반환
@@ -155,11 +177,13 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         if (resultData.RewardsApplied) { return false; } // 중복 수령 차단
 
         int essenceGained = 0; // 이번 전투 획득 정수
+        int experienceGained = 0; // 실제로 반영된 경험치
+        int levelBefore = PlayerLevel; // 보상 반영 전 레벨
 
         if (resultData.IsVictory)
         {
             gold += Mathf.Max(0, resultData.GoldReward); // 골드 지급
-            totalExperience += Mathf.Max(0, resultData.ExperienceReward); // 전체 경험치 지급
+            experienceGained = AddExperience(resultData.ExperienceReward); // 경험치 지급
 
             if (resultData.CaptureSucceeded &&
                 resultData.CapturedMonster != null)
@@ -176,9 +200,41 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             essenceGained
         ); // 보상 결과 저장
 
+        resultData.SetLevelResult(
+            experienceGained,
+            levelBefore,
+            PlayerLevel
+        ); // 레벨 변화 저장
+
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
 
         return true;
+    }
+
+    // 경험치를 더하고 실제로 반영된 양을 반환한다.
+    // 최대 레벨 이후에는 경험치를 더 받지 않는다. (기획서 6.17.1)
+    private int AddExperience(int amount)
+    {
+        if (amount <= 0) { return 0; } // 잘못된 지급량 차단
+
+        int experienceBefore = totalExperience;
+        int levelBefore = PlayerLevel;
+
+        totalExperience = PlayerLevelRules.ClampTotalExperience(
+            totalExperience + amount
+        ); // 최대 누적 경험치에서 멈춤
+
+        int levelAfter = PlayerLevel;
+
+        if (levelAfter > levelBefore)
+        {
+            Debug.Log(
+                $"플레이어 레벨 상승: Lv.{levelBefore} → Lv.{levelAfter} " +
+                $"(마물 강화 상한 Lv.{EnhanceLevelCap})"
+            ); // 레벨 상승 기록
+        }
+
+        return totalExperience - experienceBefore;
     }
 
     public int GetOwnedCardCount(CardData cardData)
@@ -373,8 +429,12 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
         if (targetCopy.EnhanceLevel >= EnhanceLevelCap)
         {
+            int nextLevel = targetCopy.EnhanceLevel + 1;
+
             errorMessage =
-                $"현재 강화 상한은 Lv.{EnhanceLevelCap}입니다."; // 기획서 6.9.6
+                $"플레이어 Lv.{PlayerLevelRules.GetEnhanceUnlockLevel(nextLevel)}에 " +
+                $"마물 Lv.{nextLevel} 강화가 해금됩니다. " +
+                $"(현재 Lv.{PlayerLevel})"; // 기획서 6.9.6
             return false;
         }
 
@@ -677,7 +737,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     private void InitializeStartingProgress()
     {
         gold = Mathf.Max(0, startingGold); // 시작 골드
-        totalExperience = 0; // 전체 경험치 초기화
+        totalExperience = PlayerLevelRules.ClampTotalExperience(
+            startingExperience
+        ); // 시작 누적 경험치
         monsterEssence = Mathf.Max(0, startingMonsterEssence); // 마물의 정수 초기화
         deckPresets.Clear(); // 덱 프리셋 초기화
         selectedPresetIndex = 0;

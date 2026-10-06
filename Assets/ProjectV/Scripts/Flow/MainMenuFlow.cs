@@ -72,6 +72,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         }
 
         progressText.text =
+            $"{progress.PlayerLevelText}    " +
             $"골드 {progress.Gold}    " +
             $"정수 {progress.MonsterEssence}    " +
             $"보유 카드 {progress.TotalOwnedCardCount}    " +

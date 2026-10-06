@@ -83,7 +83,7 @@ public class MonsterCollectionUI : MonoBehaviour
             summaryText.text =
                 $"골드 {progress.Gold} | " +
                 $"정수 {progress.MonsterEssence} | " +
-                $"누적 경험치 {progress.TotalExperience} | " +
+                $"플레이어 {progress.PlayerLevelText} | " +
                 $"보유 마물 {progress.OwnedMonsters.Count}";
         }
 
