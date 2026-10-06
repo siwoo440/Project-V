@@ -62,6 +62,16 @@ public class StoryFlow : MonoBehaviour // 스토리 화면 연결
             skipButton.onClick.AddListener(SkipStory);
         }
 
+        if (skipButton != null)
+        {
+            TMP_Text skipLabel = skipButton.GetComponentInChildren<TMP_Text>();
+
+            if (skipLabel != null)
+            {
+                skipLabel.text = $"건너뛰기 {UISkin.Icon(UIIcons.Skip)}".Trim();
+            }
+        }
+
         currentLineIndex = 0;
         ShowCurrentLine(); // 첫 대사 표시
     }
@@ -123,10 +133,12 @@ public class StoryFlow : MonoBehaviour // 스토리 화면 연결
 
             if (nextLabel != null)
             {
-                nextLabel.text =
+                string nextWord =
                     currentLineIndex >= storyLines.Count - 1
                         ? "계속"
                         : "다음"; // 마지막 대사 표시 변경
+
+                nextLabel.text = $"{nextWord} {UISkin.Icon(UIIcons.Next)}".Trim();
             }
         }
     }

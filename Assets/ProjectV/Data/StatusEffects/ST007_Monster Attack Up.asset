@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: ST007_Monster Attack Up
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST007
-  displayName: 격노
+  displayName: "\uACA9\uB178"
   statusType: 4
   amount: 1
   isNegative: 1
   durationTurns: 2
   durationTiming: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4833719b6f564c74f8bf5b49982fc518, type: 3}
   displayColor: {r: 0.7490196, g: 0.17798178, b: 0.17254901, a: 1}
-  description: HP 공격력을 증가시킨다.
+  description: "HP \uACF5\uACA9\uB825\uC744 \uC99D\uAC00\uC2DC\uD0A8\uB2E4."

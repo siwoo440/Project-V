@@ -18,6 +18,8 @@ public class MonsterUnit : MonoBehaviour
     [SerializeField] private Transform statusIconContainer;
     [SerializeField] private Button selectButton;
     [SerializeField] private Image backgroundImage;
+    [SerializeField] private UIGauge hpGauge;       // 체력 게이지
+    [SerializeField] private Image typeIconImage;   // 계열 문양 (일러스트가 생기기 전까지의 자리 표시)
 
     [Header("선택 색상")]
     [SerializeField]
@@ -31,6 +33,10 @@ public class MonsterUnit : MonoBehaviour
     [SerializeField]
     private Color heroineTargetColor =
         new Color(0.9f, 0.35f, 0.2f, 1f);
+
+    [SerializeField]
+    private Color skillTargetColor =
+        new Color(0.25f, 0.5f, 0.85f, 1f); // 소환사 스킬 대상 후보 표시
 
     private readonly List<ActiveStatusEffect> activeStatusEffects =
         new List<ActiveStatusEffect>();
@@ -58,6 +64,14 @@ public class MonsterUnit : MonoBehaviour
     private int synergyDefenseBonus;
     private int synergyLustBonus;
 
+    private int summonerAttackBonus; // 소환사 패시브로 받는 공격 보정
+    private int summonerLustBonus;   // 소환사 패시브와 스킬로 받는 성욕 보정
+    private int turnAttackBonus;     // 이번 턴에만 유지되는 공격 보정 (집중 명령)
+
+    private CardCopy sourceCard;      // 소환에 사용한 카드 사본 (토큰은 없음)
+    private bool isSkillTargetable;   // 소환사 스킬 대상 후보 여부
+    private bool playerTurnInteraction; // 플레이어 턴 조작 허용 여부
+
     private int runtimeMaxHp;
     private int runtimeAttack;
     private int runtimeLustDamage;
@@ -65,7 +79,7 @@ public class MonsterUnit : MonoBehaviour
 
     public int Attack => GetCurrentAttack();
     public int LustDamage =>
-        Mathf.Max(0, runtimeLustDamage + synergyLustBonus);
+        Mathf.Max(0, runtimeLustDamage + synergyLustBonus + summonerLustBonus);
     public int Defense => GetCurrentDefense();
     public int CurrentShield => currentShield;
     public int CurrentHp => currentHp;
@@ -85,6 +99,11 @@ public class MonsterUnit : MonoBehaviour
 
     public bool CanAttack =>
         actionState == MonsterActionState.Ready && !IsDead;
+
+    public bool HasActed =>
+        actionState == MonsterActionState.Acted && !IsDead; // 이번 턴 행동을 마쳤는지 여부
+
+    public CardCopy SourceCard => sourceCard; // 소환에 사용한 카드 사본 반환
 
     public MonsterData Data => monsterData; // 마물 데이터 반환
 
@@ -129,6 +148,11 @@ public class MonsterUnit : MonoBehaviour
         synergyAttackBonus = 0;
         synergyDefenseBonus = 0;
         synergyLustBonus = 0;
+        summonerAttackBonus = 0; // 소환사 보정 초기화
+        summonerLustBonus = 0;
+        turnAttackBonus = 0;
+        sourceCard = null;
+        isSkillTargetable = false;
         actionState = MonsterActionState.Summoning;
 
         activeStatusEffects.Clear();
@@ -138,6 +162,15 @@ public class MonsterUnit : MonoBehaviour
         {
             selectButton.onClick.RemoveAllListeners();
             selectButton.onClick.AddListener(HandleSelectButton);
+        }
+
+        if (typeIconImage != null)
+        {
+            Sprite typeSprite = UISkin.Get(UISkin.TypeIconKey(monsterData.MainType));
+
+            typeIconImage.sprite = typeSprite;
+            typeIconImage.preserveAspect = true;
+            typeIconImage.gameObject.SetActive(typeSprite != null); // 문양이 없으면 줄을 접는다.
         }
 
         SetSelected(false);
@@ -291,6 +324,58 @@ public class MonsterUnit : MonoBehaviour
         UpdateMonsterUI();
     }
 
+    public void SetSourceCard(CardCopy cardCopy) // 소환에 사용한 카드 사본 기록
+    {
+        sourceCard = cardCopy;
+    }
+
+    // 소환사 패시브와 스킬의 보정을 통째로 다시 설정한다. (누적하지 않는다)
+    public void ApplySummonerBonus(int attackBonus, int lustBonus)
+    {
+        if (summonerAttackBonus == attackBonus &&
+            summonerLustBonus == lustBonus)
+        {
+            return;
+        }
+
+        summonerAttackBonus = attackBonus;
+        summonerLustBonus = lustBonus;
+
+        UpdateMonsterUI();
+    }
+
+    public void AddTurnAttackBonus(int amount) // 이번 턴 공격 보정 추가 (집중 명령)
+    {
+        if (amount <= 0) { return; }
+
+        turnAttackBonus += amount;
+        UpdateMonsterUI();
+    }
+
+    public void ClearTurnBonus() // 턴 종료 시 이번 턴 보정 제거
+    {
+        if (turnAttackBonus == 0) { return; }
+
+        turnAttackBonus = 0;
+        UpdateMonsterUI();
+    }
+
+    public void RestoreAction() // 행동을 마친 마물이 다시 행동할 수 있게 한다. (절대 명령)
+    {
+        if (IsDead) { return; }
+
+        actionState = MonsterActionState.Ready;
+        SetPlayerTurnInteraction(true);
+        UpdateMonsterUI();
+    }
+
+    public void SetSkillTargetable(bool targetable) // 소환사 스킬 대상 후보 표시
+    {
+        isSkillTargetable = targetable;
+        RefreshSelectButton();
+        UpdateBackgroundColor();
+    }
+
     public void StartCooldown() // 스킬 사용 후 대기시간 적용
     {
         MonsterEffectData skill = ActiveSkill;
@@ -386,9 +471,17 @@ public class MonsterUnit : MonoBehaviour
 
     public void SetPlayerTurnInteraction(bool isPlayerTurn)
     {
+        playerTurnInteraction = isPlayerTurn;
+        RefreshSelectButton();
+    }
+
+    private void RefreshSelectButton() // 선택 버튼 활성 상태 갱신
+    {
         if (selectButton == null) { return; }
 
-        selectButton.interactable = isPlayerTurn && CanAttack;
+        selectButton.interactable =
+            playerTurnInteraction &&
+            (CanAttack || isSkillTargetable); // 스킬 대상 후보는 행동을 마쳤어도 누를 수 있다.
     }
 
     public void SetSelected(bool selected)
@@ -422,7 +515,10 @@ public class MonsterUnit : MonoBehaviour
             }
         }
 
-        return Mathf.Max(0, currentAttack + synergyAttackBonus);
+        return Mathf.Max(
+            0,
+            currentAttack + synergyAttackBonus + summonerAttackBonus + turnAttackBonus
+        );
     }
 
     private int GetCurrentDefense()
@@ -457,6 +553,12 @@ public class MonsterUnit : MonoBehaviour
             return;
         }
 
+        if (isSkillTargetable)
+        {
+            backgroundImage.color = skillTargetColor;
+            return;
+        }
+
         if (isHeroineTargeted)
         {
             backgroundImage.color = heroineTargetColor;
@@ -468,7 +570,7 @@ public class MonsterUnit : MonoBehaviour
 
     private void HandleSelectButton()
     {
-        if (!CanAttack) { return; }
+        if (!CanAttack && !isSkillTargetable) { return; }
 
         onSelected?.Invoke(this);
     }
@@ -483,24 +585,36 @@ public class MonsterUnit : MonoBehaviour
                 $"{monsterData.MonsterName} Lv.{enhanceLevel}"; // 강화 단계 표시
         }
 
-        if (monsterHpText != null)
+        if (hpGauge != null)
         {
-            monsterHpText.text = $"HP {currentHp} / {MaxHp}";
+            hpGauge.SetValue(currentHp, MaxHp); // 체력 게이지
         }
 
+        if (monsterHpText != null)
+        {
+            monsterHpText.text = hpGauge != null
+                ? $"{currentHp} / {MaxHp}" // 게이지 위에는 숫자만 쓴다.
+                : $"HP {currentHp} / {MaxHp}";
+        }
+
+        // 공격과 성욕, 방어와 보호막을 한 줄씩 묶어 표시한다. (아이콘이 있으면 이름 대신 아이콘)
         if (monsterAttackText != null)
         {
-            monsterAttackText.text = $"공격 {Attack}";
+            monsterAttackText.text =
+                $"{UISkin.IconOr(UIIcons.Attack, "공격")} {Attack}  " +
+                $"{UISkin.IconOr(UIIcons.Lust, "성욕")} {LustDamage}";
+        }
+
+        if (monsterDefenseText != null)
+        {
+            monsterDefenseText.text =
+                $"{UISkin.IconOr(UIIcons.Defense, "방어")} {Defense}  " +
+                $"{UISkin.IconOr(UIIcons.Shield, "막")} {currentShield}";
         }
 
         if (monsterLustDamageText != null)
         {
             monsterLustDamageText.text = $"성욕 {LustDamage}";
-        }
-
-        if (monsterDefenseText != null)
-        {
-            monsterDefenseText.text = $"방어 {Defense}";
         }
 
         if (monsterShieldText != null)
@@ -510,9 +624,12 @@ public class MonsterUnit : MonoBehaviour
 
         if (monsterStateText != null)
         {
-            string tauntText = IsTaunting ? " | 도발" : string.Empty;
+            string tauntText = IsTaunting
+                ? $"  {UISkin.IconOr(UIIcons.Taunt, "도발")}"
+                : string.Empty;
+
             monsterStateText.text =
-                $"상태 {GetStateLabel()}{tauntText}";
+                $"{UISkin.Icon(UISkin.StateIconName(actionState))} {GetStateLabel()}{tauntText}".Trim();
         }
 
         if (monsterSkillText != null)
@@ -579,10 +696,10 @@ public class MonsterUnit : MonoBehaviour
 
         if (currentCooldown > 0)
         {
-            return $"{skill.DisplayName} ({currentCooldown})";
+            return $"{UISkin.Icon(UIIcons.Cooldown)} {skill.DisplayName} ({currentCooldown})".Trim();
         }
 
-        return skill.DisplayName;
+        return $"{UISkin.Icon(UIIcons.Skill)} {skill.DisplayName}".Trim();
     }
 
     // 소환에 사용한 사본의 강화 단계로 능력치를 계산한다. (기획서 6.9.4)

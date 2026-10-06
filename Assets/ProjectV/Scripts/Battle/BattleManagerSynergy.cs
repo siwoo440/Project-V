@@ -41,6 +41,14 @@ public partial class BattleManager // 타입 시너지 처리
                 AddSynergyCount(fieldMonster.Data.SubType); // 두 타입은 각각 1체로 계산
             }
         }
+
+        // 계열 집중 패시브: 덱에 가장 많은 계열이 필드에 있으면 계산 수를 더한다.
+        int focusBonus = GetPassiveAmount(SummonerPassiveType.TypeFocus);
+
+        if (focusBonus > 0 && synergyCounts.ContainsKey(passiveFocusType))
+        {
+            synergyCounts[passiveFocusType] += focusBonus;
+        }
     }
 
     private void AddSynergyCount(MonsterType monsterType)
@@ -67,9 +75,18 @@ public partial class BattleManager // 타입 시너지 처리
     // 지속 보정은 누적하지 않고 매번 전체를 다시 계산해 적용한다.
     private void ApplyContinuousSynergyBonuses()
     {
+        int summonerAttackBonus = GetSummonerAttackBonus(); // 군단 지휘
+        int summonerLustBonus = GetSummonerLustBonus();     // 욕망 증폭, 욕망 공명
+
         foreach (MonsterUnit fieldMonster in fieldMonsters)
         {
             if (fieldMonster == null || fieldMonster.IsDead) { continue; }
+
+            fieldMonster.ApplySummonerBonus(
+                summonerAttackBonus,
+                summonerLustBonus
+            ); // 소환사 보정 적용
+
             if (fieldMonster.Data == null) { continue; }
 
             int maxHpBonus = 0;
@@ -312,7 +329,7 @@ public partial class BattleManager // 타입 시너지 처리
                 int previousHp = playerCurrentHp;
 
                 playerCurrentHp = Mathf.Min(
-                    playerMaxHp,
+                    PlayerMaxHp,
                     playerCurrentHp + healAmount
                 );
 

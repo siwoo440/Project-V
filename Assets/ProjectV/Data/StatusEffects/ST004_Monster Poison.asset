@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: ST004_Monster Poison
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST004
-  displayName: 마물 독
+  displayName: "\uB9C8\uBB3C \uB3C5"
   statusType: 2
   amount: 2
   isNegative: 1
   durationTurns: 2
   durationTiming: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: b02aafc64af30fd459c0d565fdd4092b, type: 3}
   displayColor: {r: 0.48235294, g: 0.17254902, b: 0.7490196, a: 1}
-  description: 플레이어 턴이 시작될 때 HP 피해를 받는다.
+  description: "\uD50C\uB808\uC774\uC5B4 \uD134\uC774 \uC2DC\uC791\uB420 \uB54C HP
+    \uD53C\uD574\uB97C \uBC1B\uB294\uB2E4."

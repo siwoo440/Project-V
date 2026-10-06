@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: ST008_FieldCurse
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST008
-  displayName: 야전 주술
+  displayName: "\uC57C\uC804 \uC8FC\uC220"
   statusType: 3
   amount: 4
   isNegative: 0
   durationTurns: 2
   durationTiming: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: f52299c0afb98884685d6f1be0e2d846, type: 3}
   displayColor: {r: 0.44, g: 0.78, b: 0.42, a: 1}
-  description: 고블린 1체의 공격력을 2턴 동안 증가시킨다.
+  description: "\uACE0\uBE14\uB9B0 1\uCCB4\uC758 \uACF5\uACA9\uB825\uC744 2\uD134
+    \uB3D9\uC548 \uC99D\uAC00\uC2DC\uD0A8\uB2E4."

@@ -346,6 +346,13 @@ public partial class BattleManager // 분리된 전투 기능
     private void SelectMonster(MonsterUnit monsterUnit)
     {
         if (!isPlayerTurn || isBattleEnded || monsterUnit == null) { return; }
+
+        if (isSelectingSkillTarget)
+        {
+            ResolveSummonerSkillTarget(monsterUnit); // 소환사 스킬 대상 선택 처리
+            return;
+        }
+
         if (!monsterUnit.CanAttack) { resultText.text = "행동할 수 없는 마물입니다"; return; }
         if (selectedMonster != null) { selectedMonster.SetSelected(false); }
 
@@ -372,7 +379,8 @@ public partial class BattleManager // 분리된 전투 기능
 
     private void SummonMonster(
         MonsterData monsterData,
-        int enhanceLevel = CardEnhanceRules.MinLevel
+        int enhanceLevel = CardEnhanceRules.MinLevel,
+        CardCopy sourceCard = null
     )
     {
         MonsterUnit newMonsterUnit = Instantiate(
@@ -387,6 +395,8 @@ public partial class BattleManager // 분리된 전투 기능
             statusEffectIconPrefab,
             statusEffectTooltipUI
         );
+
+        newMonsterUnit.SetSourceCard(sourceCard); // 손패로 되돌릴 때 쓸 카드 사본 기록
 
         fieldMonsters.Add(newMonsterUnit);
         newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);

@@ -22,7 +22,8 @@ public class EnhanceFlow : MonoBehaviour
     [SerializeField] private Transform ownedCardsContent; // 보유 카드 배치 영역
 
     [Header("강화대")]
-    [SerializeField] private Image slotHeaderImage;    // 희귀도 색 띠
+    [SerializeField] private Image slotHeaderImage;    // 희귀도 색 띠 (카드 표시로 대체되어 숨긴다)
+    [SerializeField] private Image slotImage;          // 강화대 자리 (카드를 올리면 카드 틀이 된다)
     [SerializeField] private TMP_Text slotNameText;    // 올린 카드 이름
     [SerializeField] private TMP_Text slotInfoText;    // 계열과 희귀도
     [SerializeField] private TMP_Text slotLevelText;   // 올린 사본의 단계
@@ -78,6 +79,9 @@ public class EnhanceFlow : MonoBehaviour
 
         slotHeaderImage =
             SceneUIBinder.Bind(slotHeaderImage, "EnhanceSlotHeader");
+
+        slotImage =
+            SceneUIBinder.Bind(slotImage, "EnhanceSlot");
 
         slotNameText =
             SceneUIBinder.Bind(slotNameText, "EnhanceSlotNameText");
@@ -304,13 +308,11 @@ public class EnhanceFlow : MonoBehaviour
         foreach (OwnedCardData ownedCard in visibleCards)
         {
             CardData cardData = ownedCard.CardData;
-            int highestLevel = ownedCard.HighestEnhanceLevel;
 
             GameObject entryObject = CardEntryFactory.CreateCardEntry(
                 ownedCardsContent,
                 cardData,
-                $"Lv.{highestLevel}",
-                CardEnhanceRules.GetLevelColor(highestLevel),
+                ownedCard.HighestEnhanceLevel,
                 cardData == slotCard
                     ? "강화대에 있음"
                     : $"사본 {ownedCard.OwnedCount}장",
@@ -331,8 +333,8 @@ public class EnhanceFlow : MonoBehaviour
         if (resourceText != null)
         {
             resourceText.text =
-                $"골드 {progress.Gold}      " +
-                $"마물의 정수 {progress.MonsterEssence}";
+                $"{UISkin.IconOr(UIIcons.Gold, "골드")} {progress.Gold}      " +
+                $"{UISkin.IconOr(UIIcons.Essence, "마물의 정수")} {progress.MonsterEssence}";
         }
 
         if (capText != null)
@@ -369,34 +371,7 @@ public class EnhanceFlow : MonoBehaviour
             selectedCopy = copies[0]; // 첫 사본을 기본 선택
         }
 
-        Color rarityColor =
-            CardRarityRules.GetDisplayColor(slotCard.Rarity);
-
-        if (slotHeaderImage != null)
-        {
-            slotHeaderImage.color = rarityColor;
-        }
-
-        if (slotNameText != null)
-        {
-            slotNameText.text = slotCard.CardName;
-        }
-
-        if (slotInfoText != null)
-        {
-            slotInfoText.text =
-                $"{MonsterTypeRules.GetDisplayName(slotCard.MainType)}\n" +
-                $"{CardRarityRules.GetDisplayName(slotCard.Rarity)}\n" +
-                $"마나 {slotCard.ManaCost}\n" +
-                $"사본 {copies.Count} / {slotCard.MaxCopies}";
-        }
-
-        if (slotLevelText != null)
-        {
-            slotLevelText.text = $"Lv.{selectedCopy.EnhanceLevel}";
-            slotLevelText.color =
-                CardEnhanceRules.GetLevelColor(selectedCopy.EnhanceLevel);
-        }
+        ShowSlotCard(copies.Count); // 강화대에 카드 표시
 
         foreach (CardCopy copy in copies)
         {
@@ -473,8 +448,8 @@ public class EnhanceFlow : MonoBehaviour
             enhanceCostText.text =
                 selectedCopy.IsMaxLevel
                     ? "최대 단계입니다."
-                    : $"필요 정수 {selectedCopy.NextEssenceCost}   " +
-                      $"필요 골드 {selectedCopy.NextGoldCost}\n" +
+                    : $"필요 {UISkin.IconOr(UIIcons.Essence, "정수")} {selectedCopy.NextEssenceCost}   " +
+                      $"필요 {UISkin.IconOr(UIIcons.Gold, "골드")} {selectedCopy.NextGoldCost}\n" +
                       (canEnhance ? "강화할 수 있습니다." : reason);
         }
 
@@ -508,12 +483,53 @@ public class EnhanceFlow : MonoBehaviour
             $"Lv.{nextCap} 해금)";
     }
 
+    private const float SlotCardWidth = 240f; // 강화대 카드 너비 (씬의 EnhanceSlot 크기와 같다)
+
+    private static readonly Color EmptySlotColor =
+        new Color(0.20f, 0.16f, 0.31f, 1f); // 빈 자리 이미지가 없을 때 색
+
+    // 강화대에 올린 카드를 덱 편성 화면과 같은 카드 표시로 보여준다.
+    private void ShowSlotCard(int ownedCopyCount)
+    {
+        SetSlotGuideVisible(false);
+
+        if (slotImage == null) { return; }
+
+        CardEntryFactory.BuildFace(
+            slotImage.transform,
+            slotImage,
+            slotCard,
+            selectedCopy.EnhanceLevel,
+            $"{selectedCopy.CopyNumber}번 사본 ({ownedCopyCount} / {slotCard.MaxCopies})",
+            false,
+            SlotCardWidth,
+            true,
+            slotCard.ManaCost,
+            false
+        );
+    }
+
+    private void SetSlotGuideVisible(bool isVisible) // 빈 강화대 안내 문구 표시 전환
+    {
+        if (slotHeaderImage != null) { slotHeaderImage.gameObject.SetActive(false); }
+        if (slotLevelText != null) { slotLevelText.gameObject.SetActive(false); }
+        if (slotNameText != null) { slotNameText.gameObject.SetActive(isVisible); }
+        if (slotInfoText != null) { slotInfoText.gameObject.SetActive(isVisible); }
+    }
+
     private void ShowEmptySlot() // 강화대가 비어 있을 때 표시
     {
-        if (slotHeaderImage != null)
+        if (slotImage != null)
         {
-            slotHeaderImage.color = new Color(0.30f, 0.28f, 0.36f, 1f);
+            CardEntryFactory.ClearFace(slotImage.transform);
+
+            if (!UISkin.ApplySliced(slotImage, UIKeys.SlotEmpty, 30f))
+            {
+                slotImage.color = EmptySlotColor;
+            }
         }
+
+        SetSlotGuideVisible(true);
 
         if (slotNameText != null)
         {
@@ -523,11 +539,6 @@ public class EnhanceFlow : MonoBehaviour
         if (slotInfoText != null)
         {
             slotInfoText.text = "왼쪽 보유 카드를\n눌러 주세요";
-        }
-
-        if (slotLevelText != null)
-        {
-            slotLevelText.text = string.Empty;
         }
 
         if (enhanceStatText != null)
@@ -593,9 +604,12 @@ public class EnhanceFlow : MonoBehaviour
 
         Image background = entryObject.AddComponent<Image>();
 
-        background.color = isSelected
-            ? new Color(0.42f, 0.34f, 0.16f, 1f)
-            : new Color(0.17f, 0.14f, 0.26f, 1f);
+        UISkin.ApplySelectable(
+            background, isSelected,
+            UIKeys.RowNormal, UIKeys.RowSelected,
+            new Color(0.17f, 0.14f, 0.26f, 1f),
+            new Color(0.42f, 0.34f, 0.16f, 1f)
+        ); // 선택한 사본은 밝은 줄로 표시
 
         Button entryButton = entryObject.AddComponent<Button>();
         entryButton.targetGraphic = background;
@@ -614,7 +628,7 @@ public class EnhanceFlow : MonoBehaviour
             CardEnhanceRules.GetLevelColor(targetCopy.EnhanceLevel),
             TextAlignmentOptions.MidlineLeft,
             new Vector2(0f, 0f), new Vector2(1f, 1f),
-            new Vector2(12f, 0f), new Vector2(-12f, 0f)
+            new Vector2(26f, 0f), new Vector2(-26f, 0f)
         );
 
         copyEntries.Add(entryObject);

@@ -1,0 +1,96 @@
+// 테마 이미지 이름 모음. Art 폴더의 파일 이름(확장자 제외)과 같다. (기획서 12.16)
+public static class UIKeys
+{
+    // 패널과 버튼
+    public const string PanelParchment = "UI_Panel_Parchment_01"; // 밝은 양피지 패널
+    public const string PanelNavy = "UI_Panel_Navy_01";           // 짙은 남색 패널
+    public const string ButtonBlue = "UI_Button_Blue_01";         // 기본 버튼
+    public const string ButtonGold = "UI_Button_Gold_01";         // 강조 버튼
+    public const string ButtonRed = "UI_Button_Red_01";           // 경고 버튼
+
+    // 띠와 판
+    public const string RibbonTitle = "UI_Ribbon_Title_01"; // 화면 제목 리본
+    public const string BarHeader = "UI_Bar_Header_01";     // 상단 띠
+    public const string DividerGold = "UI_Divider_Gold_01"; // 구분선
+    public const string RowNormal = "UI_Row_Normal_01";     // 목록 줄
+    public const string RowSelected = "UI_Row_Selected_01"; // 선택한 목록 줄
+    public const string InputField = "UI_Input_Field_01";   // 입력 칸
+    public const string PlateLabel = "UI_Plate_Label_01";   // 짙은 글자 받침
+    public const string PlateName = "UI_Plate_Name_01";     // 밝은 이름판
+
+    // 카드와 전투
+    public const string CardFrameCommon = "UI_CardFrame_Common_01";
+    public const string CardFrameRare = "UI_CardFrame_Rare_01";
+    public const string CardFrameSpecial = "UI_CardFrame_Special_01";
+    public const string CardFrameLegendary = "UI_CardFrame_Legendary_01";
+    public const string SlotUnit = "UI_Slot_Unit_01";   // 필드 마물 판
+    public const string SlotEmpty = "UI_Slot_Empty_01"; // 빈 카드 자리
+    public const string GaugeFrame = "UI_Gauge_Frame_01";
+    public const string GaugeRed = "UI_Gauge_Red_01";
+    public const string GaugePink = "UI_Gauge_Pink_01";
+    public const string GaugeBlue = "UI_Gauge_Blue_01";
+    public const string GaugeGreen = "UI_Gauge_Green_01";
+    public const string EmblemCrest = "UI_Emblem_Crest_01";     // 게임 문장
+    public const string EmblemVictory = "UI_Emblem_Victory_01"; // 승리 문장
+    public const string EmblemDefeat = "UI_Emblem_Defeat_01";   // 패배 문장
+
+    // 메뉴 아이콘
+    public const string IconStory = "Icon_Menu_Story_01";
+    public const string IconStage = "Icon_Menu_Stage_01";
+    public const string IconDeck = "Icon_Menu_Deck_01";
+    public const string IconEnhance = "Icon_Menu_Enhance_01";
+    public const string IconQuit = "Icon_Menu_Quit_01";
+    public const string IconSummoner = "Icon_Action_Skill_01"; // 소환사 메뉴는 마법 별 아이콘을 함께 쓴다.
+    public const string IconLog = "Icon_Menu_Log_01";
+    public const string IconCollection = "Icon_Menu_Collection_01";
+    public const string IconLock = "Icon_Menu_Lock_01";
+
+    // 전투 종류 아이콘
+    public const string StageNormal = "Icon_Stage_Normal_01";
+    public const string StageCapture = "Icon_Stage_Capture_01";
+    public const string StageHeroine = "Icon_Stage_Heroine_01";
+
+    // 배경
+    public const string BgMainMenu = "MainMenu_BG_01";
+    public const string BgDeckBuilder = "DeckBuilder_BG_01";
+    public const string BgEnhance = "Enhance_BG_01";
+    public const string BgStageSelect = "StageSelect_BG_01";
+    public const string BgStory = "Prologue_Story_BG_01";
+    public const string BgBattle = "Region01_Battle_BG_01";
+}
+
+// 글자 사이에 넣는 아이콘 이름 모음. Tools/UIThemeGenerator/theme_spec.txt의 이름과 같다.
+public static class UIIcons
+{
+    public const string Hp = "hp";
+    public const string Attack = "atk";
+    public const string Defense = "def";
+    public const string Shield = "shd";
+    public const string Lust = "lust";
+    public const string Mana = "mana";
+    public const string Gold = "gold";
+    public const string Essence = "ess";
+    public const string Exp = "exp";
+
+    public const string Skill = "skill";
+    public const string Cooldown = "cd";
+    public const string Taunt = "taunt";
+
+    public const string StateWait = "st_wait";
+    public const string StateReady = "st_ready";
+    public const string StateDone = "st_done";
+
+    public const string Draw = "draw";
+    public const string Discard = "discard";
+    public const string Lock = "lock";
+    public const string Search = "search";
+    public const string Close = "close";
+    public const string Next = "next";
+    public const string Skip = "skip";
+    public const string Log = "m_log";
+    public const string Book = "m_book";
+    public const string Deck = "m_deck";
+    public const string Enhance = "m_enhance";
+    public const string Stage = "m_stage";
+    public const string Quit = "m_quit";
+}

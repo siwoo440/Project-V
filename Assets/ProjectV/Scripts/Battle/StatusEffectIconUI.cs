@@ -24,10 +24,17 @@ public class StatusEffectIconUI : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         gameObject.SetActive(true); // 상태 효과 아이콘 활성화
 
-        if (backgroundImage != null) { backgroundImage.color = statusData.DisplayColor; } // 상태 색상 적용
-        if (durationText != null) { durationText.text = currentRemainingTurns.ToString(); } // 남은 지속시간 표시
-
         bool hasIcon = statusData.Icon != null; // 실제 아이콘 존재 여부 확인
+
+        if (backgroundImage != null)
+        {
+            // 아이콘 그림이 있으면 색 바탕은 숨긴다. (투명해도 마우스 감지는 유지된다)
+            backgroundImage.color = hasIcon
+                ? new Color(0f, 0f, 0f, 0f)
+                : statusData.DisplayColor;
+        }
+
+        if (durationText != null) { durationText.text = currentRemainingTurns.ToString(); } // 남은 지속시간 표시
 
         if (iconImage != null) // 아이콘 이미지 확인
         {

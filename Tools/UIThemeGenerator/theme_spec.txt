@@ -1,0 +1,42 @@
+# UI 테마 시트 목록. process_theme.ps1이 읽는다.
+# 요청문(GPT_Request_UI_01.md)의 시트 배치와 같은 순서로 적는다.
+#
+# sheet | 원본 파일 | 줄x칸 | 종류 | 저장 폴더(Art 기준) | 조각 이름(왼쪽 위부터)
+#   종류: nine  = 네 변을 유지하고 가운데를 늘리는 패널
+#         three = 좌우 끝을 유지하고 가운데를 늘리는 막대
+#         card  = 2:3 카드 틀 (늘리지 않음)
+#         icon  = 정사각형 아이콘. "이름=글자아이콘이름"으로 적으면 글자 사이에 넣을 수 있다.
+#         emblem = 다듬기만 하는 그림
+#         strip = 다듬기만 하는 긴 장식 (구분선)
+#   조각 이름 뒤에 ":종류"를 붙이면 그 조각만 종류를 바꾼다.
+# bg | 원본 파일 | 저장 폴더(Art 기준)
+# border | 조각 이름 | 왼쪽,아래,오른쪽,위   (자동 계산한 경계를 직접 정할 때)
+# nocompact | 조각 이름                       (가운데 구간을 줄이지 않을 때)
+
+# 묶음 1: 기본 틀
+sheet | UI_Panel_Sheet_01.png | 1x2 | nine | UI/Frames | UI_Panel_Parchment_01, UI_Panel_Navy_01
+sheet | UI_Button_Sheet_01.png | 3x1 | three | UI/Buttons | UI_Button_Blue_01, UI_Button_Gold_01, UI_Button_Red_01
+sheet | UI_Strip_Sheet_01.png | 3x1 | three | UI/Frames | UI_Ribbon_Title_01, UI_Bar_Header_01, UI_Divider_Gold_01:strip
+sheet | UI_Bar_Sheet_01.png | 5x1 | three | UI/Frames | UI_Row_Normal_01, UI_Row_Selected_01, UI_Input_Field_01, UI_Plate_Label_01, UI_Plate_Name_01
+
+# 묶음 2: 카드와 전투 틀
+sheet | UI_CardFrame_Sheet_01.png | 2x2 | card | UI/Frames | UI_CardFrame_Common_01, UI_CardFrame_Rare_01, UI_CardFrame_Special_01, UI_CardFrame_Legendary_01
+sheet | UI_Slot_Sheet_01.png | 1x2 | nine | UI/Frames | UI_Slot_Unit_01, UI_Slot_Empty_01
+sheet | UI_Gauge_Sheet_01.png | 5x1 | three | UI/Frames | UI_Gauge_Frame_01, UI_Gauge_Red_01, UI_Gauge_Pink_01, UI_Gauge_Blue_01, UI_Gauge_Green_01
+sheet | UI_Emblem_Sheet_01.png | 1x3 | emblem | UI/Frames | UI_Emblem_Crest_01, UI_Emblem_Victory_01, UI_Emblem_Defeat_01
+
+# 묶음 3: 아이콘 (한 장에 3x3)
+sheet | Icon_Stat_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Stat_HP_01=hp, Icon_Stat_Attack_01=atk, Icon_Stat_Defense_01=def, Icon_Stat_Shield_01=shd, Icon_Stat_Lust_01=lust, Icon_Stat_Mana_01=mana, Icon_Stat_Gold_01=gold, Icon_Stat_Essence_01=ess, Icon_Stat_Exp_01=exp
+sheet | Icon_Type_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Type_Tentacle_01=t_tentacle, Icon_Type_Slime_01=t_slime, Icon_Type_Goblin_01=t_goblin, Icon_Type_Demon_01=t_demon, Icon_Type_Undead_01=t_undead, Icon_Type_Beast_01=t_beast, Icon_Type_Spirit_01=t_spirit, Icon_Type_Machine_01=t_machine, Icon_Type_Angel_01=t_angel
+sheet | Icon_Action_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Action_Single_01=a_single, Icon_Action_Area_01=a_area, Icon_Action_Shield_01=a_shield, Icon_Action_Heal_01=a_heal, Icon_Action_Status_01=a_status, Icon_Action_Cleanse_01=a_cleanse, Icon_Action_Skill_01=skill, Icon_Action_Cooldown_01=cd, Icon_Action_Taunt_01=taunt
+sheet | Icon_Status_Sheet_01.png | 3x3 | icon | UI/Icons | Status_AttackUp_01=s_atkup, Status_AttackDown_01=s_atkdown, Status_DefenseUp_01=s_defup, Status_DefenseDown_01=s_defdown, Status_Poison_01=s_poison, Status_Bind_01=s_bind, State_Summoning_01=st_wait, State_Ready_01=st_ready, State_Acted_01=st_done
+sheet | Icon_Menu_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Menu_Story_01=m_story, Icon_Menu_Stage_01=m_stage, Icon_Menu_Deck_01=m_deck, Icon_Menu_Enhance_01=m_enhance, Icon_Menu_Quit_01=m_quit, Icon_Menu_Log_01=m_log, Icon_Menu_Collection_01=m_book, Icon_Menu_Lock_01=lock, Icon_Menu_Search_01=search
+sheet | Icon_Misc_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Stage_Normal_01=g_normal, Icon_Stage_Capture_01=g_capture, Icon_Stage_Heroine_01=g_heroine, Icon_Pile_Draw_01=draw, Icon_Pile_Discard_01=discard, Icon_Misc_Close_01=close, Icon_Arrow_Left_01=prev, Icon_Arrow_Right_01=next, Icon_Arrow_Skip_01=skip
+
+# 묶음 4: 배경 (3:2 원본을 16:9로 잘라 1920x1080으로 저장)
+bg | MainMenu_BG_01.png | Backgrounds/Common
+bg | DeckBuilder_BG_01.png | Backgrounds/Common
+bg | Enhance_BG_01.png | Backgrounds/Common
+bg | StageSelect_BG_01.png | WorldMap
+bg | Prologue_Story_BG_01.png | Backgrounds/Prologue
+bg | Region01_Battle_BG_01.png | Backgrounds/Region01

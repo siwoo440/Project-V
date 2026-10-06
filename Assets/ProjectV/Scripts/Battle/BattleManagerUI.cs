@@ -77,6 +77,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         handButtons.Clear(); // 손패 버튼 목록 초기화
+        handCardCopies.Clear(); // 손패 카드 연결 초기화
     }
 
     
@@ -85,19 +86,27 @@ public partial class BattleManager // 분리된 전투 기능
     {
         int currentHeroineDefense = GetHeroineCurrentDefense(); // 상태 효과 포함 히로인 방어력 계산
         turnNumberText.text = $"{turnNumber}턴"; // 턴 번호 표시
-        playerHpText.text = $"플레이어 HP {playerCurrentHp} / {playerMaxHp}"; // 플레이어 체력 표시
-        playerShieldText.text = $"보호막 {playerCurrentShield}"; // 플레이어 보호막 표시
-        manaText.text = $"마나 {currentMana} / {maximumMana}"; // 마나 표시
-        heroineHpText.text = $"히로인 HP {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
-        heroineDefenseText.text = $"방어 {currentHeroineDefense}"; // 현재 히로인 방어력 표시
-        heroineShieldText.text = $"보호막 {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
+        // 아이콘 이미지가 있으면 이름 대신 아이콘을 쓴다. (UISkin.IconOr)
+        playerHpText.text = $"{UISkin.IconOr(UIIcons.Hp, "HP")} {playerCurrentHp} / {PlayerMaxHp}"; // 플레이어 체력 표시
+        playerShieldText.text = $"{UISkin.IconOr(UIIcons.Shield, "보호막")} {playerCurrentShield}"; // 플레이어 보호막 표시
+        manaText.text = $"{UISkin.IconOr(UIIcons.Mana, "마나")} {currentMana} / {maximumMana}"; // 마나 표시
+        heroineHpText.text = $"{UISkin.IconOr(UIIcons.Hp, "HP")} {heroineCurrentHp} / {heroineMaxHp}"; // 히로인 체력 표시
+        heroineDefenseText.text = $"{UISkin.IconOr(UIIcons.Defense, "방어")} {currentHeroineDefense}"; // 현재 히로인 방어력 표시
+        heroineShieldText.text = $"{UISkin.IconOr(UIIcons.Shield, "보호막")} {heroineCurrentShield} / {heroineMaxShield}"; // 히로인 현재 및 최대 보호막 표시
+
+        if (playerHpGauge != null) { playerHpGauge.SetValue(playerCurrentHp, PlayerMaxHp); } // 플레이어 체력 게이지
+        if (manaGauge != null) { manaGauge.SetValue(currentMana, maximumMana); } // 마나 게이지
+        if (heroineHpGauge != null) { heroineHpGauge.SetValue(heroineCurrentHp, heroineMaxHp); } // 히로인 체력 게이지
+        if (heroineLustGauge != null) { heroineLustGauge.SetValue(heroineLust, heroineMaxLust); } // 히로인 성욕 게이지
         if (heroineStatusText != null) { heroineStatusText.text = GetHeroineStatusDisplay(); } // 히로인 상태 효과 표시
         RefreshHeroineStatusIcons(); // 히로인 상태 효과 아이콘 갱신
         if (lustText != null)
         {
+            string lustLabel = UISkin.IconOr(UIIcons.Lust, "성욕");
+
             lustText.text = heroineLust >= heroineMaxLust
-                ? $"성욕 {heroineLust} / {heroineMaxLust} 최대"
-                : $"성욕 {heroineLust} / {heroineMaxLust}";
+                ? $"{lustLabel} {heroineLust} / {heroineMaxLust} 최대"
+                : $"{lustLabel} {heroineLust} / {heroineMaxLust}";
         }
 
         if (heroineLustSlider != null)
@@ -108,6 +117,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
         UpdateDeckStatusUI();
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
+        UpdateSummonerUI(); // 소환사 스킬 버튼과 패시브 표시
     }
     
 

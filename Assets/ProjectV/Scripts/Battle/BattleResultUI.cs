@@ -12,6 +12,7 @@ public class BattleResultUI : MonoBehaviour
     [SerializeField] private TMP_Text rewardText;
     [SerializeField] private TMP_Text captureText;
     [SerializeField] private TMP_Text levelText; // 플레이어 레벨 변화
+    [SerializeField] private Image emblemImage;  // 승패 문장
 
     [Header("결과 버튼")]
     [SerializeField] private Button continueButton;
@@ -42,17 +43,27 @@ public class BattleResultUI : MonoBehaviour
                 GetOutcomeDisplayName(resultData.Outcome); // 승패 표시
         }
 
+        if (emblemImage != null)
+        {
+            Sprite emblem = UISkin.Get(
+                resultData.IsVictory ? UIKeys.EmblemVictory : UIKeys.EmblemDefeat
+            ); // 승패 문장
+
+            emblemImage.sprite = emblem;
+            emblemImage.enabled = emblem != null;
+        }
+
         if (rewardText != null)
         {
             string essenceRewardText =
                 resultData.DuplicateConverted
-                    ? $"\n마물의 정수 +" +
+                    ? $"\n{UISkin.IconOr(UIIcons.Essence, "마물의 정수")} +" +
                       $"{resultData.EssenceReward}"
                     : string.Empty; // 마물의 정수 문구
 
             rewardText.text = resultData.IsVictory
-                ? $"골드 +{resultData.GoldReward}\n" +
-                  $"경험치 +{GetShownExperience(resultData)}" +
+                ? $"{UISkin.IconOr(UIIcons.Gold, "골드")} +{resultData.GoldReward}    " +
+                  $"{UISkin.IconOr(UIIcons.Exp, "경험치")} +{GetShownExperience(resultData)}" +
                   essenceRewardText
                 : "보상 없음"; // 전투 보상 표시
         }
@@ -140,9 +151,22 @@ public class BattleResultUI : MonoBehaviour
         string levelUpText =
             $"레벨 업! Lv.{levelBefore} → Lv.{levelAfter}";
 
-        return string.IsNullOrEmpty(unlockSummary)
-            ? levelUpText
-            : $"{levelUpText}\n{unlockSummary}";
+        if (!string.IsNullOrEmpty(unlockSummary))
+        {
+            levelUpText += $"\n{unlockSummary}";
+        }
+
+        string summonerSummary = progress.GetSummonerUnlockSummary(
+            levelBefore,
+            levelAfter
+        ); // 새로 열린 소환사 스킬과 패시브
+
+        if (!string.IsNullOrEmpty(summonerSummary))
+        {
+            levelUpText += $"\n{summonerSummary}";
+        }
+
+        return levelUpText;
     }
 
     private string GetOutcomeDisplayName(

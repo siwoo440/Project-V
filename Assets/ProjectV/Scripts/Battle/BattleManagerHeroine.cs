@@ -406,6 +406,14 @@ public partial class BattleManager // 분리된 전투 기능
     private void ApplyDamageToPlayer(int attackPower, string actionName) // 플레이어 보호막 포함 피해 처리
     {
         DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(attackPower, playerDefense, playerCurrentShield); // 플레이어 피해 계산
+
+        damageResult = new DamageResult(
+            damageResult.IncomingAttack,
+            damageResult.ShieldAbsorbed,
+            ReducePlayerHpDamage(damageResult.HpDamage),
+            damageResult.RemainingShield
+        ); // 강인한 계약 패시브의 피해 감소 반영
+
         playerCurrentShield = damageResult.RemainingShield; // 플레이어 남은 보호막 적용
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - damageResult.HpDamage); // 플레이어 실제 HP 피해 적용
         resultText.text = $"{actionName}: {CreateDamageResultText("플레이어", damageResult)}"; // 플레이어 피해 결과 표시
@@ -546,7 +554,17 @@ public partial class BattleManager // 분리된 전투 기능
     private void UpdateHeroineIntentUI()
     {
         if (heroineIntentText == null) { return; }
-        if (nextHeroineAction == null) { heroineIntentText.text = "다음 행동: 없음"; return; }
+
+        if (nextHeroineAction == null || isBattleEnded)
+        {
+            heroineIntentText.text = "다음 행동: 없음";
+            SetHeroineIntentIcon(null);
+            return;
+        }
+
+        SetHeroineIntentIcon(
+            UISkin.Get(UISkin.ActionIconKey(nextHeroineAction.ActionType))
+        ); // 행동 종류 아이콘 (기획서 11.8.2)
 
         string targetName = GetHeroineTargetPreviewText();
         string effectName =
@@ -557,6 +575,25 @@ public partial class BattleManager // 분리된 전투 기능
             $"{effectName} / 대상: {targetName}";
     }
 
+
+    // 행동 예고 아이콘을 바꾼다. 아이콘이 없으면 숨기고 글자를 왼쪽 끝까지 쓴다.
+    private void SetHeroineIntentIcon(Sprite iconSprite)
+    {
+        if (heroineIntentIcon == null) { return; }
+
+        heroineIntentIcon.sprite = iconSprite;
+        heroineIntentIcon.preserveAspect = true;
+        heroineIntentIcon.enabled = iconSprite != null;
+
+        if (heroineIntentText == null) { return; }
+
+        RectTransform textRect = heroineIntentText.rectTransform;
+
+        textRect.offsetMin = new Vector2(
+            iconSprite != null ? 114f : 22f,
+            textRect.offsetMin.y
+        );
+    }
 
     private string GetHeroineActionEffectDisplay(HeroineActionData actionData) // 행동 효과 표시 문구 반환
     {

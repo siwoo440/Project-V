@@ -1,0 +1,245 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71f7ba1b35170134a80443b52289b3c4, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: Assembly-CSharp::UITheme
+  sprites:
+  - key: UI_Panel_Parchment_01
+    sprite: {fileID: 21300000, guid: ae0d9f9fd3cd4e44794d8fc3ded27a9c, type: 3}
+  - key: UI_Panel_Navy_01
+    sprite: {fileID: 21300000, guid: eb41d292861bec04da2df3019699f64b, type: 3}
+  - key: UI_Button_Blue_01
+    sprite: {fileID: 21300000, guid: 28a2c0bcb6a57b54890430f56acad497, type: 3}
+  - key: UI_Button_Gold_01
+    sprite: {fileID: 21300000, guid: 00c02f4f6f8b19048abc30e42a946ec8, type: 3}
+  - key: UI_Button_Red_01
+    sprite: {fileID: 21300000, guid: 5693965804aff7d4694572cf8cf3bf25, type: 3}
+  - key: UI_Ribbon_Title_01
+    sprite: {fileID: 21300000, guid: d18a3e279ed67f04e81164cb0554c6c1, type: 3}
+  - key: UI_Bar_Header_01
+    sprite: {fileID: 21300000, guid: ff75284e682c7ad47a3f9a86f70a0a1f, type: 3}
+  - key: UI_Divider_Gold_01
+    sprite: {fileID: 21300000, guid: 6051cb13804e1f241b9af6fa682c570e, type: 3}
+  - key: UI_Row_Normal_01
+    sprite: {fileID: 21300000, guid: 4d7bccc7748074f4fae5338d9d9f17a9, type: 3}
+  - key: UI_Row_Selected_01
+    sprite: {fileID: 21300000, guid: 74ece6043be075745a70c00f45ea23b3, type: 3}
+  - key: UI_Input_Field_01
+    sprite: {fileID: 21300000, guid: 355961d7fb82d2b4db45b8e90ac963dd, type: 3}
+  - key: UI_Plate_Label_01
+    sprite: {fileID: 21300000, guid: ea66bf278637aa3419b707bbed19ebd2, type: 3}
+  - key: UI_Plate_Name_01
+    sprite: {fileID: 21300000, guid: 9014cc226a5b9e14f9f582fe6a07c996, type: 3}
+  - key: UI_CardFrame_Common_01
+    sprite: {fileID: 21300000, guid: 54248a70bdc5fdb4697f351c738c0d28, type: 3}
+  - key: UI_CardFrame_Rare_01
+    sprite: {fileID: 21300000, guid: ad5f26af57f9f044e837d5da06daed18, type: 3}
+  - key: UI_CardFrame_Special_01
+    sprite: {fileID: 21300000, guid: df127bb4aafc94948bf2d63c1777d47a, type: 3}
+  - key: UI_CardFrame_Legendary_01
+    sprite: {fileID: 21300000, guid: 7b9abc28ce4523b4594c3a229172bd68, type: 3}
+  - key: UI_Slot_Unit_01
+    sprite: {fileID: 21300000, guid: ee8f4102d58abe4499fc11dafab6e10a, type: 3}
+  - key: UI_Slot_Empty_01
+    sprite: {fileID: 21300000, guid: 1c56c2dcc8c701641bd373f420605ae9, type: 3}
+  - key: UI_Gauge_Frame_01
+    sprite: {fileID: 21300000, guid: 0489c5bbfb0447b458ac68efe83a10d2, type: 3}
+  - key: UI_Gauge_Red_01
+    sprite: {fileID: 21300000, guid: a4779a34ae6fe8b4eab6d540c6459d5f, type: 3}
+  - key: UI_Gauge_Pink_01
+    sprite: {fileID: 21300000, guid: 734fbc91a291bc0499c3eff6d3d3d774, type: 3}
+  - key: UI_Gauge_Blue_01
+    sprite: {fileID: 21300000, guid: 1627ca03209380340b4ea18c6763e3c3, type: 3}
+  - key: UI_Gauge_Green_01
+    sprite: {fileID: 21300000, guid: d0599ce329d62c34fa7184cca99c6d21, type: 3}
+  - key: UI_Emblem_Crest_01
+    sprite: {fileID: 21300000, guid: 138eb3c82bca03e4a85b9bd75866ccea, type: 3}
+  - key: UI_Emblem_Victory_01
+    sprite: {fileID: 21300000, guid: e7e95869e7047a6499a8e97cb122f2f9, type: 3}
+  - key: UI_Emblem_Defeat_01
+    sprite: {fileID: 21300000, guid: 11e0a8bc8663b0b4f9cb6d099b1bcd97, type: 3}
+  - key: Icon_Stat_HP_01
+    sprite: {fileID: 21300000, guid: d6117047463f5294a94282bab953e389, type: 3}
+  - key: Icon_Stat_Attack_01
+    sprite: {fileID: 21300000, guid: cb05544473608b24f85c1bdc349ff67a, type: 3}
+  - key: Icon_Stat_Defense_01
+    sprite: {fileID: 21300000, guid: c10416d69923cc54c9cd00ccd63d71ea, type: 3}
+  - key: Icon_Stat_Shield_01
+    sprite: {fileID: 21300000, guid: 7b9a50f063b66fb47ad2561d45772ca1, type: 3}
+  - key: Icon_Stat_Lust_01
+    sprite: {fileID: 21300000, guid: c1a503961746a5a44b95a8008006f7a9, type: 3}
+  - key: Icon_Stat_Mana_01
+    sprite: {fileID: 21300000, guid: bab400a9f51db6240bc8ab0303097002, type: 3}
+  - key: Icon_Stat_Gold_01
+    sprite: {fileID: 21300000, guid: ae0683975dbfb7e489189b71276c1d60, type: 3}
+  - key: Icon_Stat_Essence_01
+    sprite: {fileID: 21300000, guid: 3fa601edfffd6514faf00e9420f13428, type: 3}
+  - key: Icon_Stat_Exp_01
+    sprite: {fileID: 21300000, guid: a029ba40d6029fb478db919d5a39accb, type: 3}
+  - key: Icon_Type_Tentacle_01
+    sprite: {fileID: 21300000, guid: 914c2457c19916947ae662c3c6fa21fe, type: 3}
+  - key: Icon_Type_Slime_01
+    sprite: {fileID: 21300000, guid: c2b404c54888e9b479093dd441ce72f0, type: 3}
+  - key: Icon_Type_Goblin_01
+    sprite: {fileID: 21300000, guid: c97bfbf0586fb09469fbef9c74d2ffbf, type: 3}
+  - key: Icon_Type_Demon_01
+    sprite: {fileID: 21300000, guid: b014d3afafe651f4bb898c2929e74f44, type: 3}
+  - key: Icon_Type_Undead_01
+    sprite: {fileID: 21300000, guid: 3d4f27c05e9a737448891aefb0d7d6be, type: 3}
+  - key: Icon_Type_Beast_01
+    sprite: {fileID: 21300000, guid: 151119d2ed6c4a146aeea0d4e79b9013, type: 3}
+  - key: Icon_Type_Spirit_01
+    sprite: {fileID: 21300000, guid: d075efaaaaa40d248975bccea7132826, type: 3}
+  - key: Icon_Type_Machine_01
+    sprite: {fileID: 21300000, guid: 5de1a4473f22f7544ab7d3e1c9496098, type: 3}
+  - key: Icon_Type_Angel_01
+    sprite: {fileID: 21300000, guid: 54c5e4aadcf97fa4caba463ce3f2df83, type: 3}
+  - key: Icon_Action_Single_01
+    sprite: {fileID: 21300000, guid: 6d18f394a424b2f4b9f2bdc028e23ce4, type: 3}
+  - key: Icon_Action_Area_01
+    sprite: {fileID: 21300000, guid: d3ac9da186cf3e44fa7570c10aa35f22, type: 3}
+  - key: Icon_Action_Shield_01
+    sprite: {fileID: 21300000, guid: 23c5431291858cc4ca4c828ab54c8a03, type: 3}
+  - key: Icon_Action_Heal_01
+    sprite: {fileID: 21300000, guid: 0b10f77aad6bfa641b3159824ad5b65d, type: 3}
+  - key: Icon_Action_Status_01
+    sprite: {fileID: 21300000, guid: 6d2251ec16554f042838762ccdb95be1, type: 3}
+  - key: Icon_Action_Cleanse_01
+    sprite: {fileID: 21300000, guid: c295e937068335b4f8052672891add55, type: 3}
+  - key: Icon_Action_Skill_01
+    sprite: {fileID: 21300000, guid: 17c73467133be5f49b766623e48fb4f3, type: 3}
+  - key: Icon_Action_Cooldown_01
+    sprite: {fileID: 21300000, guid: dc95d948ca65d674ebf4da3fdf8579fc, type: 3}
+  - key: Icon_Action_Taunt_01
+    sprite: {fileID: 21300000, guid: 25d4b8c063994a947822cce5bb9b2456, type: 3}
+  - key: Status_AttackUp_01
+    sprite: {fileID: 21300000, guid: f52299c0afb98884685d6f1be0e2d846, type: 3}
+  - key: Status_AttackDown_01
+    sprite: {fileID: 21300000, guid: d93130b0cab9a674fb17130a29067829, type: 3}
+  - key: Status_DefenseUp_01
+    sprite: {fileID: 21300000, guid: e37ad95ee79ccab499bcdd9e19e2fdc3, type: 3}
+  - key: Status_DefenseDown_01
+    sprite: {fileID: 21300000, guid: 4833719b6f564c74f8bf5b49982fc518, type: 3}
+  - key: Status_Poison_01
+    sprite: {fileID: 21300000, guid: b02aafc64af30fd459c0d565fdd4092b, type: 3}
+  - key: Status_Bind_01
+    sprite: {fileID: 21300000, guid: fafab1c6122b11e49aac2a39ae0fa282, type: 3}
+  - key: State_Summoning_01
+    sprite: {fileID: 21300000, guid: bbc46f68e200b384b921bd97315e8ed0, type: 3}
+  - key: State_Ready_01
+    sprite: {fileID: 21300000, guid: fe99ec20b02de4e408aa36ae283f490d, type: 3}
+  - key: State_Acted_01
+    sprite: {fileID: 21300000, guid: 4e37bf80048e53346a2dd58375897b78, type: 3}
+  - key: Icon_Menu_Story_01
+    sprite: {fileID: 21300000, guid: af03749550053ce4daff9ec036d3fdfc, type: 3}
+  - key: Icon_Menu_Stage_01
+    sprite: {fileID: 21300000, guid: af0df7f6597a80547a9b2d0afd7cb541, type: 3}
+  - key: Icon_Menu_Deck_01
+    sprite: {fileID: 21300000, guid: 996054a64f9831a48b37452651d42dce, type: 3}
+  - key: Icon_Menu_Enhance_01
+    sprite: {fileID: 21300000, guid: cad0836f9dde2cf4a9ed463cfedbd835, type: 3}
+  - key: Icon_Menu_Quit_01
+    sprite: {fileID: 21300000, guid: 3d82f04f4f90de54e996c434d39604fe, type: 3}
+  - key: Icon_Menu_Log_01
+    sprite: {fileID: 21300000, guid: b2628bc490a6c1a4ba4ff40953624aa5, type: 3}
+  - key: Icon_Menu_Collection_01
+    sprite: {fileID: 21300000, guid: 29cb070ff3062a646945e7e39872615e, type: 3}
+  - key: Icon_Menu_Lock_01
+    sprite: {fileID: 21300000, guid: a3bed935276c6584abd3a6f9ec7fd26b, type: 3}
+  - key: Icon_Menu_Search_01
+    sprite: {fileID: 21300000, guid: c3390715602567648a9443ed2c81ca0d, type: 3}
+  - key: Icon_Stage_Normal_01
+    sprite: {fileID: 21300000, guid: ccda67de2a45d214ea213883ebe4de57, type: 3}
+  - key: Icon_Stage_Capture_01
+    sprite: {fileID: 21300000, guid: b5178ede05b5a2a4792ca854751dada2, type: 3}
+  - key: Icon_Stage_Heroine_01
+    sprite: {fileID: 21300000, guid: c9aef9f2006b9fd46aa87837c3d29467, type: 3}
+  - key: Icon_Pile_Draw_01
+    sprite: {fileID: 21300000, guid: 86548c00c4454664283ba352b14ee1e0, type: 3}
+  - key: Icon_Pile_Discard_01
+    sprite: {fileID: 21300000, guid: 03a2f69bd0459024b91cda0a68c18c3d, type: 3}
+  - key: Icon_Misc_Close_01
+    sprite: {fileID: 21300000, guid: df7c4086aeeda67439c234166ffa278d, type: 3}
+  - key: Icon_Arrow_Left_01
+    sprite: {fileID: 21300000, guid: b2d9f729a38e3db42ab54f78961cca12, type: 3}
+  - key: Icon_Arrow_Right_01
+    sprite: {fileID: 21300000, guid: f9edc54415856a0439ae9383532bad25, type: 3}
+  - key: Icon_Arrow_Skip_01
+    sprite: {fileID: 21300000, guid: 98601acac8f1a3d479a859fceb1f135b, type: 3}
+  - key: MainMenu_BG_01
+    sprite: {fileID: 21300000, guid: 4bec37a65f67db34c925404e25bf6f70, type: 3}
+  - key: DeckBuilder_BG_01
+    sprite: {fileID: 21300000, guid: 19e925a1195da5b459f7c3fc657dd86a, type: 3}
+  - key: Enhance_BG_01
+    sprite: {fileID: 21300000, guid: 8326d6b648adc7e4c89cdd1461ff4214, type: 3}
+  - key: StageSelect_BG_01
+    sprite: {fileID: 21300000, guid: 5fa803a55448fcf4c85fcce7b0c0fa77, type: 3}
+  - key: Prologue_Story_BG_01
+    sprite: {fileID: 21300000, guid: 167a73f271e966047a6ad9c1d6aa92ab, type: 3}
+  - key: Region01_Battle_BG_01
+    sprite: {fileID: 21300000, guid: 25cae6db053a1e143a3e47d7e93297c3, type: 3}
+  iconAsset: {fileID: 11400000, guid: 5d55bf306c4cf3e46b2f15c56dae72fb, type: 2}
+  iconNames:
+  - hp
+  - atk
+  - def
+  - shd
+  - lust
+  - mana
+  - gold
+  - ess
+  - exp
+  - t_tentacle
+  - t_slime
+  - t_goblin
+  - t_demon
+  - t_undead
+  - t_beast
+  - t_spirit
+  - t_machine
+  - t_angel
+  - a_single
+  - a_area
+  - a_shield
+  - a_heal
+  - a_status
+  - a_cleanse
+  - skill
+  - cd
+  - taunt
+  - s_atkup
+  - s_atkdown
+  - s_defup
+  - s_defdown
+  - s_poison
+  - s_bind
+  - st_wait
+  - st_ready
+  - st_done
+  - m_story
+  - m_stage
+  - m_deck
+  - m_enhance
+  - m_quit
+  - m_log
+  - m_book
+  - lock
+  - search
+  - g_normal
+  - g_capture
+  - g_heroine
+  - draw
+  - discard
+  - close
+  - prev
+  - next
+  - skip

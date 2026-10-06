@@ -150,6 +150,27 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         UpdateDeckStatusUI();
+        DrawReshuffleBonus(); // 재활용 지식 패시브의 추가 드로우
+    }
+
+    // 덱을 다시 섞었을 때 재활용 지식 패시브만큼 카드를 더 뽑는다.
+    private void DrawReshuffleBonus()
+    {
+        if (pendingReshuffleBonus <= 0 || isDrawingReshuffleBonus) { return; }
+
+        int bonusCount = pendingReshuffleBonus;
+
+        pendingReshuffleBonus = 0;
+        isDrawingReshuffleBonus = true;
+
+        AddBattleLog(
+            BattleLogCategory.PlayerAction,
+            $"재활용 지식: 카드 {bonusCount}장 추가 드로우"
+        );
+
+        DrawCards(bonusCount);
+
+        isDrawingReshuffleBonus = false;
     }
 
     private void ShuffleCards(List<CardCopy> cards)
@@ -180,6 +201,9 @@ public partial class BattleManager // 분리된 전투 기능
             $"버린 카드 더미를 다시 섞었습니다. {drawPile.Count}장"
         );
 
+        pendingReshuffleBonus +=
+            GetPassiveAmount(SummonerPassiveType.RecycleKnowledge); // 재활용 지식 패시브
+
         UpdateDeckStatusUI();
 
         return true;
@@ -195,28 +219,23 @@ public partial class BattleManager // 분리된 전투 기능
             handPanel
         );
 
-        TMP_Text cardText =
-            newCardButton.GetComponentInChildren<TMP_Text>();
-
-        string monsterName =
-            cardCopy.SummonMonster != null
-                ? cardCopy.SummonMonster.MonsterName
-                : "없음";
-
-        if (cardText != null)
-        {
-            cardText.text =
-                $"{cardCopy.CardName} Lv.{cardCopy.EnhanceLevel}\n" +
-                $"비용 {cardCopy.ManaCost}\n" +
-                $"소환 {monsterName}";
-        }
-
         newCardButton.onClick.RemoveAllListeners();
         newCardButton.onClick.AddListener(
             () => TryPlayCard(cardCopy, newCardButton)
         );
 
         handButtons.Add(newCardButton);
+        handCardCopies[newCardButton] = cardCopy; // 버튼과 사본 연결
+
+        UpdateHandCardView(newCardButton, cardCopy);
+    }
+
+    private void RefreshHandCardViews() // 손패 전체 표시 갱신 (비용 변동 반영)
+    {
+        foreach (KeyValuePair<Button, CardCopy> handCard in handCardCopies)
+        {
+            UpdateHandCardView(handCard.Key, handCard.Value);
+        }
     }
     private void TryPlayCard(CardCopy cardCopy, Button cardButton) // 카드 사용 처리
     {
@@ -235,17 +254,36 @@ public partial class BattleManager // 분리된 전투 기능
             return; // 카드 사용 차단
         }
 
-        if (currentMana < cardCopy.ManaCost) // 마나 부족 확인
+        int playCost = GetCardPlayCost(cardCopy); // 패시브를 반영한 실제 비용
+        bool usedThriftySummon = playCost < cardCopy.ManaCost;
+
+        if (currentMana < playCost) // 마나 부족 확인
         {
             resultText.text = "마나가 부족합니다"; // 마나 부족 안내
             return; // 카드 사용 차단
         }
 
-        currentMana -= cardCopy.ManaCost; // 카드 비용 차감
+        currentMana -= playCost; // 카드 비용 차감
+
+        handButtons.Remove(cardButton); // 손패 버튼 목록 제거
+        handCardCopies.Remove(cardButton); // 손패 카드 연결 제거
+
+        if (usedThriftySummon)
+        {
+            thriftySummonUsed = true; // 전투당 한 번만 적용
+
+            AddBattleLog(
+                BattleLogCategory.PlayerAction,
+                $"절약 소환: {cardCopy.CardName} 비용 {cardCopy.ManaCost} → {playCost}"
+            );
+
+            RefreshHandCardViews(); // 다른 카드의 비용 표시를 원래대로 되돌린다.
+        }
 
         SummonMonster(
             cardCopy.SummonMonster,
-            cardCopy.EnhanceLevel
+            cardCopy.EnhanceLevel,
+            cardCopy
         ); // 강화 단계를 반영해 마물 소환
 
         AddBattleLog(
@@ -255,7 +293,6 @@ public partial class BattleManager // 분리된 전투 기능
         ); // 카드 소환 기록
 
         discardPile.Add(cardCopy); // 사용 카드 버린 더미 이동
-        handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         Destroy(cardButton.gameObject); // 카드 버튼 제거
         resultText.text = string.Empty; // 안내 텍스트 초기화
         UpdateBattleUI(); // 카드 사용 결과 표시
@@ -272,9 +309,9 @@ public partial class BattleManager // 분리된 전투 기능
         int configuredDeckCount = battleDeck.Count;
 
         deckStatusText.text =
-            $"드로우 {drawPile.Count} | " +
-            $"손패 {handButtons.Count} / {maxHandSize} | " +
-            $"버림 {discardPile.Count}\n" +
-            $"덱 {configuredDeckCount} / {requiredDeckSize}";
+            $"{UISkin.IconOr(UIIcons.Draw, "드로우")} {drawPile.Count}    " +
+            $"손패 {handButtons.Count} / {maxHandSize}    " +
+            $"{UISkin.IconOr(UIIcons.Discard, "버림")} {discardPile.Count}    " +
+            $"덱 {configuredDeckCount}"; // 한 줄로 표시
     }
 }

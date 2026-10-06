@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57e44878264945a88525d9116424fcf4, type: 3}
+  m_Name: SPV-09_TypeFocus
+  m_EditorClassIdentifier: Assembly-CSharp::SummonerPassiveData
+  passiveId: SPV-09
+  displayName: 계열 집중
+  passiveType: 6
+  unlockLevel: 25
+  pointCostPerRank: 1
+  maxRank: 2
+  rank1Amount: 1
+  rank2Amount: 2
+  rank3Amount: 2
+  conditionValue: 0

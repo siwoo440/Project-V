@@ -2,14 +2,23 @@ using TMPro; // TextMeshPro 기능
 using UnityEngine; // Unity 기본 기능
 using UnityEngine.UI; // Unity UI 기능
 
-// 세로형 카드 항목을 만든다. 덱 편성 화면과 강화 화면이 함께 쓴다.
-public static class CardEntryFactory
+// 세로형 카드 표시를 만든다. 덱 편성, 강화, 전투 손패가 함께 쓴다. (기획서 12.7.1: 세로 2:3)
+public static partial class CardEntryFactory
 {
+    public const float BaseWidth = 190f;  // 글자 크기의 기준이 되는 카드 너비
+    public const float CardRatio = 1.5f;  // 세로 / 가로
+
+    private const string FaceName = "CardFace"; // 카드 내용 묶음 이름
+
+    private static readonly Color PlainCardColor = new Color(0.17f, 0.14f, 0.26f, 1f); // 틀 이미지가 없을 때 카드 색
+    private static readonly Color BadgeColor = new Color(0.10f, 0.09f, 0.16f, 1f);     // 틀 이미지가 없을 때 배지 색
+    private static readonly Color ReducedCostColor = new Color(0.60f, 1f, 0.62f, 1f);  // 줄어든 비용 표시 색
+
+    // 목록에 넣을 카드 항목을 만든다.
     public static GameObject CreateCardEntry(
         Transform parentContent,
         CardData cardData,
-        string levelLabel,
-        Color levelColor,
+        int enhanceLevel,
         string countText,
         bool isInteractable,
         UnityEngine.Events.UnityAction clickAction
@@ -18,19 +27,12 @@ public static class CardEntryFactory
         if (parentContent == null) { return null; } // 배치 영역 누락 차단
         if (cardData == null) { return null; } // 빈 카드 차단
 
-        Color rarityColor = CardRarityRules.GetDisplayColor(cardData.Rarity);
-        Color typeColor = MonsterTypeRules.GetDisplayColor(cardData.MainType);
-
         GameObject entryObject =
             new GameObject("CardEntry", typeof(RectTransform));
 
         entryObject.transform.SetParent(parentContent, false);
 
         Image cardBackground = entryObject.AddComponent<Image>();
-
-        cardBackground.color = isInteractable
-            ? new Color(0.17f, 0.14f, 0.26f, 1f)
-            : new Color(0.11f, 0.10f, 0.14f, 1f);
 
         Button entryButton = entryObject.AddComponent<Button>();
         entryButton.targetGraphic = cardBackground;
@@ -40,7 +42,7 @@ public static class CardEntryFactory
         colors.normalColor = Color.white;
         colors.highlightedColor = new Color(1f, 0.94f, 0.78f, 1f);
         colors.pressedColor = new Color(0.78f, 0.72f, 0.62f, 1f);
-        colors.disabledColor = new Color(0.75f, 0.75f, 0.78f, 1f);
+        colors.disabledColor = Color.white; // 흐림 처리는 카드 내용에서 직접 한다.
         entryButton.colors = colors;
 
         if (clickAction != null)
@@ -48,94 +50,25 @@ public static class CardEntryFactory
             entryButton.onClick.AddListener(clickAction);
         }
 
-        float dimRate = isInteractable ? 1f : 0.45f;
-
-        Color nameColor = isInteractable
-            ? new Color(0.96f, 0.95f, 0.99f, 1f)
-            : new Color(0.55f, 0.54f, 0.60f, 1f);
-
-        Color accentColor = Dim(rarityColor, dimRate);
-        Color typeTextColor = Dim(typeColor, dimRate);
-
-        // 상단 희귀도 띠
-        CreateImage(
-            entryObject.transform, "RarityHeader", accentColor,
-            new Vector2(0f, 1f), new Vector2(1f, 1f),
-            new Vector2(0f, -10f), new Vector2(0f, 0f)
-        );
-
-        // 마나 배지
-        CreateImage(
-            entryObject.transform, "ManaBadge",
-            new Color(0.10f, 0.09f, 0.16f, 1f),
-            new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(10f, -54f), new Vector2(52f, -16f)
-        );
-
-        CreateLabel(
-            entryObject.transform, "ManaText", cardData.ManaCost.ToString(),
-            20f, nameColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 1f), new Vector2(0f, 1f),
-            new Vector2(10f, -54f), new Vector2(52f, -16f)
-        );
-
-        // 강화 단계 배지
-        CreateImage(
-            entryObject.transform, "LevelBadge",
-            new Color(0.10f, 0.09f, 0.16f, 1f),
-            new Vector2(1f, 1f), new Vector2(1f, 1f),
-            new Vector2(-76f, -54f), new Vector2(-10f, -16f)
-        );
-
-        CreateLabel(
-            entryObject.transform, "LevelText", levelLabel,
-            17f, Dim(levelColor, dimRate), TextAlignmentOptions.Center,
-            new Vector2(1f, 1f), new Vector2(1f, 1f),
-            new Vector2(-76f, -54f), new Vector2(-10f, -16f)
-        );
-
-        // 카드 이름
-        CreateLabel(
-            entryObject.transform, "NameText", cardData.CardName,
-            19f, nameColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.42f), new Vector2(1f, 0.76f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 계열
-        CreateLabel(
-            entryObject.transform, "TypeText",
-            MonsterTypeRules.GetDisplayName(cardData.MainType),
-            16f, typeTextColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.29f), new Vector2(1f, 0.42f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 희귀도
-        CreateLabel(
-            entryObject.transform, "RarityText",
-            CardRarityRules.GetDisplayName(cardData.Rarity),
-            16f, accentColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0.17f), new Vector2(1f, 0.29f),
-            new Vector2(8f, 0f), new Vector2(-8f, 0f)
-        );
-
-        // 수량 영역
-        CreateImage(
-            entryObject.transform, "CountBackground",
-            new Color(0.10f, 0.09f, 0.16f, 1f),
-            new Vector2(0f, 0f), new Vector2(1f, 0f),
-            new Vector2(8f, 8f), new Vector2(-8f, 40f)
-        );
-
-        CreateLabel(
-            entryObject.transform, "CountText", countText,
-            19f, accentColor, TextAlignmentOptions.Center,
-            new Vector2(0f, 0f), new Vector2(1f, 0f),
-            new Vector2(8f, 8f), new Vector2(-8f, 40f)
+        BuildFace(
+            entryObject.transform, cardBackground, cardData, enhanceLevel,
+            countText, !isInteractable, BaseWidth, true, cardData.ManaCost, false
         );
 
         return entryObject;
+    }
+
+    public static void ClearFace(Transform root) // 카드 내용 제거 (다시 그리기 전)
+    {
+        if (root == null) { return; }
+
+        Transform oldFace = root.Find(FaceName);
+
+        if (oldFace == null) { return; }
+
+        oldFace.gameObject.SetActive(false);
+        oldFace.SetParent(null, false); // 같은 프레임 안에 새 내용이 같은 이름으로 생겨도 겹치지 않게 한다.
+        Object.Destroy(oldFace.gameObject);
     }
 
     public static Color Dim(Color source, float rate) // 비활성 표시용 감광

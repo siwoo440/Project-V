@@ -269,9 +269,24 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
 
             if (presetImage != null)
             {
-                presetImage.color = i == progress.SelectedPresetIndex
-                    ? new Color(0.42f, 0.34f, 0.16f, 1f)
-                    : new Color(0.20f, 0.16f, 0.31f, 1f); // 선택 프리셋 강조
+                bool isSelected = i == progress.SelectedPresetIndex;
+
+                bool hasSkin = UISkin.ApplySelectable(
+                    presetImage, isSelected,
+                    UIKeys.ButtonBlue, UIKeys.ButtonGold,
+                    new Color(0.20f, 0.16f, 0.31f, 1f),
+                    new Color(0.42f, 0.34f, 0.16f, 1f)
+                ); // 선택 프리셋 강조
+
+                TMP_Text presetLabel =
+                    presetButton.GetComponentInChildren<TMP_Text>(true);
+
+                if (hasSkin && presetLabel != null)
+                {
+                    presetLabel.color = isSelected
+                        ? UISkin.ButtonInk
+                        : UISkin.Cream; // 금색 버튼 위에는 어두운 글자
+                }
             }
         }
 
@@ -415,13 +430,10 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
             bool canAdd = deckCount < ownedCard.OwnedCount &&
                           deckCount < ownedCard.MaxOwnedCount;
 
-            int highestLevel = ownedCard.HighestEnhanceLevel;
-
             AddEntry(CardEntryFactory.CreateCardEntry(
                 ownedCardsContent,
                 cardData,
-                $"Lv.{highestLevel}",
-                CardEnhanceRules.GetLevelColor(highestLevel),
+                ownedCard.HighestEnhanceLevel,
                 $"{deckCount} / {ownedCard.OwnedCount}",
                 canAdd,
                 () => AddCardToDeck(cardData)
@@ -442,8 +454,7 @@ public class DeckBuilderFlow : MonoBehaviour // 덱 편성 화면 연결
             AddEntry(CardEntryFactory.CreateCardEntry(
                 currentDeckContent,
                 deckCopy.CardData,
-                $"Lv.{deckCopy.EnhanceLevel}",
-                CardEnhanceRules.GetLevelColor(deckCopy.EnhanceLevel),
+                deckCopy.EnhanceLevel,
                 $"{deckCopy.CopyNumber}번 사본",
                 true,
                 () => RemoveCopyFromDeck(targetCopy)

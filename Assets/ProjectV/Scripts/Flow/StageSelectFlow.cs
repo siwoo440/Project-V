@@ -25,6 +25,7 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
     [Header("화면 이동")]
     [SerializeField] private Button startBattleButton; // 전투 시작
     [SerializeField] private Button deckBuilderButton; // 덱 편성
+    [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
     [SerializeField] private Button backButton;        // 돌아가기
 
     [Header("스테이지 목록")]
@@ -41,6 +42,12 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
     private readonly List<GameObject> generatedEntries =
         new List<GameObject>(); // 생성한 항목 목록
 
+    private readonly Dictionary<StageEntry, Image> stageImages =
+        new Dictionary<StageEntry, Image>(); // 스테이지별 줄 이미지 (선택 표시용)
+
+    private static readonly Color StageRowColor = new Color(0.18f, 0.15f, 0.26f, 1f);         // 줄 이미지가 없을 때 기본 색
+    private static readonly Color StageRowSelectedColor = new Color(0.42f, 0.34f, 0.16f, 1f); // 줄 이미지가 없을 때 선택 색
+
     private StageEntry selectedStage; // 선택한 스테이지
 
     private void Awake()
@@ -53,6 +60,9 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
 
         backButton =
             SceneUIBinder.Bind(backButton, "BackButton");
+
+        summonerButton =
+            SceneUIBinder.Bind(summonerButton, "SummonerButton");
 
         stageListContent =
             SceneUIBinder.Bind(stageListContent, "StageListContent");
@@ -84,6 +94,12 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
             backButton.onClick.AddListener(SceneFlow.LoadMainMenu);
         }
 
+        if (summonerButton != null)
+        {
+            summonerButton.onClick.RemoveAllListeners();
+            summonerButton.onClick.AddListener(SceneFlow.LoadSummoner);
+        }
+
         BuildStageList(); // 스테이지 목록 생성
     }
 
@@ -97,6 +113,7 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
         }
 
         generatedEntries.Clear();
+        stageImages.Clear();
 
         if (stages.Count == 0)
         {
@@ -124,7 +141,8 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
         entryObject.transform.SetParent(stageListContent, false);
 
         Image entryImage = entryObject.AddComponent<Image>();
-        entryImage.color = new Color(0.18f, 0.15f, 0.26f, 1f);
+        entryImage.color = StageRowColor;
+        stageImages[stage] = entryImage;
 
         Button entryButton = entryObject.AddComponent<Button>();
         entryButton.targetGraphic = entryImage;
@@ -133,8 +151,25 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
         LayoutElement entryLayout =
             entryObject.AddComponent<LayoutElement>();
 
-        entryLayout.minHeight = 56f;
-        entryLayout.preferredHeight = 56f;
+        entryLayout.minHeight = 76f;
+        entryLayout.preferredHeight = 76f;
+
+        // 전투 종류 아이콘. 잠긴 스테이지는 자물쇠를 보여준다.
+        Sprite iconSprite = UISkin.Get(
+            stage.IsUnlocked ? UISkin.StageIconKey(stage.StageType) : UIKeys.IconLock
+        );
+
+        if (iconSprite != null)
+        {
+            Image iconImage = CardEntryFactory.CreateImage(
+                entryObject.transform, "StageIcon", Color.white,
+                new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                new Vector2(34f, -25f), new Vector2(84f, 25f)
+            );
+
+            iconImage.sprite = iconSprite;
+            iconImage.preserveAspect = true;
+        }
 
         GameObject labelObject =
             new GameObject("Label", typeof(RectTransform));
@@ -154,7 +189,8 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
             : new Color(0.5f, 0.5f, 0.55f, 1f);
 
         entryLabel.alignment = TextAlignmentOptions.Left;
-        entryLabel.margin = new Vector4(16f, 0f, 8f, 0f);
+        entryLabel.raycastTarget = false;
+        entryLabel.margin = new Vector4(iconSprite != null ? 100f : 36f, 0f, 36f, 0f);
 
         RectTransform labelRect =
             labelObject.GetComponent<RectTransform>();
@@ -177,6 +213,17 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
     {
         selectedStage = stage;
         ShowStageDetail(stage);
+
+        foreach (KeyValuePair<StageEntry, Image> stageImage in stageImages)
+        {
+            if (stageImage.Value == null) { continue; }
+
+            UISkin.ApplySelectable(
+                stageImage.Value, stageImage.Key == stage,
+                UIKeys.RowNormal, UIKeys.RowSelected,
+                StageRowColor, StageRowSelectedColor
+            ); // 선택한 스테이지는 밝은 줄로 표시
+        }
     }
 
     private void ShowStageDetail(StageEntry stage)

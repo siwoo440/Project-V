@@ -105,7 +105,7 @@ public partial class BattleManager // 마물 고유 효과 처리
             case MonsterEffectType.HealPlayer:
                 int previousPlayerHp = playerCurrentHp;
                 playerCurrentHp = Mathf.Min(
-                    playerMaxHp,
+                    PlayerMaxHp,
                     playerCurrentHp + resolvedAmount
                 );
                 resultMessage = $"플레이어 HP +{playerCurrentHp - previousPlayerHp}";

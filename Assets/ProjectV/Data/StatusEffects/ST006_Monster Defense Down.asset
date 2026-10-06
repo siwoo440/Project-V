@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: ST006_Monster Defense Down
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST006
-  displayName: 방어 붕괴
+  displayName: "\uBC29\uC5B4 \uBD95\uAD34"
   statusType: 4
   amount: 1
   isNegative: 1
   durationTurns: 2
   durationTiming: 0
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 4833719b6f564c74f8bf5b49982fc518, type: 3}
   displayColor: {r: 0.7490196, g: 0.48091894, b: 0.17254901, a: 1}
-  description: 방어력을 감소시킨다.
+  description: "\uBC29\uC5B4\uB825\uC744 \uAC10\uC18C\uC2DC\uD0A8\uB2E4."

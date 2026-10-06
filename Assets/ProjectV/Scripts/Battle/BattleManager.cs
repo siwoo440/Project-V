@@ -24,6 +24,13 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private Slider heroineLustSlider; // 성욕 게이지
 
     [SerializeField] private TMP_Text heroineIntentText;    // 히로인 행동 예고 텍스트
+    [SerializeField] private Image heroineIntentIcon;       // 히로인 행동 예고 아이콘
+
+    [Header("게이지")] // 수치 막대 구분
+    [SerializeField] private UIGauge playerHpGauge;    // 플레이어 체력 게이지
+    [SerializeField] private UIGauge manaGauge;        // 마나 게이지
+    [SerializeField] private UIGauge heroineHpGauge;   // 히로인 체력 게이지
+    [SerializeField] private UIGauge heroineLustGauge; // 히로인 성욕 게이지
     [SerializeField] private TMP_Text resultText;           // 전투 결과 텍스트
     [SerializeField] private BattleLogUI battleLogUI; // 전투 로그 UI
     [SerializeField] private Button endTurnButton;          // 턴 종료 버튼
@@ -63,6 +70,11 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     private List<SynergyData> synergyDataList = new List<SynergyData>(); // 시너지 데이터 목록
 
     [SerializeField] private TMP_Text synergyText; // 시너지 표시 텍스트
+
+    [Header("소환사 UI")] // 소환사 스킬 UI 구분
+    [SerializeField] private Button summonerSkillButton;   // 소환사 액티브 스킬 버튼
+    [SerializeField] private TMP_Text summonerSkillText;   // 액티브 스킬 효과 설명
+    [SerializeField] private TMP_Text summonerPassiveText; // 장착 패시브 표시
 
     [Header("전투 설정")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30;              // 플레이어 최대 체력
@@ -118,17 +130,22 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         }
 
         ApplyProgressDeck(); // 진행 데이터 덱 적용
+        PrepareSummonerForBattle(); // 장착한 소환사 스킬과 패시브 확인
 
-        if (!ValidateBattleDeckBeforeStart()) { return; }
+        if (!ValidateBattleDeckBeforeStart())
+        {
+            UpdateSummonerUI(); // 덱 오류 시 스킬 버튼 비활성화
+            return;
+        }
 
-        playerCurrentHp = playerMaxHp; // 플레이어 체력 초기화
+        playerCurrentHp = PlayerMaxHp; // 플레이어 체력 초기화 (패시브 보정 포함)
         playerCurrentShield = Mathf.Max(0, playerStartingShield); // 플레이어 보호막 초기화
         heroineCurrentHp = heroineMaxHp; // 히로인 체력 초기화
         heroineCurrentShield = Mathf.Clamp(heroineStartingShield, 0, heroineMaxShield); // 최대치 범위 내 보호막 초기화
 
         heroineLust = 0; // 성욕 게이지 초기화
         turnNumber = 1; // 첫 번째 턴 설정
-        maximumMana = 1; // 첫 턴 최대 마나 설정
+        maximumMana = StartingMaximumMana; // 첫 턴 최대 마나 설정 (기획서 A.18)
         currentMana = maximumMana; // 현재 마나 충전
 
         isPlayerTurn = true; // 플레이어 턴 설정
@@ -143,6 +160,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         resultText.text = string.Empty; // 결과 텍스트 초기화
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
         AddBattleLog(BattleLogCategory.System, "전투를 시작했습니다."); // 전투 시작 기록
+        LogSummonerLoadout(); // 장착한 소환사 스킬과 패시브 기록
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
@@ -156,7 +174,10 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
         AddBattleLog( BattleLogCategory.System, $"덱 준비 완료: {drawPile.Count}장"  );
         RefreshSynergies(); // 시너지 초기화
-        DrawCards(startingHandCount);
+        DrawCards(
+            startingHandCount +
+            GetPassiveAmount(SummonerPassiveType.QuickStudy)
+        ); // 시작 손패 (빠른 이해 패시브의 추가 드로우 포함)
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
         UpdateBattleUI();
@@ -165,8 +186,10 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     {
         if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
 
+        CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
         ApplyTurnEndSynergies(); // 턴 종료 시너지 처리
+        ClearSummonerTurnEffects(); // 이번 턴 한정 스킬 효과 제거
         isPlayerTurn = false; // 플레이어 턴 종료
         ClearMonsterSelection(); // 마물 선택 상태 해제
         endTurnButton.interactable = false; // 턴 종료 버튼 비활성화
@@ -222,7 +245,8 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
 
-        maximumMana = Mathf.Min(10, maximumMana + 1); // 최대 마나 증가
+        maximumMana = Mathf.Min(MaximumManaLimit, maximumMana + 1); // 최대 마나 증가
+        summonerSkillUsedThisTurn = false; // 소환사 스킬 사용 횟수 초기화
         currentMana = maximumMana; // 마나 전체 회복
         resultText.text = string.Empty; // 안내 텍스트 초기화
 

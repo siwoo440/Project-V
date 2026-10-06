@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: ST002_AttackDown
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectData
   statusId: ST002
-  displayName: 공격 약화
+  displayName: "\uACF5\uACA9 \uC57D\uD654"
   statusType: 1
   amount: 2
   isNegative: 1
   durationTurns: 2
   durationTiming: 1
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: d93130b0cab9a674fb17130a29067829, type: 3}
   displayColor: {r: 0.90588236, g: 0.43529412, b: 0.31764707, a: 1}
-  description: 히로인의 공격 피해를 감소시킨다.
+  description: "\uD788\uB85C\uC778\uC758 \uACF5\uACA9 \uD53C\uD574\uB97C \uAC10\uC18C\uC2DC\uD0A8\uB2E4."

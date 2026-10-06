@@ -188,6 +188,8 @@ public partial class BattleManager // 분리된 전투 기능
         isBattleEnded = true;
         isPlayerTurn = false;
 
+        CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
+        UpdateSummonerUI(); // 스킬 버튼 비활성화
         ClearHeroineTargetPreview();
         ClearMonsterSelection();
 
@@ -207,10 +209,7 @@ public partial class BattleManager // 분리된 전투 기능
             resultText.text = resultMessage;
         }
 
-        if (heroineIntentText != null)
-        {
-            heroineIntentText.text = "다음 행동: 없음";
-        }
+        UpdateHeroineIntentUI(); // 전투 종료 후에는 예고를 비운다.
 
         if (endTurnButton != null)
         {

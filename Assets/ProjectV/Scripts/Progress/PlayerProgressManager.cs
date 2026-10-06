@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
+public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 {
     [Serializable]
     private class StartingCardEntry // 시작 보유 카드 항목
@@ -28,6 +28,15 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     [Header("덱")]
     [SerializeField, Min(1)] private int requiredDeckSize = 30; // 필요 덱 장수
 
+    [Header("소환사 스킬")]
+    [SerializeField]
+    private List<SummonerSkillData> summonerSkills =
+        new List<SummonerSkillData>(); // 액티브 스킬 목록 (해금 레벨 순)
+
+    [SerializeField]
+    private List<SummonerPassiveData> summonerPassives =
+        new List<SummonerPassiveData>(); // 패시브 목록 (해금 레벨 순)
+
     private readonly List<OwnedCardData> ownedCards =
         new List<OwnedCardData>(); // 보유 카드 목록
 
@@ -38,6 +47,13 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         new List<DeckPreset>(); // 덱 프리셋 목록
 
     private int selectedPresetIndex; // 선택한 프리셋 번호
+
+    private readonly Dictionary<SummonerPassiveData, int> passiveRanks =
+        new Dictionary<SummonerPassiveData, int>(); // 패시브별 현재 단계 (없으면 미해금)
+
+    private SummonerSkillData equippedSkill;     // 장착한 액티브 스킬
+    private SummonerPassiveData equippedPassive; // 장착한 패시브
+    private int spentPassivePoints;              // 사용한 패시브 포인트
 
     private int gold; // 현재 골드
     private int totalExperience; // 전체 경험치
@@ -230,7 +246,8 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         {
             Debug.Log(
                 $"플레이어 레벨 상승: Lv.{levelBefore} → Lv.{levelAfter} " +
-                $"(마물 강화 상한 Lv.{EnhanceLevelCap})"
+                $"(마물 강화 상한 Lv.{EnhanceLevelCap}, " +
+                $"패시브 포인트 {PassivePoints})"
             ); // 레벨 상승 기록
         }
 
@@ -356,7 +373,9 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             return 0;
         }
 
-        int essenceReward = cardData.EssenceReward; // 희귀도별 변환량
+        int essenceReward =
+            cardData.EssenceReward +
+            GetEquippedPassiveAmount(SummonerPassiveType.CaptureRecord); // 희귀도별 변환량 + 포획 기록 패시브
 
         monsterEssence += essenceReward; // 마물의 정수 지급
 
@@ -743,6 +762,10 @@ public class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         monsterEssence = Mathf.Max(0, startingMonsterEssence); // 마물의 정수 초기화
         deckPresets.Clear(); // 덱 프리셋 초기화
         selectedPresetIndex = 0;
+        passiveRanks.Clear(); // 패시브 성장 초기화
+        spentPassivePoints = 0;
+        equippedPassive = null;
+        equippedSkill = null; // 처음 조회할 때 기본 스킬을 장착한다.
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화

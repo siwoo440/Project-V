@@ -10,6 +10,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
     [SerializeField] private Button stageSelectButton; // 지역 선택
     [SerializeField] private Button deckBuilderButton; // 덱 편성
     [SerializeField] private Button enhanceButton;     // 마물 강화
+    [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
     [SerializeField] private Button quitButton;        // 게임 종료
 
     [Header("메뉴 텍스트")]
@@ -29,6 +30,9 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         enhanceButton =
             SceneUIBinder.Bind(enhanceButton, "EnhanceButton");
 
+        summonerButton =
+            SceneUIBinder.Bind(summonerButton, "SummonerButton");
+
         quitButton =
             SceneUIBinder.Bind(quitButton, "QuitButton");
 
@@ -42,6 +46,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         AddListener(stageSelectButton, SceneFlow.LoadStageSelect);
         AddListener(deckBuilderButton, SceneFlow.LoadDeckBuilder);
         AddListener(enhanceButton, SceneFlow.LoadEnhance);
+        AddListener(summonerButton, SceneFlow.LoadSummoner);
         AddListener(quitButton, SceneFlow.QuitGame);
 
         RefreshProgressText(); // 진행 정보 갱신
@@ -73,8 +78,8 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
 
         progressText.text =
             $"{progress.PlayerLevelText}    " +
-            $"골드 {progress.Gold}    " +
-            $"정수 {progress.MonsterEssence}    " +
+            $"{UISkin.IconOr(UIIcons.Gold, "골드")} {progress.Gold}    " +
+            $"{UISkin.IconOr(UIIcons.Essence, "정수")} {progress.MonsterEssence}    " +
             $"보유 카드 {progress.TotalOwnedCardCount}    " +
             $"덱 {progress.CurrentDeck.Count}"; // 진행 요약 표시
     }
