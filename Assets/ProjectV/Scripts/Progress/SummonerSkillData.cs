@@ -32,36 +32,38 @@ public class SummonerSkillData : ScriptableObject // 소환사 액티브 스킬 
         skillType == SummonerSkillType.EmergencyReturn ||
         skillType == SummonerSkillType.AbsoluteCommand;
 
-    public string EffectText // 수치를 반영한 효과 설명
+    public string EffectText => GetEffectText(0); // 수치를 반영한 효과 설명
+
+    // bonusAmount: 그리모어 강화로 더해지는 수치
+    public string GetEffectText(int bonusAmount)
     {
-        get
+        int shownAmount = Amount + Mathf.Max(0, bonusAmount);
+
+        switch (skillType)
         {
-            switch (skillType)
-            {
-                case SummonerSkillType.FocusCommand:
-                    return $"행동 가능한 마물 하나의 이번 턴 공격 +{Amount}";
+            case SummonerSkillType.FocusCommand:
+                return $"행동 가능한 마물 하나의 이번 턴 공격 +{shownAmount}";
 
-                case SummonerSkillType.EmergencyDraw:
-                    return $"카드 {Amount}장 드로우";
+            case SummonerSkillType.EmergencyDraw:
+                return $"카드 {shownAmount}장 드로우";
 
-                case SummonerSkillType.ManaCycle:
-                    return $"이번 턴 임시 마나 {Amount} 획득";
+            case SummonerSkillType.ManaCycle:
+                return $"이번 턴 임시 마나 {shownAmount} 획득";
 
-                case SummonerSkillType.ContractShield:
-                    return $"플레이어 보호막 +{Amount}";
+            case SummonerSkillType.ContractShield:
+                return $"플레이어 보호막 +{shownAmount}";
 
-                case SummonerSkillType.EmergencyReturn:
-                    return "아군 마물 하나를 손패로 반환";
+            case SummonerSkillType.EmergencyReturn:
+                return "아군 마물 하나를 손패로 반환";
 
-                case SummonerSkillType.LustResonance:
-                    return $"이번 턴 모든 아군의 성욕 부여량 +{Amount}";
+            case SummonerSkillType.LustResonance:
+                return $"이번 턴 모든 아군의 성욕 부여량 +{shownAmount}";
 
-                case SummonerSkillType.AbsoluteCommand:
-                    return "행동을 마친 마물 하나가 다시 행동";
+            case SummonerSkillType.AbsoluteCommand:
+                return "행동을 마친 마물 하나가 다시 행동";
 
-                default:
-                    return string.Empty;
-            }
+            default:
+                return string.Empty;
         }
     }
 }

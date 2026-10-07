@@ -50,6 +50,11 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.Summoner);
     }
 
+    public static void LoadGrimoire()
+    {
+        LoadScene(SceneNames.Grimoire);
+    }
+
     public static void LoadStory()
     {
         LoadScene(SceneNames.Story);

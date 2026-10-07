@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2e5a91d4b34f6e8a1f3c9b6d0e4a72, type: 3}
+  m_Name: GRM-CMD-03_LegionOrder
+  m_EditorClassIdentifier: Assembly-CSharp::GrimoireNodeData
+  nodeId: GRM-CMD-03
+  displayName: 군단 지휘
+  branch: 2
+  order: 3
+  effectType: 22
+  level1Amount: 1
+  level2Amount: 2
+  level3Amount: 3
+  description: '필드에 마물이 4체 이상이면 모든 마물의 공격 +{0}'

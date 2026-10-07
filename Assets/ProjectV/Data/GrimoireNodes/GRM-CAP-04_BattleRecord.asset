@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2e5a91d4b34f6e8a1f3c9b6d0e4a72, type: 3}
+  m_Name: GRM-CAP-04_BattleRecord
+  m_EditorClassIdentifier: Assembly-CSharp::GrimoireNodeData
+  nodeId: GRM-CAP-04
+  displayName: 전투 기록
+  branch: 7
+  order: 4
+  effectType: 73
+  level1Amount: 10
+  level2Amount: 20
+  level3Amount: 30
+  description: '전투 승리로 얻는 경험치 +{0}%'

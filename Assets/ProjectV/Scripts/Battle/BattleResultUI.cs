@@ -55,16 +55,10 @@ public class BattleResultUI : MonoBehaviour
 
         if (rewardText != null)
         {
-            string essenceRewardText =
-                resultData.DuplicateConverted
-                    ? $"\n{UISkin.IconOr(UIIcons.Essence, "마물의 정수")} +" +
-                      $"{resultData.EssenceReward}"
-                    : string.Empty; // 마물의 정수 문구
-
             rewardText.text = resultData.IsVictory
                 ? $"{UISkin.IconOr(UIIcons.Gold, "골드")} +{resultData.GoldReward}    " +
                   $"{UISkin.IconOr(UIIcons.Exp, "경험치")} +{GetShownExperience(resultData)}" +
-                  essenceRewardText
+                  GetExtraRewardText(resultData)
                 : "보상 없음"; // 전투 보상 표시
         }
 
@@ -85,6 +79,32 @@ public class BattleResultUI : MonoBehaviour
                 GetCaptureDisplayText(resultData); // 포획 결과 표시
         }
     }
+    // 욕망의 파편과 마물의 정수는 받은 것이 있을 때만 둘째 줄에 표시한다.
+    private string GetExtraRewardText(BattleResultData resultData)
+    {
+        int shardCount = resultData.ShownDesireShards;
+        int essenceCount =
+            resultData.EssenceReward + resultData.BonusEssenceReward; // 초과 포획 변환 + 그리모어 강화
+
+        string extraText = string.Empty;
+
+        if (shardCount > 0)
+        {
+            extraText +=
+                $"{UISkin.IconOr(UIIcons.Shard, "욕망의 파편")} +{shardCount}";
+        }
+
+        if (essenceCount > 0)
+        {
+            if (extraText.Length > 0) { extraText += "    "; }
+
+            extraText +=
+                $"{UISkin.IconOr(UIIcons.Essence, "마물의 정수")} +{essenceCount}";
+        }
+
+        return extraText.Length > 0 ? "\n" + extraText : string.Empty;
+    }
+
     public void Hide()
     {
         if (resultPanel != null)

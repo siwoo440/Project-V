@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2e5a91d4b34f6e8a1f3c9b6d0e4a72, type: 3}
+  m_Name: GRM-CAP-02_CaptureSkill
+  m_EditorClassIdentifier: Assembly-CSharp::GrimoireNodeData
+  nodeId: GRM-CAP-02
+  displayName: 포획술
+  branch: 7
+  order: 2
+  effectType: 71
+  level1Amount: 5
+  level2Amount: 10
+  level3Amount: 15
+  description: '포획 확률 +{0}%'

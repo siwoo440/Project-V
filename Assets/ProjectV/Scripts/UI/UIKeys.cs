@@ -44,6 +44,7 @@ public static class UIKeys
     public const string IconLog = "Icon_Menu_Log_01";
     public const string IconCollection = "Icon_Menu_Collection_01";
     public const string IconLock = "Icon_Menu_Lock_01";
+    public const string IconGrimoire = "Icon_Menu_Grimoire_01"; // 그리모어 강화 메뉴
 
     // 전투 종류 아이콘
     public const string StageNormal = "Icon_Stage_Normal_01";
@@ -57,6 +58,20 @@ public static class UIKeys
     public const string BgStageSelect = "StageSelect_BG_01";
     public const string BgStory = "Prologue_Story_BG_01";
     public const string BgBattle = "Region01_Battle_BG_01";
+    public const string BgGrimoire = "Grimoire_BG_01";
+
+    // 그리모어 강화: 분기 문양과 노드 받침
+    public const string GrimoireContract = "Icon_Grimoire_Contract_01";
+    public const string GrimoireSummon = "Icon_Grimoire_Summon_01";
+    public const string GrimoireCommand = "Icon_Grimoire_Command_01";
+    public const string GrimoireMana = "Icon_Grimoire_Mana_01";
+    public const string GrimoireMemory = "Icon_Grimoire_Memory_01";
+    public const string GrimoireDesire = "Icon_Grimoire_Desire_01";
+    public const string GrimoireLineage = "Icon_Grimoire_Lineage_01";
+    public const string GrimoireCapture = "Icon_Grimoire_Capture_01";
+    public const string NodeLocked = "UI_Node_Locked_01"; // 잠긴 노드
+    public const string NodeOpen = "UI_Node_Open_01";     // 강화할 수 있는 노드
+    public const string NodeDone = "UI_Node_Done_01";     // 최대 단계 노드
 }
 
 // 글자 사이에 넣는 아이콘 이름 모음. Tools/UIThemeGenerator/theme_spec.txt의 이름과 같다.
@@ -71,6 +86,7 @@ public static class UIIcons
     public const string Gold = "gold";
     public const string Essence = "ess";
     public const string Exp = "exp";
+    public const string Shard = "shard"; // 욕망의 파편
 
     public const string Skill = "skill";
     public const string Cooldown = "cd";

@@ -46,7 +46,9 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
         pendingReshuffleBonus = 0;
         turnLustBonus = 0;
 
-        playerMaxHpBonus = GetPassiveAmount(SummonerPassiveType.LifeContract);
+        playerMaxHpBonus =
+            Grimoire(GrimoireEffectType.PlayerMaxHp) +
+            GetPassiveAmount(SummonerPassiveType.LifeContract); // 그리모어 → 패시브 순으로 더한다.
         passiveFocusType = FindMostCommonDeckType();
 
         if (summonerSkillButton != null)
@@ -115,12 +117,9 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
 
     // ---------- 패시브 적용 ----------
 
-    private int GetSummonerAttackBonus() // 군단 지휘: 필드 마물 수 조건을 채우면 모든 마물 공격 증가
+    // 모든 마물이 받는 공격 보정: 그리모어 강화와 군단 지휘 패시브
+    private int GetSummonerAttackBonus()
     {
-        int amount = GetPassiveAmount(SummonerPassiveType.LegionCommand);
-
-        if (amount <= 0) { return 0; }
-
         int livingCount = 0;
 
         foreach (MonsterUnit fieldMonster in fieldMonsters)
@@ -129,6 +128,11 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
 
             livingCount += 1;
         }
+
+        int grimoireBonus = GetGrimoireAttackBonus(livingCount);
+        int amount = GetPassiveAmount(SummonerPassiveType.LegionCommand);
+
+        if (amount <= 0) { return grimoireBonus; }
 
         bool isActive = livingCount >= battlePassive.ConditionValue;
 
@@ -144,12 +148,14 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
             );
         }
 
-        return isActive ? amount : 0;
+        return grimoireBonus + (isActive ? amount : 0);
     }
 
-    private int GetSummonerLustBonus() // 욕망 증폭 패시브와 욕망 공명 스킬의 성욕 보정
+    private int GetSummonerLustBonus() // 그리모어 강화, 욕망 증폭 패시브, 욕망 공명 스킬의 성욕 보정
     {
-        return GetPassiveAmount(SummonerPassiveType.LustAmplify) + turnLustBonus;
+        return GetGrimoireLustBonus() +
+               GetPassiveAmount(SummonerPassiveType.LustAmplify) +
+               turnLustBonus;
     }
 
     private int ReducePlayerHpDamage(int hpDamage) // 강인한 계약: 받는 HP 피해 감소 (최소 1)
@@ -170,15 +176,29 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
         return cardCopy.ManaCost <= battlePassive.ConditionValue;
     }
 
-    private int GetCardPlayCost(CardCopy cardCopy) // 패시브를 반영한 실제 카드 비용
+    private int GetThriftyDiscount(CardCopy cardCopy) // 절약 소환 패시브로 줄어드는 비용
+    {
+        if (!IsThriftySummonTarget(cardCopy)) { return 0; }
+
+        int remainingCost =
+            cardCopy.ManaCost - GetGrimoireCardDiscount(cardCopy); // 그리모어를 먼저 적용한 뒤의 비용
+
+        return Mathf.Clamp(
+            GetPassiveAmount(SummonerPassiveType.ThriftySummon),
+            0,
+            Mathf.Max(0, remainingCost)
+        );
+    }
+
+    private int GetCardPlayCost(CardCopy cardCopy) // 그리모어와 패시브를 반영한 실제 카드 비용
     {
         if (cardCopy == null) { return 0; }
 
-        if (!IsThriftySummonTarget(cardCopy)) { return cardCopy.ManaCost; }
-
         return Mathf.Max(
             0,
-            cardCopy.ManaCost - GetPassiveAmount(SummonerPassiveType.ThriftySummon)
+            cardCopy.ManaCost -
+            GetGrimoireCardDiscount(cardCopy) -
+            GetThriftyDiscount(cardCopy)
         );
     }
 

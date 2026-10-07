@@ -54,6 +54,7 @@ public partial class BattleManager // 분리된 전투 기능
             AddBattleLog(BattleLogCategory.StatusEffect, statusText);
         }
 
+        RefreshSynergies(); // 히로인의 HP와 성욕에 따라 달라지는 보정 갱신
         UpdateBattleUI();
 
         if (heroineCurrentHp <= 0)
@@ -91,7 +92,8 @@ public partial class BattleManager // 분리된 전투 기능
 
     private string ExecuteMonsterLustAttack(MonsterUnit attackingMonster)
     {
-        int requestedLustDamage = attackingMonster.LustDamage;
+        int requestedLustDamage =
+            attackingMonster.LustDamage + ConsumeGrimoireFirstLustBonus(); // 첫 유혹 포함
         int appliedLustDamage = AddHeroineLust(requestedLustDamage);
         string lustGainText = GetLustGainText(requestedLustDamage, appliedLustDamage);
 
@@ -397,6 +399,7 @@ public partial class BattleManager // 분리된 전투 기능
         );
 
         newMonsterUnit.SetSourceCard(sourceCard); // 손패로 되돌릴 때 쓸 카드 사본 기록
+        ApplyGrimoireSummonBonus(newMonsterUnit); // 그리모어 강화의 최대 HP와 보호막
 
         fieldMonsters.Add(newMonsterUnit);
         newMonsterUnit.SetPlayerTurnInteraction(isPlayerTurn);

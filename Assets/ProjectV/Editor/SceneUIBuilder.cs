@@ -68,6 +68,7 @@ public static partial class SceneUIBuilder
         BuildScene("04_Story", BuildStoryScene);
         BuildScene("05_Enhance", BuildEnhanceScene);
         BuildScene("06_Summoner", BuildSummonerScene);
+        BuildScene("07_Grimoire", BuildGrimoireScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -138,6 +139,7 @@ public static partial class SceneUIBuilder
 
         ApplyStartingCards(progress);
         ApplySummonerDataLists(progress); // 소환사 스킬과 패시브 목록 연결
+        ApplyGrimoireNodeList(progress); // 그리모어 강화 노드 목록 연결
     }
 
     private static void BuildMainMenuScene()
@@ -190,13 +192,14 @@ public static partial class SceneUIBuilder
             new Vector2(0f, hasCrest ? -160f : -40f),
             new Vector2(560f, hasCrest ? 560f : 620f));
 
-        ApplyVerticalLayout(panel, hasCrest ? 14f : 20f, hasCrest ? 40 : 48);
+        ApplyVerticalLayout(panel, hasCrest ? 10f : 14f, hasCrest ? 36 : 44); // 버튼 7개가 들어가도록 간격을 줄였다.
 
         Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리", ButtonColor);
         Button stageButton = EnsureButton("StageSelectButton", panel.transform, "지역 선택", ButtonColor);
         Button deckButton = EnsureButton("DeckBuilderButton", panel.transform, "덱 편성", ButtonColor);
         Button enhanceButton = EnsureButton("EnhanceButton", panel.transform, "마물 강화", ButtonColor);
         Button summonerButton = EnsureButton("SummonerButton", panel.transform, "소환사", ButtonColor);
+        Button grimoireButton = EnsureButton("GrimoireButton", panel.transform, "그리모어 강화", ButtonColor);
         Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
 
         storyButton.transform.SetSiblingIndex(0);
@@ -204,17 +207,36 @@ public static partial class SceneUIBuilder
         deckButton.transform.SetSiblingIndex(2);
         enhanceButton.transform.SetSiblingIndex(3);
         summonerButton.transform.SetSiblingIndex(4);
-        quitButton.transform.SetSiblingIndex(5);
+        grimoireButton.transform.SetSiblingIndex(5);
+        quitButton.transform.SetSiblingIndex(6);
+
+        Button[] menuButtons =
+        {
+            storyButton, stageButton, deckButton, enhanceButton,
+            summonerButton, grimoireButton, quitButton,
+        };
+
+        foreach (Button menuButton in menuButtons)
+        {
+            LayoutElement menuLayout = menuButton.GetComponent<LayoutElement>();
+
+            menuLayout.minHeight = 60f; // 버튼 7개가 패널 안에 들어가는 높이
+            menuLayout.preferredHeight = 60f;
+        }
 
         EnsureButtonIcon(storyButton, UIKeys.IconStory);
         EnsureButtonIcon(stageButton, UIKeys.IconStage);
         EnsureButtonIcon(deckButton, UIKeys.IconDeck);
         EnsureButtonIcon(enhanceButton, UIKeys.IconEnhance);
         EnsureButtonIcon(summonerButton, UIKeys.IconSummoner);
+        EnsureButtonIcon(
+            grimoireButton,
+            UISkin.Has(UIKeys.IconGrimoire) ? UIKeys.IconGrimoire : UIKeys.IconCollection
+        ); // 전용 아이콘이 없으면 책 아이콘을 쓴다.
         EnsureButtonIcon(quitButton, UIKeys.IconQuit);
 
         TextMeshProUGUI progressText = EnsureText(
-            "ProgressText", canvas.transform, "Lv.1 (0 / 100)    골드 0    정수 0    보유 카드 0    덱 0",
+            "ProgressText", canvas.transform, "Lv.1 (0 / 100)    골드 0    정수 0    파편 0    보유 카드 0    덱 0",
             26f, SubTextColor, TextAlignmentOptions.Center);
 
         SetAnchored(progressText.gameObject,
@@ -230,6 +252,7 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "deckBuilderButton", deckButton);
         AssignReference(flow, "enhanceButton", enhanceButton);
         AssignReference(flow, "summonerButton", summonerButton);
+        AssignReference(flow, "grimoireButton", grimoireButton);
         AssignReference(flow, "quitButton", quitButton);
         AssignReference(flow, "progressText", progressText);
     }
@@ -693,7 +716,12 @@ public static partial class SceneUIBuilder
         GameObject controller = EnsureObject("StageSelectController", null);
         StageSelectFlow flow = controller.AddComponentIfMissing<StageSelectFlow>();
 
+        Button grimoireButton = EnsureButton("GrimoireButton", canvas.transform, "그리모어 강화", ButtonColor);
+        SetAnchored(grimoireButton.gameObject,
+            new Vector2(0f, 0f), new Vector2(1500f, 100f), new Vector2(280f, 68f));
+
         AssignReference(flow, "summonerButton", summonerButton);
+        AssignReference(flow, "grimoireButton", grimoireButton);
 
         AssignReference(flow, "startBattleButton", startButton);
         AssignReference(flow, "deckBuilderButton", deckButton);

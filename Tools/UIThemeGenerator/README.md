@@ -4,7 +4,7 @@ GPT로 받은 UI 시트(zip)를 Unity에서 바로 쓸 수 있는 조각으로 �
 
 ## 쓰는 순서
 
-1. 받은 `ui_theme_1.zip` ~ `ui_theme_4.zip`을 이 폴더에 넣는다.
+1. 받은 `ui_theme_1.zip`, `ui_theme_2.zip`처럼 이름이 `ui_theme_`으로 시작하는 zip을 이 폴더에 넣는다. 일부만 있어도 되고, 없는 시트는 건너뛴다.
 2. 아래 명령을 실행한다. (Unity는 켜 둔 채로 실행해도 된다)
 
 ```bash
@@ -23,7 +23,7 @@ powershell -ExecutionPolicy Bypass -File Tools/UIThemeGenerator/process_theme.ps
 | 늘어나는 구간 계산 | 패널은 네 변, 막대는 좌우 끝 장식의 길이를 구해 9분할 경계로 쓴다 |
 | 크기 정리 | 아이콘 256, 카드 틀 400x600, 배경 1920x1080(JPG) |
 | 카드 틀 안쪽 정리 | 안쪽이 비쳐 보이는 부분을 안쪽 색으로 메운다 |
-| 아이콘 묶음 | 글자 사이에 넣을 아이콘 54개를 한 장으로 모은다 |
+| 아이콘 묶음 | 글자 사이에 넣을 아이콘(현재 63개, 최대 64개)을 한 장으로 모은다 |
 | 목록 파일 | `Assets/ProjectV/Art/UI/UIThemeManifest.txt`에 조각 이름과 경계를 적는다 |
 
 ## 파일
@@ -36,6 +36,7 @@ powershell -ExecutionPolicy Bypass -File Tools/UIThemeGenerator/process_theme.ps
 | `raw/` | 받은 원본 시트 보관 (기획서 12.14: 원본과 게임 적용 파일 분리) |
 | `preview/` | 확인용 그림과 `report.txt` (git 제외) |
 | `GPT_Request_UI_01.md` | GPT에 보낸 요청문 기록 (기획서 12.18) |
+| `GPT_Request_UI_02.md` | 그리모어 강화 화면용 요청문 (묶음 5, `ui_theme_5.zip`) |
 
 ## 그림을 바꾸고 싶을 때
 

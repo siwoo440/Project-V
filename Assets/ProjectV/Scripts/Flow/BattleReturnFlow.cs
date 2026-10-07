@@ -67,6 +67,7 @@ public class BattleReturnFlow : MonoBehaviour // 전투 씬 복귀 처리
             $"{progress.PlayerLevelText}    " +
             $"{UISkin.IconOr(UIIcons.Gold, "골드")} {progress.Gold}    " +
             $"{UISkin.IconOr(UIIcons.Essence, "정수")} {progress.MonsterEssence}    " +
+            $"{UISkin.IconOr(UIIcons.Shard, "파편")} {progress.DesireShards}    " +
             $"보유 카드 {progress.TotalOwnedCardCount}"; // 진행 요약 표시
     }
 }

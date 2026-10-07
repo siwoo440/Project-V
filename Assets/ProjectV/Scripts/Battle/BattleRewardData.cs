@@ -15,6 +15,10 @@ public class BattleRewardData : ScriptableObject
     [SerializeField, Min(0)] private int minimumExperience = 5;
     [SerializeField, Min(0)] private int maximumExperience = 10;
 
+    [Header("그리모어 재화")]
+    [SerializeField, Min(0)]
+    private int desireShards; // 욕망의 파편. 히로인전과 지역 클리어에서만 준다. (기획서 9.9.1)
+
     [Header("포획 보상")]
     [SerializeField, Range(0f, 1f)]
     private float captureChance = 0.3f;
@@ -24,6 +28,8 @@ public class BattleRewardData : ScriptableObject
         new List<MonsterData>();
 
     public float CaptureChance => captureChance;
+
+    public int DesireShards => Mathf.Max(0, desireShards); // 욕망의 파편 보상 반환
 
     public bool HasCaptureCandidate
     {
@@ -54,11 +60,11 @@ public class BattleRewardData : ScriptableObject
         );
     }
 
-    public bool RollCapture()
+    public bool RollCapture(float bonusChance = 0f) // bonusChance: 그리모어 강화로 더해지는 확률
     {
         if (captureChance <= 0f) { return false; }
 
-        return Random.value <= captureChance;
+        return Random.value <= captureChance + Mathf.Max(0f, bonusChance);
     }
 
     public MonsterData GetRandomCaptureCandidate()

@@ -52,6 +52,7 @@ public static partial class SceneUIBuilder
         if (progressObject != null)
         {
             ApplySummonerDataLists(progressObject.GetComponent<PlayerProgressManager>());
+            ApplyGrimoireNodeList(progressObject.GetComponent<PlayerProgressManager>());
         }
     }
 

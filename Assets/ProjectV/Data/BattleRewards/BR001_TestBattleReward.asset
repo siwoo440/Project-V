@@ -16,6 +16,7 @@ MonoBehaviour:
   maximumGold: 200
   minimumExperience: 80
   maximumExperience: 80
+  desireShards: 3
   captureChance: 1
   captureCandidates:
   - {fileID: 11400000, guid: 6573435d329bf1045bf430248212723c, type: 2}

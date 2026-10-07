@@ -364,6 +364,7 @@ public partial class BattleManager // 마물 고유 효과 처리
         ); // 빈 자리를 사용할 수 있도록 제거 후 사망 효과 실행
 
         OnMonsterDefeatedForSynergy(defeatedType); // 사망 시너지 처리
+        ApplyGrimoireMonsterDefeated(); // 그리모어 강화의 사망 효과
 
         Destroy(defeatedMonster.gameObject); // 오브젝트 제거
     }
@@ -400,6 +401,7 @@ public partial class BattleManager // 마물 고유 효과 처리
         skillMonster.MarkActed(); // 행동 완료 처리
         ClearMonsterSelection();
 
+        RefreshSynergies(); // 히로인의 HP와 성욕에 따라 달라지는 보정 갱신
         UpdateBattleUI();
 
         if (heroineCurrentHp <= 0)

@@ -23,7 +23,8 @@ public partial class BattleManager // 소환사 액티브 스킬 효과와 표�
         currentMana -= battleSkill.ManaCost; // 마나 소비
         summonerSkillUsedThisTurn = true;    // 이번 턴 사용 완료
 
-        int amount = battleSkill.Amount;
+        int amount =
+            battleSkill.Amount + GetGrimoireSkillBonus(battleSkill.SkillType); // 신속 명령 반영
         string effectMessage;
 
         switch (battleSkill.SkillType)
@@ -76,6 +77,7 @@ public partial class BattleManager // 소환사 액티브 스킬 효과와 표�
         resultText.text = skillLog;
         AddBattleLog(BattleLogCategory.PlayerAction, skillLog); // 스킬 사용 기록
 
+        ApplyGrimoireSkillDraw(); // 지휘의 기억
         UpdateBattleUI();
     }
 
@@ -168,7 +170,8 @@ public partial class BattleManager // 소환사 액티브 스킬 효과와 표�
         {
             summonerSkillText.text = battleSkill == null
                 ? "장착한 스킬이 없습니다"
-                : battleSkill.EffectText;
+                : battleSkill.GetEffectText(
+                    GetGrimoireSkillBonus(battleSkill.SkillType)); // 신속 명령을 반영한 수치
         }
 
         if (summonerPassiveText != null)

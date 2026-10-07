@@ -418,6 +418,7 @@ public partial class BattleManager // 분리된 전투 기능
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - damageResult.HpDamage); // 플레이어 실제 HP 피해 적용
         resultText.text = $"{actionName}: {CreateDamageResultText("플레이어", damageResult)}"; // 플레이어 피해 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 플레이어 공격 기록
+        ApplyGrimoirePlayerDamageReactions(); // 최후의 계약, 재생 계약
     }
 
 

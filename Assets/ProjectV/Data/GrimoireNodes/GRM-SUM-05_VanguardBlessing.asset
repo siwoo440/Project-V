@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2e5a91d4b34f6e8a1f3c9b6d0e4a72, type: 3}
+  m_Name: GRM-SUM-05_VanguardBlessing
+  m_EditorClassIdentifier: Assembly-CSharp::GrimoireNodeData
+  nodeId: GRM-SUM-05
+  displayName: 선봉의 축복
+  branch: 1
+  order: 5
+  effectType: 14
+  level1Amount: 3
+  level2Amount: 6
+  level3Amount: 9
+  description: '전투마다 처음 소환한 마물의 최대 HP +{0}'

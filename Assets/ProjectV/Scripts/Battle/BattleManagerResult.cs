@@ -24,11 +24,15 @@ public partial class BattleManager // 분리된 전투 기능
             );
         }
 
-        int goldReward =
-            battleRewardData.RollGold();
+        int goldReward = ApplyGrimoirePercent(
+            battleRewardData.RollGold(),
+            GrimoireEffectType.LootAppraisal
+        ); // 전리품 감정 반영
 
-        int experienceReward =
-            battleRewardData.RollExperience();
+        int experienceReward = ApplyGrimoirePercent(
+            battleRewardData.RollExperience(),
+            GrimoireEffectType.BattleRecord
+        ); // 전투 기록 반영
 
         bool captureAttempted =
             battleRewardData.HasCaptureCandidate &&
@@ -36,7 +40,9 @@ public partial class BattleManager // 분리된 전투 기능
 
         bool captureSucceeded =
             captureAttempted &&
-            battleRewardData.RollCapture();
+            battleRewardData.RollCapture(
+                Grimoire(GrimoireEffectType.CaptureSkill) / 100f
+            ); // 포획술 반영
 
         MonsterData capturedMonster = captureSucceeded
             ? battleRewardData.GetRandomCaptureCandidate()
@@ -53,8 +59,10 @@ public partial class BattleManager // 분리된 전투 기능
             experienceReward,
             captureAttempted,
             captureSucceeded,
-            capturedMonster
-        );
+            capturedMonster,
+            battleRewardData.DesireShards,
+            Grimoire(GrimoireEffectType.EssenceCondense)
+        ); // 욕망의 파편과 정수 응축 포함
     }
     private string GetBattleOutcomeDisplayName( BattleOutcome outcome)
     {
@@ -83,7 +91,10 @@ public partial class BattleManager // 분리된 전투 기능
         AddBattleLog(
             BattleLogCategory.System,
             $"보상: 골드 +{resultData.GoldReward}, " +
-            $"경험치 +{resultData.ExperienceReward}"
+            $"경험치 +{resultData.ExperienceReward}" +
+            (resultData.DesireShardReward > 0
+                ? $", 욕망의 파편 +{resultData.DesireShardReward}"
+                : string.Empty)
         );
 
         if (!resultData.CaptureAttempted)

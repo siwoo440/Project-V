@@ -42,12 +42,22 @@ public partial class BattleManager // 타입 시너지 처리
             }
         }
 
-        // 계열 집중 패시브: 덱에 가장 많은 계열이 필드에 있으면 계산 수를 더한다.
-        int focusBonus = GetPassiveAmount(SummonerPassiveType.TypeFocus);
+        // 주력 계열(덱에 가장 많은 계열)이 필드에 있으면 계산 수를 더한다.
+        synergyCounts.TryGetValue(passiveFocusType, out int focusCount); // 보정 전 마물 수
 
-        if (focusBonus > 0 && synergyCounts.ContainsKey(passiveFocusType))
+        if (focusCount <= 0) { return; }
+
+        int focusBonus = GetPassiveAmount(SummonerPassiveType.TypeFocus); // 계열 집중 패시브
+        int resonanceNeed = Grimoire(GrimoireEffectType.TypeFocus);       // 계열 공명에 필요한 마물 수
+
+        if (resonanceNeed > 0 && focusCount >= resonanceNeed)
         {
-            synergyCounts[passiveFocusType] += focusBonus;
+            focusBonus += 1;
+        }
+
+        if (focusBonus > 0)
+        {
+            synergyCounts[passiveFocusType] = focusCount + focusBonus;
         }
     }
 
@@ -75,17 +85,21 @@ public partial class BattleManager // 타입 시너지 처리
     // 지속 보정은 누적하지 않고 매번 전체를 다시 계산해 적용한다.
     private void ApplyContinuousSynergyBonuses()
     {
-        int summonerAttackBonus = GetSummonerAttackBonus(); // 군단 지휘
-        int summonerLustBonus = GetSummonerLustBonus();     // 욕망 증폭, 욕망 공명
+        int summonerAttackBonus = GetSummonerAttackBonus(); // 그리모어 공격 보정, 군단 지휘
+        int summonerLustBonus = GetSummonerLustBonus();     // 그리모어 성욕 보정, 욕망 증폭, 욕망 공명
+        int mainTypeAttackBonus = Grimoire(GrimoireEffectType.MainTypeAttack);   // 계열 숙련
+        int mainTypeLustBonus = Grimoire(GrimoireEffectType.TemptationRecord);   // 유혹의 기록
 
         foreach (MonsterUnit fieldMonster in fieldMonsters)
         {
             if (fieldMonster == null || fieldMonster.IsDead) { continue; }
 
+            bool isMainType = IsMainTypeMonster(fieldMonster);
+
             fieldMonster.ApplySummonerBonus(
-                summonerAttackBonus,
-                summonerLustBonus
-            ); // 소환사 보정 적용
+                summonerAttackBonus + (isMainType ? mainTypeAttackBonus : 0),
+                summonerLustBonus + (isMainType ? mainTypeLustBonus : 0)
+            ); // 소환사 보정 적용 (주력 계열 마물은 계열 보정을 더 받는다)
 
             if (fieldMonster.Data == null) { continue; }
 
@@ -146,6 +160,8 @@ public partial class BattleManager // 타입 시너지 처리
 
     private void LogSynergyStageChanges()
     {
+        int activatedCount = 0; // 이번 갱신에서 새로 켜진 단계 수
+
         foreach (SynergyData synergy in synergyDataList)
         {
             if (synergy == null) { continue; }
@@ -162,6 +178,11 @@ public partial class BattleManager // 타입 시너지 처리
 
             activeSynergyStages[synergy.MonsterType] = activeStages;
 
+            if (activeStages > previousStages)
+            {
+                activatedCount += activeStages - previousStages;
+            }
+
             string changeText = activeStages > previousStages
                 ? "활성화"
                 : "해제";
@@ -171,6 +192,8 @@ public partial class BattleManager // 타입 시너지 처리
                 $"{synergy.DisplayName} 시너지 {activeStages}단계 {changeText} ({typeCount}체)"
             ); // 시너지 단계 변경 기록
         }
+
+        ApplyGrimoireSynergyDraw(activatedCount); // 계열 각성
     }
 
     private void UpdateSynergyText()

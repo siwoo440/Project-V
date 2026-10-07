@@ -153,7 +153,7 @@ public partial class BattleManager // 분리된 전투 기능
         DrawReshuffleBonus(); // 재활용 지식 패시브의 추가 드로우
     }
 
-    // 덱을 다시 섞었을 때 재활용 지식 패시브만큼 카드를 더 뽑는다.
+    // 덱을 다시 섞었을 때 순환 기록과 재활용 지식 패시브만큼 카드를 더 뽑는다.
     private void DrawReshuffleBonus()
     {
         if (pendingReshuffleBonus <= 0 || isDrawingReshuffleBonus) { return; }
@@ -165,7 +165,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         AddBattleLog(
             BattleLogCategory.PlayerAction,
-            $"재활용 지식: 카드 {bonusCount}장 추가 드로우"
+            $"덱 재구성: 카드 {bonusCount}장 추가 드로우"
         );
 
         DrawCards(bonusCount);
@@ -202,7 +202,8 @@ public partial class BattleManager // 분리된 전투 기능
         );
 
         pendingReshuffleBonus +=
-            GetPassiveAmount(SummonerPassiveType.RecycleKnowledge); // 재활용 지식 패시브
+            Grimoire(GrimoireEffectType.CycleRecord) +
+            GetPassiveAmount(SummonerPassiveType.RecycleKnowledge); // 순환 기록, 재활용 지식 패시브
 
         UpdateDeckStatusUI();
 
@@ -254,8 +255,9 @@ public partial class BattleManager // 분리된 전투 기능
             return; // 카드 사용 차단
         }
 
-        int playCost = GetCardPlayCost(cardCopy); // 패시브를 반영한 실제 비용
-        bool usedThriftySummon = playCost < cardCopy.ManaCost;
+        int playCost = GetCardPlayCost(cardCopy); // 그리모어와 패시브를 반영한 실제 비용
+        bool usedCheapContract = GetGrimoireCardDiscount(cardCopy) > 0;
+        bool usedThriftySummon = GetThriftyDiscount(cardCopy) > 0;
 
         if (currentMana < playCost) // 마나 부족 확인
         {
@@ -268,13 +270,14 @@ public partial class BattleManager // 분리된 전투 기능
         handButtons.Remove(cardButton); // 손패 버튼 목록 제거
         handCardCopies.Remove(cardButton); // 손패 카드 연결 제거
 
-        if (usedThriftySummon)
-        {
-            thriftySummonUsed = true; // 전투당 한 번만 적용
+        if (usedCheapContract) { grimoireCheapCardUsed = true; } // 저비용 계약: 전투당 한 번
+        if (usedThriftySummon) { thriftySummonUsed = true; }     // 절약 소환: 전투당 한 번
 
+        if (usedCheapContract || usedThriftySummon)
+        {
             AddBattleLog(
                 BattleLogCategory.PlayerAction,
-                $"절약 소환: {cardCopy.CardName} 비용 {cardCopy.ManaCost} → {playCost}"
+                $"비용 감소: {cardCopy.CardName} 비용 {cardCopy.ManaCost} → {playCost}"
             );
 
             RefreshHandCardViews(); // 다른 카드의 비용 표시를 원래대로 되돌린다.

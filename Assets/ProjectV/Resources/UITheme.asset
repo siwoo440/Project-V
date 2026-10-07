@@ -175,6 +175,32 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: f9edc54415856a0439ae9383532bad25, type: 3}
   - key: Icon_Arrow_Skip_01
     sprite: {fileID: 21300000, guid: 98601acac8f1a3d479a859fceb1f135b, type: 3}
+  - key: Icon_Grimoire_Contract_01
+    sprite: {fileID: 21300000, guid: 1c8411edb87c6ae4d9a8405a8367b98c, type: 3}
+  - key: Icon_Grimoire_Summon_01
+    sprite: {fileID: 21300000, guid: eed5f8f1def3efe42afc53c7f8c1bee5, type: 3}
+  - key: Icon_Grimoire_Command_01
+    sprite: {fileID: 21300000, guid: d81b1004895fb3a41bd560569c2bc132, type: 3}
+  - key: Icon_Grimoire_Mana_01
+    sprite: {fileID: 21300000, guid: 96c4e2df2d3596141bd56aeadf51bd9f, type: 3}
+  - key: Icon_Grimoire_Memory_01
+    sprite: {fileID: 21300000, guid: 83e50fa3c223a154e974677c5a5c931f, type: 3}
+  - key: Icon_Grimoire_Desire_01
+    sprite: {fileID: 21300000, guid: de96c2bb2258c184eafc54466112509d, type: 3}
+  - key: Icon_Grimoire_Lineage_01
+    sprite: {fileID: 21300000, guid: 6bb54161be1139c4aaace14df0d99d81, type: 3}
+  - key: Icon_Grimoire_Capture_01
+    sprite: {fileID: 21300000, guid: f2af5fd5518a1094abf82785fc519787, type: 3}
+  - key: Icon_Stat_Shard_01
+    sprite: {fileID: 21300000, guid: 8d62ad41dcfe3ac479f2f34b1fda0403, type: 3}
+  - key: UI_Node_Locked_01
+    sprite: {fileID: 21300000, guid: 65f11b7a7fabb994f8765aa25f39fcc4, type: 3}
+  - key: UI_Node_Open_01
+    sprite: {fileID: 21300000, guid: aeba1f73fc50adc4f98f0f3e98dba3b1, type: 3}
+  - key: UI_Node_Done_01
+    sprite: {fileID: 21300000, guid: 6fe2419bddcd58c48a9efa071e616a62, type: 3}
+  - key: Icon_Menu_Grimoire_01
+    sprite: {fileID: 21300000, guid: 7ac23e85086e4db468dbfefb8ceecb56, type: 3}
   - key: MainMenu_BG_01
     sprite: {fileID: 21300000, guid: 4bec37a65f67db34c925404e25bf6f70, type: 3}
   - key: DeckBuilder_BG_01
@@ -187,6 +213,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 167a73f271e966047a6ad9c1d6aa92ab, type: 3}
   - key: Region01_Battle_BG_01
     sprite: {fileID: 21300000, guid: 25cae6db053a1e143a3e47d7e93297c3, type: 3}
+  - key: Grimoire_BG_01
+    sprite: {fileID: 21300000, guid: 581bd155ede8cc8478314904b85e766b, type: 3}
   iconAsset: {fileID: 11400000, guid: 5d55bf306c4cf3e46b2f15c56dae72fb, type: 2}
   iconNames:
   - hp
@@ -243,3 +271,12 @@ MonoBehaviour:
   - prev
   - next
   - skip
+  - b_contract
+  - b_summon
+  - b_command
+  - b_mana
+  - b_memory
+  - b_desire
+  - b_lineage
+  - b_capture
+  - shard

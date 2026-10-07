@@ -193,6 +193,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         if (resultData.RewardsApplied) { return false; } // 중복 수령 차단
 
         int essenceGained = 0; // 이번 전투 획득 정수
+        int shardsGained = 0; // 실제로 반영된 욕망의 파편
         int experienceGained = 0; // 실제로 반영된 경험치
         int levelBefore = PlayerLevel; // 보상 반영 전 레벨
 
@@ -200,6 +201,8 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         {
             gold += Mathf.Max(0, resultData.GoldReward); // 골드 지급
             experienceGained = AddExperience(resultData.ExperienceReward); // 경험치 지급
+            shardsGained = AddDesireShards(resultData.DesireShardReward); // 욕망의 파편 지급
+            monsterEssence += resultData.BonusEssenceReward; // 그리모어 강화로 얻는 정수
 
             if (resultData.CaptureSucceeded &&
                 resultData.CapturedMonster != null)
@@ -213,7 +216,8 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         }
 
         resultData.MarkRewardsApplied(
-            essenceGained
+            essenceGained,
+            shardsGained
         ); // 보상 결과 저장
 
         resultData.SetLevelResult(
@@ -375,7 +379,8 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
         int essenceReward =
             cardData.EssenceReward +
-            GetEquippedPassiveAmount(SummonerPassiveType.CaptureRecord); // 희귀도별 변환량 + 포획 기록 패시브
+            GetGrimoireAmount(GrimoireEffectType.EssenceExtract) +
+            GetEquippedPassiveAmount(SummonerPassiveType.CaptureRecord); // 희귀도별 변환량 + 그리모어 + 포획 기록 패시브
 
         monsterEssence += essenceReward; // 마물의 정수 지급
 
@@ -766,6 +771,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         spentPassivePoints = 0;
         equippedPassive = null;
         equippedSkill = null; // 처음 조회할 때 기본 스킬을 장착한다.
+        InitializeGrimoireProgress(); // 욕망의 파편과 그리모어 강화 초기화
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화

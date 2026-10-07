@@ -26,6 +26,7 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
     [SerializeField] private Button startBattleButton; // 전투 시작
     [SerializeField] private Button deckBuilderButton; // 덱 편성
     [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
+    [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
     [SerializeField] private Button backButton;        // 돌아가기
 
     [Header("스테이지 목록")]
@@ -64,6 +65,9 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
         summonerButton =
             SceneUIBinder.Bind(summonerButton, "SummonerButton");
 
+        grimoireButton =
+            SceneUIBinder.Bind(grimoireButton, "GrimoireButton");
+
         stageListContent =
             SceneUIBinder.Bind(stageListContent, "StageListContent");
 
@@ -98,6 +102,12 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
         {
             summonerButton.onClick.RemoveAllListeners();
             summonerButton.onClick.AddListener(SceneFlow.LoadSummoner);
+        }
+
+        if (grimoireButton != null)
+        {
+            grimoireButton.onClick.RemoveAllListeners();
+            grimoireButton.onClick.AddListener(SceneFlow.LoadGrimoire);
         }
 
         BuildStageList(); // 스테이지 목록 생성

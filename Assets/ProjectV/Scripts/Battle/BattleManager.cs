@@ -130,6 +130,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         }
 
         ApplyProgressDeck(); // 진행 데이터 덱 적용
+        PrepareGrimoireForBattle(); // 그리모어 강화 수치 확인
         PrepareSummonerForBattle(); // 장착한 소환사 스킬과 패시브 확인
 
         if (!ValidateBattleDeckBeforeStart())
@@ -139,14 +140,17 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         }
 
         playerCurrentHp = PlayerMaxHp; // 플레이어 체력 초기화 (패시브 보정 포함)
-        playerCurrentShield = Mathf.Max(0, playerStartingShield); // 플레이어 보호막 초기화
+        playerCurrentShield =
+            Mathf.Max(0, playerStartingShield) +
+            Grimoire(GrimoireEffectType.StartingShield); // 플레이어 보호막 초기화 (보호의 문장 포함)
         heroineCurrentHp = heroineMaxHp; // 히로인 체력 초기화
         heroineCurrentShield = Mathf.Clamp(heroineStartingShield, 0, heroineMaxShield); // 최대치 범위 내 보호막 초기화
 
         heroineLust = 0; // 성욕 게이지 초기화
         turnNumber = 1; // 첫 번째 턴 설정
         maximumMana = StartingMaximumMana; // 첫 턴 최대 마나 설정 (기획서 A.18)
-        currentMana = maximumMana; // 현재 마나 충전
+        currentMana =
+            maximumMana + Grimoire(GrimoireEffectType.ManaVessel); // 현재 마나 충전 (마나 그릇의 임시 마나 포함)
 
         isPlayerTurn = true; // 플레이어 턴 설정
         isBattleEnded = false; // 전투 진행 상태 설정
@@ -161,6 +165,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
         AddBattleLog(BattleLogCategory.System, "전투를 시작했습니다."); // 전투 시작 기록
         LogSummonerLoadout(); // 장착한 소환사 스킬과 패시브 기록
+        LogGrimoireLoadout(); // 적용된 그리모어 강화 기록
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
@@ -176,8 +181,9 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         RefreshSynergies(); // 시너지 초기화
         DrawCards(
             startingHandCount +
+            Grimoire(GrimoireEffectType.StartingHand) +
             GetPassiveAmount(SummonerPassiveType.QuickStudy)
-        ); // 시작 손패 (빠른 이해 패시브의 추가 드로우 포함)
+        ); // 시작 손패 (기억 확장과 빠른 이해 패시브의 추가 드로우 포함)
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
         UpdateBattleUI();
@@ -188,6 +194,9 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
 
         CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
+
+        if (ApplyGrimoireTurnEnd()) { return; } // 여운으로 성욕이 가득 차면 승리로 끝난다.
+
         ApplyTurnEndSynergies(); // 턴 종료 시너지 처리
         ClearSummonerTurnEffects(); // 이번 턴 한정 스킬 효과 제거
         isPlayerTurn = false; // 플레이어 턴 종료
@@ -251,6 +260,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         resultText.text = string.Empty; // 안내 텍스트 초기화
 
         DrawCards(turnDrawCount); // 턴 시작 카드 드로우
+        ApplyGrimoireTurnStart(); // 그리모어 강화의 턴 시작 효과
         isPlayerTurn = true; // 플레이어 턴 설정
 
         PrepareMonstersForNewTurn();

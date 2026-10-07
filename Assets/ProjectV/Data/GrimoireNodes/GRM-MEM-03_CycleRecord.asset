@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c2e5a91d4b34f6e8a1f3c9b6d0e4a72, type: 3}
+  m_Name: GRM-MEM-03_CycleRecord
+  m_EditorClassIdentifier: Assembly-CSharp::GrimoireNodeData
+  nodeId: GRM-MEM-03
+  displayName: 순환 기록
+  branch: 4
+  order: 3
+  effectType: 42
+  level1Amount: 1
+  level2Amount: 2
+  level3Amount: 3
+  description: '덱을 다시 섞을 때 카드를 {0}장 더 뽑는다'

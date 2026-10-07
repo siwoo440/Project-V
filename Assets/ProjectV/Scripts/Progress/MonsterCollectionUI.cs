@@ -83,6 +83,7 @@ public class MonsterCollectionUI : MonoBehaviour
             summaryText.text =
                 $"{UISkin.IconOr(UIIcons.Gold, "골드")} {progress.Gold} | " +
                 $"{UISkin.IconOr(UIIcons.Essence, "정수")} {progress.MonsterEssence} | " +
+                $"{UISkin.IconOr(UIIcons.Shard, "파편")} {progress.DesireShards} | " +
                 $"플레이어 {progress.PlayerLevelText} | " +
                 $"보유 마물 {progress.OwnedMonsters.Count}";
         }
