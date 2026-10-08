@@ -12,6 +12,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
     [SerializeField] private Button enhanceButton;     // 마물 강화
     [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
     [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
+    [SerializeField] private Button shopButton;        // 상점
     [SerializeField] private Button quitButton;        // 게임 종료
 
     [Header("메뉴 텍스트")]
@@ -37,6 +38,9 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         grimoireButton =
             SceneUIBinder.Bind(grimoireButton, "GrimoireButton");
 
+        shopButton =
+            SceneUIBinder.Bind(shopButton, "ShopButton");
+
         quitButton =
             SceneUIBinder.Bind(quitButton, "QuitButton");
 
@@ -52,6 +56,7 @@ public class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
         AddListener(enhanceButton, SceneFlow.LoadEnhance);
         AddListener(summonerButton, SceneFlow.LoadSummoner);
         AddListener(grimoireButton, SceneFlow.LoadGrimoire);
+        AddListener(shopButton, SceneFlow.LoadShop);
         AddListener(quitButton, SceneFlow.QuitGame);
 
         RefreshProgressText(); // 진행 정보 갱신

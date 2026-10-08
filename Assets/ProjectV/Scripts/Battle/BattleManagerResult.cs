@@ -200,7 +200,9 @@ public partial class BattleManager // 분리된 전투 기능
         isPlayerTurn = false;
 
         CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
+        CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택 중이면 취소
         UpdateSummonerUI(); // 스킬 버튼 비활성화
+        UpdateBattleItemUI(); // 아이템 버튼 비활성화
         ClearHeroineTargetPreview();
         ClearMonsterSelection();
 

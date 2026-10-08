@@ -5,7 +5,7 @@ public partial class PlayerProgressManager // 그리모어 영구 강화 (기획
 {
     [Header("그리모어")]
     [SerializeField, Min(0)]
-    private int startingDesireShards = 30; // 시작 욕망의 파편 (강화 확인용 임시값, 정식 수치는 경제 일차에 정한다)
+    private int startingDesireShards = 30; // 시험용 시작 욕망의 파편 (시험값을 켰을 때만 쓴다)
 
     [SerializeField]
     private List<GrimoireNodeData> grimoireNodes =
@@ -54,8 +54,9 @@ public partial class PlayerProgressManager // 그리모어 영구 강화 (기획
     private void InitializeGrimoireProgress() // 시작 진행 데이터 구성
     {
         desireShards = Mathf.Clamp(
-            startingDesireShards, 0, GrimoireRules.ShardLimit
-        );
+            useTestStartingResources ? startingDesireShards : CurrencyRules.StartingShards,
+            0, GrimoireRules.ShardLimit
+        ); // 시험값을 끄면 기획서 9.2의 시작 파편 3개
 
         grimoireLevels.Clear();
     }

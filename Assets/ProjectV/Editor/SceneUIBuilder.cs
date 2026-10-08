@@ -69,6 +69,7 @@ public static partial class SceneUIBuilder
         BuildScene("05_Enhance", BuildEnhanceScene);
         BuildScene("06_Summoner", BuildSummonerScene);
         BuildScene("07_Grimoire", BuildGrimoireScene);
+        BuildScene("08_Shop", BuildShopScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -140,6 +141,7 @@ public static partial class SceneUIBuilder
         ApplyStartingCards(progress);
         ApplySummonerDataLists(progress); // 소환사 스킬과 패시브 목록 연결
         ApplyGrimoireNodeList(progress); // 그리모어 강화 노드 목록 연결
+        ApplyShopItemList(progress); // 상점 상품 목록 연결
     }
 
     private static void BuildMainMenuScene()
@@ -200,6 +202,7 @@ public static partial class SceneUIBuilder
         Button enhanceButton = EnsureButton("EnhanceButton", panel.transform, "마물 강화", ButtonColor);
         Button summonerButton = EnsureButton("SummonerButton", panel.transform, "소환사", ButtonColor);
         Button grimoireButton = EnsureButton("GrimoireButton", panel.transform, "그리모어 강화", ButtonColor);
+        Button shopButton = EnsureButton("ShopButton", panel.transform, "상점", ButtonColor);
         Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
 
         storyButton.transform.SetSiblingIndex(0);
@@ -208,20 +211,26 @@ public static partial class SceneUIBuilder
         enhanceButton.transform.SetSiblingIndex(3);
         summonerButton.transform.SetSiblingIndex(4);
         grimoireButton.transform.SetSiblingIndex(5);
-        quitButton.transform.SetSiblingIndex(6);
+        shopButton.transform.SetSiblingIndex(6);
+        quitButton.transform.SetSiblingIndex(7);
 
         Button[] menuButtons =
         {
             storyButton, stageButton, deckButton, enhanceButton,
-            summonerButton, grimoireButton, quitButton,
+            summonerButton, grimoireButton, shopButton, quitButton,
         };
 
         foreach (Button menuButton in menuButtons)
         {
             LayoutElement menuLayout = menuButton.GetComponent<LayoutElement>();
 
-            menuLayout.minHeight = 60f; // 버튼 7개가 패널 안에 들어가는 높이
-            menuLayout.preferredHeight = 60f;
+            menuLayout.minHeight = 52f; // 버튼 8개가 패널 안에 들어가는 높이
+            menuLayout.preferredHeight = 52f;
+
+            TextMeshProUGUI menuLabel =
+                menuButton.GetComponentInChildren<TextMeshProUGUI>(true);
+
+            if (menuLabel != null) { menuLabel.fontSize = 27f; }
         }
 
         EnsureButtonIcon(storyButton, UIKeys.IconStory);
@@ -233,6 +242,10 @@ public static partial class SceneUIBuilder
             grimoireButton,
             UISkin.Has(UIKeys.IconGrimoire) ? UIKeys.IconGrimoire : UIKeys.IconCollection
         ); // 전용 아이콘이 없으면 책 아이콘을 쓴다.
+        EnsureButtonIcon(
+            shopButton,
+            UISkin.Has(UIKeys.IconShop) ? UIKeys.IconShop : UIKeys.StatGold
+        ); // 전용 아이콘이 없으면 골드 아이콘을 쓴다.
         EnsureButtonIcon(quitButton, UIKeys.IconQuit);
 
         TextMeshProUGUI progressText = EnsureText(
@@ -253,6 +266,7 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "enhanceButton", enhanceButton);
         AssignReference(flow, "summonerButton", summonerButton);
         AssignReference(flow, "grimoireButton", grimoireButton);
+        AssignReference(flow, "shopButton", shopButton);
         AssignReference(flow, "quitButton", quitButton);
         AssignReference(flow, "progressText", progressText);
     }
@@ -720,8 +734,24 @@ public static partial class SceneUIBuilder
         SetAnchored(grimoireButton.gameObject,
             new Vector2(0f, 0f), new Vector2(1500f, 100f), new Vector2(280f, 68f));
 
+        Button shopButton = EnsureButton("ShopButton", canvas.transform, "상점", ButtonColor);
+        SetAnchored(shopButton.gameObject,
+            new Vector2(0f, 0f), new Vector2(1790f, 100f), new Vector2(240f, 68f));
+
+        // 전투에 가져갈 소모성 아이템. 전투 준비 화면이 생기기 전까지 여기에서 고른다. (기획서 9.12.3)
+        Button itemSlotButton = EnsureButton(
+            "ItemSlotButton", detailPanel.transform, "소모품: 없음", ButtonColor);
+
+        SetAnchored(itemSlotButton.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(0f, 165f), new Vector2(560f, 56f));
+
+        StyleButtonByName("ItemSlotButton", ButtonColor, 22f);
+        EnsureButtonIcon(itemSlotButton, UIKeys.ItemEmpty);
+
         AssignReference(flow, "summonerButton", summonerButton);
         AssignReference(flow, "grimoireButton", grimoireButton);
+        AssignReference(flow, "shopButton", shopButton);
+        AssignReference(flow, "itemSlotButton", itemSlotButton);
 
         AssignReference(flow, "startBattleButton", startButton);
         AssignReference(flow, "deckBuilderButton", deckButton);
@@ -1007,6 +1037,7 @@ public static partial class SceneUIBuilder
                 AssignReference(battleManager, "heroineIntentIcon", intentIcon);
                 ApplySynergyDataList(battleManager);
                 BuildBattleSummonerPanel(canvas, battleManager); // 소환사 스킬과 패시브 표시
+                BuildBattleItemButton(canvas, battleManager); // 소모성 아이템 버튼
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);

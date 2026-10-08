@@ -8,5 +8,6 @@ public static class SceneNames // 씬 이름 정의
     public const string Enhance = "05_Enhance";         // 마물 카드 강화
     public const string Summoner = "06_Summoner";       // 소환사 스킬과 패시브
     public const string Grimoire = "07_Grimoire";       // 그리모어 영구 강화
+    public const string Shop = "08_Shop";               // 상점
     public const string Battle = "BattleScene";         // 전투
 }

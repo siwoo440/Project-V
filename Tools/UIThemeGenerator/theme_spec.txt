@@ -45,3 +45,7 @@ bg | Region01_Battle_BG_01.png | Backgrounds/Region01
 sheet | Icon_Grimoire_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Grimoire_Contract_01=b_contract, Icon_Grimoire_Summon_01=b_summon, Icon_Grimoire_Command_01=b_command, Icon_Grimoire_Mana_01=b_mana, Icon_Grimoire_Memory_01=b_memory, Icon_Grimoire_Desire_01=b_desire, Icon_Grimoire_Lineage_01=b_lineage, Icon_Grimoire_Capture_01=b_capture, Icon_Stat_Shard_01=shard
 sheet | UI_Node_Sheet_01.png | 2x2 | emblem | UI/Frames | UI_Node_Locked_01, UI_Node_Open_01, UI_Node_Done_01, Icon_Menu_Grimoire_01:icon
 bg | Grimoire_BG_01.png | Backgrounds/Common
+
+# 묶음 6: 상점과 소모품 (43일차, GPT_Request_UI_03.md)
+sheet | Icon_Item_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Item_Potion_01, Icon_Item_ManaCrystal_01, Icon_Item_Seal_01, Icon_Item_Quill_01, Icon_Item_Incense_01, Icon_Menu_Shop_01, Icon_Item_EssenceBundle_01, Icon_Item_Empty_01, Icon_Item_Bag_01
+bg | Shop_BG_01.png | Backgrounds/Common

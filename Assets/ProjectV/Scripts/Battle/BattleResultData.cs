@@ -17,6 +17,17 @@ public class BattleResultData
     public int ShownDesireShards =>
         RewardsApplied ? DesireShardsGained : DesireShardReward; // 화면에 보여줄 파편 수
 
+    public int LostGold { get; private set; }    // 보유 한도 때문에 받지 못한 골드 (기획서 A.47)
+    public int LostEssence { get; private set; } // 보유 한도 때문에 받지 못한 정수
+    public int LostShards { get; private set; }  // 보유 한도 때문에 받지 못한 파편
+
+    public void SetLimitLoss(int lostGold, int lostEssence, int lostShards)
+    {
+        LostGold = Math.Max(0, lostGold);
+        LostEssence = Math.Max(0, lostEssence);
+        LostShards = Math.Max(0, lostShards);
+    }
+
     public int ExperienceGained { get; private set; }  // 실제로 반영된 경험치
     public int PlayerLevelBefore { get; private set; } // 보상 반영 전 플레이어 레벨
     public int PlayerLevelAfter { get; private set; }  // 보상 반영 후 플레이어 레벨

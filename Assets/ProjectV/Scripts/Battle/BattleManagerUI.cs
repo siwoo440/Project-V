@@ -118,6 +118,7 @@ public partial class BattleManager // 분리된 전투 기능
         UpdateDeckStatusUI();
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
         UpdateSummonerUI(); // 소환사 스킬 버튼과 패시브 표시
+        UpdateBattleItemUI(); // 소모성 아이템 버튼
     }
     
 

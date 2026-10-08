@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57e44878264945a88525d9116424fcf4, type: 3}
+  m_Name: SPV-10_MerchantSense
+  m_EditorClassIdentifier: Assembly-CSharp::SummonerPassiveData
+  passiveId: SPV-10
+  displayName: 상인의 감각
+  passiveType: 8
+  unlockLevel: 5
+  pointCostPerRank: 1
+  maxRank: 3
+  rank1Amount: 5
+  rank2Amount: 10
+  rank3Amount: 15
+  conditionValue: 0

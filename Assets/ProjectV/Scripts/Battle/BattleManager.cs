@@ -75,6 +75,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     [SerializeField] private Button summonerSkillButton;   // 소환사 액티브 스킬 버튼
     [SerializeField] private TMP_Text summonerSkillText;   // 액티브 스킬 효과 설명
     [SerializeField] private TMP_Text summonerPassiveText; // 장착 패시브 표시
+    [SerializeField] private Button battleItemButton;      // 소모성 아이템 사용 버튼
 
     [Header("전투 설정")] // 전투 설정 구분
     [SerializeField] private int playerMaxHp = 30;              // 플레이어 최대 체력
@@ -132,10 +133,12 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         ApplyProgressDeck(); // 진행 데이터 덱 적용
         PrepareGrimoireForBattle(); // 그리모어 강화 수치 확인
         PrepareSummonerForBattle(); // 장착한 소환사 스킬과 패시브 확인
+        PrepareBattleItemForBattle(); // 장착한 소모성 아이템 확인
 
         if (!ValidateBattleDeckBeforeStart())
         {
             UpdateSummonerUI(); // 덱 오류 시 스킬 버튼 비활성화
+            UpdateBattleItemUI();
             return;
         }
 
@@ -166,6 +169,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         AddBattleLog(BattleLogCategory.System, "전투를 시작했습니다."); // 전투 시작 기록
         LogSummonerLoadout(); // 장착한 소환사 스킬과 패시브 기록
         LogGrimoireLoadout(); // 적용된 그리모어 강화 기록
+        LogBattleItemLoadout(); // 가져온 소모성 아이템 기록
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         drawPile.Clear(); // 드로우 더미 초기화
@@ -193,6 +197,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
 
         CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
+        CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택 중이면 취소
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
 
         if (ApplyGrimoireTurnEnd()) { return; } // 여운으로 성욕이 가득 차면 승리로 끝난다.

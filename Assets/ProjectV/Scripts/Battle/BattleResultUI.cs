@@ -58,7 +58,8 @@ public class BattleResultUI : MonoBehaviour
             rewardText.text = resultData.IsVictory
                 ? $"{UISkin.IconOr(UIIcons.Gold, "골드")} +{resultData.GoldReward}    " +
                   $"{UISkin.IconOr(UIIcons.Exp, "경험치")} +{GetShownExperience(resultData)}" +
-                  GetExtraRewardText(resultData)
+                  GetExtraRewardText(resultData) +
+                  GetLimitLossText(resultData)
                 : "보상 없음"; // 전투 보상 표시
         }
 
@@ -103,6 +104,41 @@ public class BattleResultUI : MonoBehaviour
         }
 
         return extraText.Length > 0 ? "\n" + extraText : string.Empty;
+    }
+
+    // 보유 한도 때문에 받지 못하는 수량 안내 (기획서 9.3 / A.47). 수령 전에는 예상 값을 보여준다.
+    private string GetLimitLossText(BattleResultData resultData)
+    {
+        int lostGold = resultData.LostGold;
+        int lostEssence = resultData.LostEssence;
+        int lostShards = resultData.LostShards;
+
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        if (!resultData.RewardsApplied && progress != null)
+        {
+            lostGold = resultData.GoldReward -
+                       progress.PreviewGoldGain(resultData.GoldReward);
+
+            lostEssence = resultData.BonusEssenceReward -
+                          progress.PreviewEssenceGain(resultData.BonusEssenceReward);
+
+            lostShards = resultData.DesireShardReward -
+                         progress.PreviewShardGain(resultData.DesireShardReward);
+        }
+
+        if (lostGold <= 0 && lostEssence <= 0 && lostShards <= 0)
+        {
+            return string.Empty;
+        }
+
+        string lossText = "보유 한도 초과로 받지 못함:";
+
+        if (lostGold > 0) { lossText += $" 골드 {lostGold}"; }
+        if (lostEssence > 0) { lossText += $" 정수 {lostEssence}"; }
+        if (lostShards > 0) { lossText += $" 파편 {lostShards}"; }
+
+        return "\n" + lossText;
     }
 
     public void Hide()

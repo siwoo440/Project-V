@@ -14,6 +14,8 @@ public partial class BattleManager // 소환사 액티브 스킬 사용 (기획�
             return;
         }
 
+        CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택과 겹치지 않게 한다.
+
         if (!CanUseSummonerSkill(out string reason))
         {
             resultText.text = reason;

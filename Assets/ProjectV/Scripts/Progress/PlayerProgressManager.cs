@@ -17,6 +17,9 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
     public static PlayerProgressManager Instance { get; private set; }
 
     [Header("시작 진행 데이터")]
+    [SerializeField]
+    private bool useTestStartingResources = true; // 켜면 아래 시험값으로, 끄면 기획서 9.2의 시작 재화로 시작한다.
+
     [SerializeField, Min(0)] private int startingGold;
     [SerializeField, Min(0)] private int startingMonsterEssence; // 시작 마물의 정수
     [SerializeField, Min(0)] private int startingExperience;     // 시작 누적 경험치
@@ -195,14 +198,16 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         int essenceGained = 0; // 이번 전투 획득 정수
         int shardsGained = 0; // 실제로 반영된 욕망의 파편
         int experienceGained = 0; // 실제로 반영된 경험치
+        int goldGained = 0; // 실제로 반영된 골드
+        int essenceBefore = monsterEssence; // 보유 한도로 받지 못한 정수 계산용
         int levelBefore = PlayerLevel; // 보상 반영 전 레벨
 
         if (resultData.IsVictory)
         {
-            gold += Mathf.Max(0, resultData.GoldReward); // 골드 지급
+            goldGained = AddGold(resultData.GoldReward); // 골드 지급 (보유 한도 적용)
             experienceGained = AddExperience(resultData.ExperienceReward); // 경험치 지급
             shardsGained = AddDesireShards(resultData.DesireShardReward); // 욕망의 파편 지급
-            monsterEssence += resultData.BonusEssenceReward; // 그리모어 강화로 얻는 정수
+            AddMonsterEssence(resultData.BonusEssenceReward); // 그리모어 강화로 얻는 정수
 
             if (resultData.CaptureSucceeded &&
                 resultData.CapturedMonster != null)
@@ -219,6 +224,15 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             essenceGained,
             shardsGained
         ); // 보상 결과 저장
+
+        if (resultData.IsVictory)
+        {
+            resultData.SetLimitLoss(
+                resultData.GoldReward - goldGained,
+                essenceGained + resultData.BonusEssenceReward - (monsterEssence - essenceBefore),
+                resultData.DesireShardReward - shardsGained
+            ); // 보유 한도 때문에 받지 못한 수량 (기획서 A.47)
+        }
 
         resultData.SetLevelResult(
             experienceGained,
@@ -382,7 +396,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
             GetGrimoireAmount(GrimoireEffectType.EssenceExtract) +
             GetEquippedPassiveAmount(SummonerPassiveType.CaptureRecord); // 희귀도별 변환량 + 그리모어 + 포획 기록 패시브
 
-        monsterEssence += essenceReward; // 마물의 정수 지급
+        AddMonsterEssence(essenceReward); // 마물의 정수 지급 (보유 한도 적용)
 
         Debug.Log(
             $"카드를 정수로 변환: {cardData.CardName} " +
@@ -760,11 +774,20 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
     private void InitializeStartingProgress()
     {
-        gold = Mathf.Max(0, startingGold); // 시작 골드
+        // 시험값을 끄면 기획서 9.2의 새 게임 값으로 시작한다. (골드 500, 정수 5, 경험치 0)
+        gold = Mathf.Clamp(
+            useTestStartingResources ? startingGold : CurrencyRules.StartingGold,
+            0, CurrencyRules.GoldLimit
+        ); // 시작 골드
+
         totalExperience = PlayerLevelRules.ClampTotalExperience(
-            startingExperience
+            useTestStartingResources ? startingExperience : 0
         ); // 시작 누적 경험치
-        monsterEssence = Mathf.Max(0, startingMonsterEssence); // 마물의 정수 초기화
+
+        monsterEssence = Mathf.Clamp(
+            useTestStartingResources ? startingMonsterEssence : CurrencyRules.StartingEssence,
+            0, CurrencyRules.EssenceLimit
+        ); // 마물의 정수 초기화
         deckPresets.Clear(); // 덱 프리셋 초기화
         selectedPresetIndex = 0;
         passiveRanks.Clear(); // 패시브 성장 초기화
@@ -772,6 +795,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         equippedPassive = null;
         equippedSkill = null; // 처음 조회할 때 기본 스킬을 장착한다.
         InitializeGrimoireProgress(); // 욕망의 파편과 그리모어 강화 초기화
+        InitializeShopProgress(); // 소모성 아이템 초기화
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화

@@ -93,6 +93,15 @@ sprite|UI_Node_Locked_01|UI/Frames/UI_Node_Locked_01.png|0|0|0|0|emblem
 sprite|UI_Node_Open_01|UI/Frames/UI_Node_Open_01.png|0|0|0|0|emblem
 sprite|UI_Node_Done_01|UI/Frames/UI_Node_Done_01.png|0|0|0|0|emblem
 sprite|Icon_Menu_Grimoire_01|UI/Frames/Icon_Menu_Grimoire_01.png|0|0|0|0|icon
+sprite|Icon_Item_Potion_01|UI/Icons/Icon_Item_Potion_01.png|0|0|0|0|icon
+sprite|Icon_Item_ManaCrystal_01|UI/Icons/Icon_Item_ManaCrystal_01.png|0|0|0|0|icon
+sprite|Icon_Item_Seal_01|UI/Icons/Icon_Item_Seal_01.png|0|0|0|0|icon
+sprite|Icon_Item_Quill_01|UI/Icons/Icon_Item_Quill_01.png|0|0|0|0|icon
+sprite|Icon_Item_Incense_01|UI/Icons/Icon_Item_Incense_01.png|0|0|0|0|icon
+sprite|Icon_Menu_Shop_01|UI/Icons/Icon_Menu_Shop_01.png|0|0|0|0|icon
+sprite|Icon_Item_EssenceBundle_01|UI/Icons/Icon_Item_EssenceBundle_01.png|0|0|0|0|icon
+sprite|Icon_Item_Empty_01|UI/Icons/Icon_Item_Empty_01.png|0|0|0|0|icon
+sprite|Icon_Item_Bag_01|UI/Icons/Icon_Item_Bag_01.png|0|0|0|0|icon
 background|MainMenu_BG_01|Backgrounds/Common/MainMenu_BG_01.jpg
 background|DeckBuilder_BG_01|Backgrounds/Common/DeckBuilder_BG_01.jpg
 background|Enhance_BG_01|Backgrounds/Common/Enhance_BG_01.jpg
@@ -100,6 +109,7 @@ background|StageSelect_BG_01|WorldMap/StageSelect_BG_01.jpg
 background|Prologue_Story_BG_01|Backgrounds/Prologue/Prologue_Story_BG_01.jpg
 background|Region01_Battle_BG_01|Backgrounds/Region01/Region01_Battle_BG_01.jpg
 background|Grimoire_BG_01|Backgrounds/Common/Grimoire_BG_01.jpg
+background|Shop_BG_01|Backgrounds/Common/Shop_BG_01.jpg
 atlas|UI/Atlases/UI_IconAtlas_01.png|1024|1024
 glyph|hp|4|4|120|120
 glyph|atk|132|4|120|120

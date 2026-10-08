@@ -45,6 +45,7 @@ public static class UIKeys
     public const string IconCollection = "Icon_Menu_Collection_01";
     public const string IconLock = "Icon_Menu_Lock_01";
     public const string IconGrimoire = "Icon_Menu_Grimoire_01"; // 그리모어 강화 메뉴
+    public const string IconShop = "Icon_Menu_Shop_01";         // 상점 메뉴
 
     // 전투 종류 아이콘
     public const string StageNormal = "Icon_Stage_Normal_01";
@@ -59,6 +60,20 @@ public static class UIKeys
     public const string BgStory = "Prologue_Story_BG_01";
     public const string BgBattle = "Region01_Battle_BG_01";
     public const string BgGrimoire = "Grimoire_BG_01";
+    public const string BgShop = "Shop_BG_01";
+
+    // 재화와 소모성 아이템
+    public const string StatGold = "Icon_Stat_Gold_01";
+    public const string StatEssence = "Icon_Stat_Essence_01";
+    public const string StatShard = "Icon_Stat_Shard_01";
+    public const string ItemPotion = "Icon_Item_Potion_01";           // 하급 회복 물약
+    public const string ItemManaCrystal = "Icon_Item_ManaCrystal_01"; // 마나 결정
+    public const string ItemSeal = "Icon_Item_Seal_01";               // 보호의 인장
+    public const string ItemQuill = "Icon_Item_Quill_01";             // 기억의 깃펜
+    public const string ItemIncense = "Icon_Item_Incense_01";         // 정화의 향
+    public const string ItemEssenceBundle = "Icon_Item_EssenceBundle_01"; // 정수 묶음
+    public const string ItemEmpty = "Icon_Item_Empty_01";             // 빈 아이템 칸
+    public const string ItemBag = "Icon_Item_Bag_01";                 // 소모성 아이템 탭
 
     // 그리모어 강화: 분기 문양과 노드 받침
     public const string GrimoireContract = "Icon_Grimoire_Contract_01";

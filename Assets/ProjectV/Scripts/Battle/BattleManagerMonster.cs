@@ -355,6 +355,12 @@ public partial class BattleManager // 분리된 전투 기능
             return;
         }
 
+        if (isSelectingItemTarget)
+        {
+            ResolveBattleItemTarget(monsterUnit); // 소모성 아이템 대상 선택 처리
+            return;
+        }
+
         if (!monsterUnit.CanAttack) { resultText.text = "행동할 수 없는 마물입니다"; return; }
         if (selectedMonster != null) { selectedMonster.SetSelected(false); }
 

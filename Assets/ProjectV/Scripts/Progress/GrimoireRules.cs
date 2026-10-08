@@ -5,7 +5,7 @@ public static class GrimoireRules
 {
     public const int MaxLevel = 3;           // 노드 최대 단계 (기획서 6.6.5)
     public const int NodesPerBranch = 5;     // 분기마다 노드 수 (기획서 9.9.5)
-    public const int ShardLimit = 9999;      // 욕망의 파편 보유 한도 (기획서 A.47)
+    public const int ShardLimit = CurrencyRules.ShardLimit; // 욕망의 파편 보유 한도 (기획서 A.47)
     public const int LegionMonsterCount = 4; // 군단 지휘가 발동하는 필드 마물 수
 
     private static readonly int[] UpgradeCosts = { 3, 6, 9 }; // 단계별 파편 비용 (기획서 A.46)

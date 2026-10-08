@@ -4,7 +4,7 @@ using TMPro; // TextMeshPro 기능
 using UnityEngine; // Unity 기본 기능
 using UnityEngine.UI; // Unity UI 기능
 
-public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
+public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
 {
     [Serializable]
     public class StageEntry // 스테이지 항목
@@ -27,6 +27,8 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
     [SerializeField] private Button deckBuilderButton; // 덱 편성
     [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
     [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
+    [SerializeField] private Button shopButton;        // 상점
+    [SerializeField] private Button itemSlotButton;    // 전투에 가져갈 소모성 아이템 선택
     [SerializeField] private Button backButton;        // 돌아가기
 
     [Header("스테이지 목록")]
@@ -67,6 +69,12 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
 
         grimoireButton =
             SceneUIBinder.Bind(grimoireButton, "GrimoireButton");
+
+        shopButton =
+            SceneUIBinder.Bind(shopButton, "ShopButton");
+
+        itemSlotButton =
+            SceneUIBinder.Bind(itemSlotButton, "ItemSlotButton");
 
         stageListContent =
             SceneUIBinder.Bind(stageListContent, "StageListContent");
@@ -109,6 +117,20 @@ public class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
             grimoireButton.onClick.RemoveAllListeners();
             grimoireButton.onClick.AddListener(SceneFlow.LoadGrimoire);
         }
+
+        if (shopButton != null)
+        {
+            shopButton.onClick.RemoveAllListeners();
+            shopButton.onClick.AddListener(SceneFlow.LoadShop);
+        }
+
+        if (itemSlotButton != null)
+        {
+            itemSlotButton.onClick.RemoveAllListeners();
+            itemSlotButton.onClick.AddListener(CycleBattleItem);
+        }
+
+        RefreshItemSlot(); // 장착한 소모성 아이템 표시
 
         BuildStageList(); // 스테이지 목록 생성
     }

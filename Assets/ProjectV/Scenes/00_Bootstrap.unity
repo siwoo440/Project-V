@@ -611,6 +611,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e093fe030c3c5cf4aa2d38849d6c12dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerProgressManager
+  useTestStartingResources: 1
   startingGold: 2000
   startingMonsterEssence: 40
   startingExperience: 720
@@ -651,6 +652,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bb0df0be4ad62ea47b79c75e5a9f684a, type: 2}
   - {fileID: 11400000, guid: bcd46111a67731844b351f7870573c02, type: 2}
   - {fileID: 11400000, guid: 90492584e4288cb4fbbd1b7f97369ce4, type: 2}
+  - {fileID: 11400000, guid: 70821cee3256fc9499c8e381f975cfaa, type: 2}
   - {fileID: 11400000, guid: 8531c03f1eec8274fbb616c5d4975a0f, type: 2}
   - {fileID: 11400000, guid: f8c1639d50c944e46a8b29f5590d3d2b, type: 2}
   - {fileID: 11400000, guid: 5fb68def50a08014292a9a2d51091f55, type: 2}
@@ -698,6 +700,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9b5cebc375881c47a5de3f3d998bc54, type: 2}
   - {fileID: 11400000, guid: bbe191178fd6ac147aa9d22ccd846096, type: 2}
   - {fileID: 11400000, guid: 491d516d499e4a64a8b92280dc1a457d, type: 2}
+  shopItems:
+  - {fileID: 11400000, guid: 9821d3a0b56ca1a40acab9f3e26be100, type: 2}
+  - {fileID: 11400000, guid: 06ca7313cb7bf0c40a4202213f1b9011, type: 2}
+  - {fileID: 11400000, guid: 5222b00db4c98a848ae4856cf4b8dc74, type: 2}
+  - {fileID: 11400000, guid: 74cd6a62e6958a74ba7e66f7d2ad130d, type: 2}
+  - {fileID: 11400000, guid: 7fe7065b0d797da4b91bc0661bebc0ce, type: 2}
+  - {fileID: 11400000, guid: 7903bbc77faa74d41924ff5ac5e2f9b4, type: 2}
+  - {fileID: 11400000, guid: 353066e7f1d0b634c90b00e8d2fc2369, type: 2}
+  - {fileID: 11400000, guid: 7f5ae9fcce657454d8154b367839f440, type: 2}
 --- !u!224 &936803421
 RectTransform:
   m_ObjectHideFlags: 0
