@@ -17,6 +17,7 @@ public class OwnedCardData // 보유 마물 카드 데이터 (사본 단위 보�
     public IReadOnlyList<CardCopy> Copies => copies; // 보유 사본 목록 반환
 
     public int OwnedCount => copies.Count; // 보유 수량 반환
+    public int NextCopyNumber => nextCopyNumber; // 다음 사본 번호 반환 (저장용)
 
     public CardRarity Rarity =>
         cardData == null
@@ -59,6 +60,37 @@ public class OwnedCardData // 보유 마물 카드 데이터 (사본 단위 보�
         nextCopyNumber = 1; // 사본 번호 초기화
 
         TryAddCopy(); // 최초 보유 1장
+    }
+
+    private OwnedCardData(CardData data, bool addFirstCopy)
+    {
+        cardData = data;
+        copies = new List<CardCopy>();
+        nextCopyNumber = 1;
+
+        if (addFirstCopy) { TryAddCopy(); }
+    }
+
+    // 저장 데이터에서 되살릴 때 쓰는 빈 보유 카드. 사본은 RestoreCopy로 하나씩 넣는다.
+    public static OwnedCardData CreateForRestore(CardData data)
+    {
+        return new OwnedCardData(data, false);
+    }
+
+    public bool RestoreCopy(int copyNumber, int enhanceLevel) // 저장된 사본 하나를 되살린다.
+    {
+        if (IsFull) { return false; } // 보유 한도 초과 차단
+        if (copyNumber < 1 || GetCopy(copyNumber) != null) { return false; } // 잘못되거나 겹치는 번호 차단
+
+        copies.Add(new CardCopy(cardData, copyNumber, enhanceLevel));
+        nextCopyNumber = Mathf.Max(nextCopyNumber, copyNumber + 1);
+
+        return true;
+    }
+
+    public void RestoreNextCopyNumber(int number) // 저장된 다음 사본 번호를 되살린다. (번호가 겹치지 않게 큰 쪽을 쓴다)
+    {
+        nextCopyNumber = Mathf.Max(nextCopyNumber, number);
     }
 
     public bool TryAddCopy() // 보유 한도 내 사본 추가

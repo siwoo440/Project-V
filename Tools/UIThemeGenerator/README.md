@@ -38,6 +38,7 @@ powershell -ExecutionPolicy Bypass -File Tools/UIThemeGenerator/process_theme.ps
 | `GPT_Request_UI_01.md` | GPT에 보낸 요청문 기록 (기획서 12.18) |
 | `GPT_Request_UI_02.md` | 그리모어 강화 화면용 요청문 (묶음 5, `ui_theme_5.zip`) |
 | `GPT_Request_UI_03.md` | 상점과 소모품용 요청문 (묶음 6, `ui_theme_6.zip`) |
+| `GPT_Request_UI_04.md` | 저장과 불러오기용 요청문 (묶음 7, `ui_theme_7.zip`) |
 
 ## 그림을 바꾸고 싶을 때
 

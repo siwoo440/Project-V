@@ -170,6 +170,7 @@ public partial class PlayerProgressManager // 그리모어 영구 강화 (기획
         Debug.Log(message); // 그리모어 강화 기록
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("그리모어 강화"); // 기획서 9.17
 
         return true;
     }

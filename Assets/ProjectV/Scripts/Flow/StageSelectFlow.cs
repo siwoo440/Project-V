@@ -29,6 +29,7 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
     [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
     [SerializeField] private Button shopButton;        // 상점
     [SerializeField] private Button itemSlotButton;    // 전투에 가져갈 소모성 아이템 선택
+    [SerializeField] private Button saveButton;        // 저장과 불러오기
     [SerializeField] private Button backButton;        // 돌아가기
 
     [Header("스테이지 목록")]
@@ -75,6 +76,9 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
 
         itemSlotButton =
             SceneUIBinder.Bind(itemSlotButton, "ItemSlotButton");
+
+        saveButton =
+            SceneUIBinder.Bind(saveButton, "SaveButton");
 
         stageListContent =
             SceneUIBinder.Bind(stageListContent, "StageListContent");
@@ -128,6 +132,12 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
         {
             itemSlotButton.onClick.RemoveAllListeners();
             itemSlotButton.onClick.AddListener(CycleBattleItem);
+        }
+
+        if (saveButton != null)
+        {
+            saveButton.onClick.RemoveAllListeners();
+            saveButton.onClick.AddListener(() => SceneFlow.LoadSaveScreen(true)); // 지역 화면에서는 저장도 할 수 있다.
         }
 
         RefreshItemSlot(); // 장착한 소모성 아이템 표시

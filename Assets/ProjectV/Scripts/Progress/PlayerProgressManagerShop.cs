@@ -174,6 +174,7 @@ public partial class PlayerProgressManager
         Debug.Log(message); // 구매 기록
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("상점 구매"); // 기획서 9.17
 
         return true;
     }
@@ -231,6 +232,7 @@ public partial class PlayerProgressManager
         battleItemCounts[item] = count - 1;
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("소모성 아이템 사용"); // 쓴 순간에 기록해 전투를 그만둬도 돌아오지 않는다. (기획서 15.7)
 
         return true;
     }

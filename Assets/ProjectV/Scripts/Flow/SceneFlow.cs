@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement; // 씬 관리 기능
 public static class SceneFlow // 씬 전환 관리
 {
     public static string PreviousSceneName { get; private set; } // 이전 씬 이름
+    public static bool SaveScreenAllowsSave { get; private set; } // 저장 화면에서 저장도 할 수 있는지 여부
 
     public static void LoadScene(string sceneName) // 씬 전환
     {
@@ -18,6 +19,20 @@ public static class SceneFlow // 씬 전환 관리
         if (currentScene.name != SceneNames.Bootstrap)
         {
             PreviousSceneName = currentScene.name; // 돌아가기 대상 저장
+        }
+
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        if (progress != null)
+        {
+            if (sceneName == SceneNames.Battle)
+            {
+                progress.AutoSave("전투 시작"); // 기획서 15.6: 전투 시작 직전
+            }
+            else
+            {
+                progress.AutoSaveIfChanged("화면 이동"); // 덱 편성, 장착 변경처럼 그때그때 저장하지 않은 변경
+            }
         }
 
         Debug.Log($"씬 전환: {currentScene.name} -> {sceneName}"); // 전환 기록
@@ -58,6 +73,13 @@ public static class SceneFlow // 씬 전환 관리
     public static void LoadShop()
     {
         LoadScene(SceneNames.Shop);
+    }
+
+    // 저장 화면으로 이동한다. 저장은 전투 밖의 지역 화면에서만 할 수 있다. (기획서 15.5)
+    public static void LoadSaveScreen(bool allowSave)
+    {
+        SaveScreenAllowsSave = allowSave;
+        LoadScene(SceneNames.SaveLoad);
     }
 
     public static void LoadStory()

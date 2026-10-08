@@ -61,6 +61,7 @@ public static class UIKeys
     public const string BgBattle = "Region01_Battle_BG_01";
     public const string BgGrimoire = "Grimoire_BG_01";
     public const string BgShop = "Shop_BG_01";
+    public const string BgSaveLoad = "SaveLoad_BG_01";
 
     // 재화와 소모성 아이템
     public const string StatGold = "Icon_Stat_Gold_01";
@@ -74,6 +75,17 @@ public static class UIKeys
     public const string ItemEssenceBundle = "Icon_Item_EssenceBundle_01"; // 정수 묶음
     public const string ItemEmpty = "Icon_Item_Empty_01";             // 빈 아이템 칸
     public const string ItemBag = "Icon_Item_Bag_01";                 // 소모성 아이템 탭
+
+    // 저장과 불러오기
+    public const string SaveWrite = "Icon_Save_Write_01";       // 저장
+    public const string SaveLoad = "Icon_Save_Load_01";         // 불러오기
+    public const string SaveContinue = "Icon_Save_Continue_01"; // 이어하기
+    public const string SaveNewGame = "Icon_Save_NewGame_01";   // 새 게임
+    public const string SaveAuto = "Icon_Save_Auto_01";         // 자동 저장
+    public const string SaveDelete = "Icon_Save_Delete_01";     // 저장 삭제
+    public const string SaveWarning = "Icon_Save_Warning_01";   // 불러올 수 없는 저장
+    public const string SaveTime = "Icon_Save_Time_01";         // 플레이 시간
+    public const string SaveEmpty = "Icon_Save_Empty_01";       // 빈 저장 칸
 
     // 그리모어 강화: 분기 문양과 노드 받침
     public const string GrimoireContract = "Icon_Grimoire_Contract_01";

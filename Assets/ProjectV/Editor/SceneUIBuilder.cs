@@ -70,6 +70,7 @@ public static partial class SceneUIBuilder
         BuildScene("06_Summoner", BuildSummonerScene);
         BuildScene("07_Grimoire", BuildGrimoireScene);
         BuildScene("08_Shop", BuildShopScene);
+        BuildScene("09_SaveLoad", BuildSaveLoadScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -142,6 +143,7 @@ public static partial class SceneUIBuilder
         ApplySummonerDataLists(progress); // 소환사 스킬과 패시브 목록 연결
         ApplyGrimoireNodeList(progress); // 그리모어 강화 노드 목록 연결
         ApplyShopItemList(progress); // 상점 상품 목록 연결
+        ApplyCardCatalog(progress); // 저장 데이터의 카드 ID를 되돌릴 때 쓰는 전체 카드 목록
     }
 
     private static void BuildMainMenuScene()
@@ -269,6 +271,8 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "shopButton", shopButton);
         AssignReference(flow, "quitButton", quitButton);
         AssignReference(flow, "progressText", progressText);
+
+        BuildMainMenuSavePanel(canvas, flow, hasCrest); // 이어하기, 새 게임, 불러오기
     }
 
     private static void BuildDeckBuilderScene()
@@ -752,6 +756,8 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "grimoireButton", grimoireButton);
         AssignReference(flow, "shopButton", shopButton);
         AssignReference(flow, "itemSlotButton", itemSlotButton);
+
+        BuildStageSelectSaveButton(canvas, flow); // 저장 화면으로 가는 버튼
 
         AssignReference(flow, "startBattleButton", startButton);
         AssignReference(flow, "deckBuilderButton", deckButton);

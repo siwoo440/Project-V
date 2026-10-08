@@ -58,6 +58,13 @@ public class CardCopy // 개별 마물 카드 사본 (기획서 6.9.1)
         enhanceLevel = CardEnhanceRules.MinLevel; // 새 사본은 Lv.1
     }
 
+    public CardCopy(CardData data, int number, int level) // 저장 데이터에서 되살린 사본
+    {
+        cardData = data;
+        copyNumber = Mathf.Max(1, number);
+        enhanceLevel = CardEnhanceRules.ClampLevel(level);
+    }
+
     public bool RaiseEnhanceLevel() // 강화 단계 1 상승 (기획서 6.9.7: 되돌리기 없음)
     {
         if (IsMaxLevel) { return false; } // 최대 단계 차단

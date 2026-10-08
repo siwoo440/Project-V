@@ -152,6 +152,7 @@ public static partial class SceneUIBuilder
         if (progressObject != null)
         {
             ApplyShopItemList(progressObject.GetComponent<PlayerProgressManager>());
+            ApplyCardCatalog(progressObject.GetComponent<PlayerProgressManager>()); // 진입 씬과 같은 목록을 넣어 둔다.
         }
     }
 

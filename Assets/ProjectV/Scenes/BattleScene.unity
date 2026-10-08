@@ -14085,6 +14085,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9b5cebc375881c47a5de3f3d998bc54, type: 2}
   - {fileID: 11400000, guid: bbe191178fd6ac147aa9d22ccd846096, type: 2}
   - {fileID: 11400000, guid: 491d516d499e4a64a8b92280dc1a457d, type: 2}
+  cardCatalog: []
   shopItems:
   - {fileID: 11400000, guid: 9821d3a0b56ca1a40acab9f3e26be100, type: 2}
   - {fileID: 11400000, guid: 06ca7313cb7bf0c40a4202213f1b9011, type: 2}

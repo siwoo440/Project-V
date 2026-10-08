@@ -700,6 +700,24 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9b5cebc375881c47a5de3f3d998bc54, type: 2}
   - {fileID: 11400000, guid: bbe191178fd6ac147aa9d22ccd846096, type: 2}
   - {fileID: 11400000, guid: 491d516d499e4a64a8b92280dc1a457d, type: 2}
+  cardCatalog:
+  - {fileID: 11400000, guid: 6c6e05023667eb443b6785866fa78456, type: 2}
+  - {fileID: 11400000, guid: 66b71cf733e504947b212a60d18ce941, type: 2}
+  - {fileID: 11400000, guid: b072590b17b1cc24aa2a46ae481cb5dc, type: 2}
+  - {fileID: 11400000, guid: 4bb9ac271c14932489808fa8364a05c7, type: 2}
+  - {fileID: 11400000, guid: b30ed08bc595a1c42ba2940f40889885, type: 2}
+  - {fileID: 11400000, guid: f22d737bbd926db40802047a4f34de55, type: 2}
+  - {fileID: 11400000, guid: eb553a381279489fa9021d2ba94b837a, type: 2}
+  - {fileID: 11400000, guid: 59d83edd0f484a79b71b7155d5fe7e12, type: 2}
+  - {fileID: 11400000, guid: e0f329c433364665bac4093c93af8d27, type: 2}
+  - {fileID: 11400000, guid: 46bf6c06506a4a0798544e7a42eabe45, type: 2}
+  - {fileID: 11400000, guid: a4d8475c5034492aae6fbde7f1d6f3d8, type: 2}
+  - {fileID: 11400000, guid: 5a94a5dc02094d85908d317688502012, type: 2}
+  - {fileID: 11400000, guid: 4cfd858f5b224d7ca6d8a57d98438168, type: 2}
+  - {fileID: 11400000, guid: b728dc17653142c68683007312e09715, type: 2}
+  - {fileID: 11400000, guid: d0152503bd1544679b227184c2de391d, type: 2}
+  - {fileID: 11400000, guid: 50e50652023f40728aede4306e73dd39, type: 2}
+  - {fileID: 11400000, guid: 3ebdab5d9c404b6a822b91e21391f436, type: 2}
   shopItems:
   - {fileID: 11400000, guid: 9821d3a0b56ca1a40acab9f3e26be100, type: 2}
   - {fileID: 11400000, guid: 06ca7313cb7bf0c40a4202213f1b9011, type: 2}

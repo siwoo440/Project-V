@@ -177,6 +177,7 @@ public partial class PlayerProgressManager // 소환사 액티브 스킬과 패�
         Debug.Log(message); // 패시브 성장 기록
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("패시브 강화"); // 되돌릴 수 없는 성장은 바로 저장한다.
 
         return true;
     }

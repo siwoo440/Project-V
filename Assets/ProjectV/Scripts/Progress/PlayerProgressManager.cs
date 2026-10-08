@@ -188,6 +188,13 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         Instance = this;
         DontDestroyOnLoad(gameObject);
         InitializeStartingProgress();
+
+        ProgressChanged += MarkUnsavedChanges; // 바뀐 것이 있을 때만 화면 이동 시 자동 저장한다.
+
+        if (GetComponent<SaveIndicator>() == null)
+        {
+            gameObject.AddComponent<SaveIndicator>(); // 화면 오른쪽 위의 저장 표시
+        }
     }
 
     public bool ApplyBattleResult(BattleResultData resultData)
@@ -241,6 +248,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         ); // 레벨 변화 저장
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("전투 결과"); // 기획서 15.6
 
         return true;
     }
@@ -531,6 +539,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         Debug.Log(resultMessage); // 강화 결과 기록
 
         ProgressChanged?.Invoke(); // 진행 데이터 변경 알림
+        AutoSave("마물 강화"); // 기획서 9.17
 
         return true;
     }
