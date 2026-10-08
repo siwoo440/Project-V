@@ -122,7 +122,7 @@ public partial class ShopFlow // 상점 화면의 탭과 상품 목록
 
         string stateText = isUnlocked
             ? $"보유 {progress.GetShopOwnedCount(item)}"
-            : $"{UISkin.IconOr(UIIcons.Lock, "잠김")} Lv.{item.UnlockLevel}";
+            : $"{UISkin.IconOr(UIIcons.Lock, "잠김")} {ShopRules.GetUnlockLabel(item)}";
 
         CardEntryFactory.CreateLabel(
             rowObject.transform, "TitleText", item.DisplayName,

@@ -84,6 +84,22 @@ public partial class PlayerProgressManager // 진행 데이터를 저장 데이�
             data.battleItems.Add(new SaveCountEntry { id = pair.Key.ItemId, value = pair.Value });
         }
 
+        foreach (RegionData region in regions) // 지역별 진행
+        {
+            if (region == null) { continue; }
+
+            bool isVisited = visitedRegions.Contains(region);
+            bool isCleared = clearedRegions.Contains(region);
+
+            if (!isVisited && !isCleared) { continue; } // 손대지 않은 지역은 적지 않는다.
+
+            data.regions.Add(
+                new SaveRegionEntry { id = region.RegionId, visited = isVisited, cleared = isCleared }
+            );
+        }
+
+        data.currentRegionId = currentRegion == null ? string.Empty : currentRegion.RegionId;
+
         BattleItemData equippedItem = EquippedBattleItem; // 다 쓴 아이템은 장착하지 않은 것으로 적는다.
 
         data.equippedBattleItemId = equippedItem == null ? string.Empty : equippedItem.ItemId;

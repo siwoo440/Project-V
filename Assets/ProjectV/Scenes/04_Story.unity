@@ -161,7 +161,7 @@ MonoBehaviour:
   - speakerName: "\uADF8\uB9AC\uBAA8\uC5B4"
     dialogue: "\uC9C0\uC5ED\uC744 \uACE8\uB77C \uC2DC\uC791\uD574\uB77C. \uB371 \uAD6C\uC131\uC774
       \uBAA8\uB4E0 \uAC83\uC744 \uACB0\uC815\uD55C\uB2E4."
-  nextSceneName: 03_StageSelect
+  nextSceneName: 10_WorldMap
 --- !u!224 &178368703
 RectTransform:
   m_ObjectHideFlags: 0

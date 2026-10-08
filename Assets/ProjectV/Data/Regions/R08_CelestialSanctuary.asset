@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1d4c7e2b5f84903a6e1d8c2f7b04e95, type: 3}
+  m_Name: R08_CelestialSanctuary
+  m_EditorClassIdentifier: Assembly-CSharp::RegionData
+  regionId: R08
+  displayName: '천계 성역'
+  order: 8
+  heroineName: '엘리시아'
+  battleTheme: '회복, 보호막, 정화, 빛 공격'
+  stageLabel: '후반'
+  description: 
+  iconKey: Icon_Region_R08_01
+  backgroundKey: 
+  mapPosition: {x: 0.128, y: 0.895}

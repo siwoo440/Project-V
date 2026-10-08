@@ -35,18 +35,19 @@ public static class ShopRules
         return Mathf.Max(1, basePrice * percent / 100);
     }
 
-    // 기획서 9.12.2는 챕터 클리어로 상품이 열린다. 챕터 진행이 생기기 전까지는
-    // 기획서 6.3.5의 레벨 해금을 기준으로 판정한다.
-    public static bool IsUnlocked(ShopItemData item, int playerLevel)
+    // 상품은 챕터 클리어로 열린다. 해금 챕터가 0이면 상점이 열릴 때부터 판다. (기획서 9.12.2)
+    public static string GetUnlockLabel(ShopItemData item) // 목록에 적는 짧은 해금 조건
     {
-        return item != null && playerLevel >= item.UnlockLevel;
+        return item == null
+            ? string.Empty
+            : $"{RegionRules.GetChapterName(item.UnlockChapter)} 클리어";
     }
 
     public static string GetUnlockText(ShopItemData item) // 잠긴 상품의 해금 조건 안내
     {
         return item == null
             ? string.Empty
-            : $"플레이어 Lv.{item.UnlockLevel}에 해금됩니다.";
+            : $"{GetUnlockLabel(item)} 시 해금됩니다.";
     }
 
     public static string GetIconKey(ShopItemData item) // 상품 아이콘 이미지 이름

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1d4c7e2b5f84903a6e1d8c2f7b04e95, type: 3}
+  m_Name: R02_DesertTempleCity
+  m_EditorClassIdentifier: Assembly-CSharp::RegionData
+  regionId: R02
+  displayName: '사막 신전 도시'
+  order: 2
+  heroineName: '라일라'
+  battleTheme: '약화, 회피, 성욕 게이지 조절'
+  stageLabel: '초반'
+  description: 
+  iconKey: Icon_Region_R02_01
+  backgroundKey: 
+  mapPosition: {x: 0.323, y: 0.204}

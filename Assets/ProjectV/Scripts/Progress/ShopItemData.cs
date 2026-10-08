@@ -20,7 +20,7 @@ public class ShopItemData : ScriptableObject
     [Header("가격과 해금")]
     [SerializeField, Min(0)] private int price = 100;      // 골드 가격
     [SerializeField, Min(0)] private int unlockChapter;    // 해금에 필요한 클리어 챕터 (0이면 상점 해금 시, 기획서 9.12.2)
-    [SerializeField, Min(1)] private int unlockLevel = 1;  // 챕터 진행이 생기기 전까지 쓰는 해금 레벨 (기획서 6.3.5)
+    [SerializeField, Min(1)] private int unlockLevel = 1;  // 43일차에 임시로 쓴 해금 레벨. 지금은 챕터 조건만 쓴다. (기획서 6.3.5의 표와 대조용)
     [SerializeField] private bool needsConfirm;            // 구매 전에 한 번 더 확인할지 (기획서 11.14)
 
     public string ItemId => itemId;                 // 상품 ID 반환

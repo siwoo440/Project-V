@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1d4c7e2b5f84903a6e1d8c2f7b04e95, type: 3}
+  m_Name: R09_AbyssRealm
+  m_EditorClassIdentifier: Assembly-CSharp::RegionData
+  regionId: R09
+  displayName: '마계와 심연'
+  order: 9
+  heroineName: '루시엘'
+  battleTheme: '복합 패턴, 다중 페이즈, 최종 보스'
+  stageLabel: '최종'
+  description: 
+  iconKey: Icon_Region_R09_01
+  backgroundKey: 
+  mapPosition: {x: 0.93, y: 0.32}

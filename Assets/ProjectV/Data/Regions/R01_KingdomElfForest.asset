@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1d4c7e2b5f84903a6e1d8c2f7b04e95, type: 3}
+  m_Name: R01_KingdomElfForest
+  m_EditorClassIdentifier: Assembly-CSharp::RegionData
+  regionId: R01
+  displayName: '왕국·엘프의 숲'
+  order: 1
+  heroineName: '아리아'
+  battleTheme: '기본 전투, 보호막, 도발, 반격'
+  stageLabel: '초반'
+  description: '왕국과 엘프 영역 사이의 경계 지역이다.'
+  iconKey: Icon_Region_R01_01
+  backgroundKey: Region01_Battle_BG_01
+  mapPosition: {x: 0.095, y: 0.69}

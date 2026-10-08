@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1d4c7e2b5f84903a6e1d8c2f7b04e95, type: 3}
+  m_Name: R03_Empire
+  m_EditorClassIdentifier: Assembly-CSharp::RegionData
+  regionId: R03
+  displayName: '제국'
+  order: 3
+  heroineName: '카트리나'
+  battleTheme: '공격 강화, 방어 감소, 집중 공격'
+  stageLabel: '초중반'
+  description: 
+  iconKey: Icon_Region_R03_01
+  backgroundKey: 
+  mapPosition: {x: 0.557, y: 0.704}

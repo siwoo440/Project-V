@@ -77,6 +77,7 @@ public partial class SaveLoadFlow // 저장 화면의 선택한 칸 상세와 �
             $"{UISkin.IconOr(UIIcons.Shard, "파편")} {data.desireShards}\n\n"
         );
 
+        builder.Append($"현재 지역  {GetRegionText(data)}\n");
         builder.Append($"보유 카드  {CountCopies(data)}장\n");
         builder.Append($"사용 중인 덱  {GetDeckText(data)}\n");
         builder.Append($"그리모어 강화  {SumValues(data.grimoireLevels)}단계\n");
@@ -93,6 +94,26 @@ public partial class SaveLoadFlow // 저장 화면의 선택한 칸 상세와 �
         }
 
         return builder.ToString();
+    }
+
+    private static string GetRegionText(SaveData data) // 마지막으로 들어간 지역과 클리어한 지역 수
+    {
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        string regionName = progress == null
+            ? string.Empty
+            : progress.GetRegionName(data.currentRegionId);
+
+        int clearedCount = 0;
+
+        foreach (SaveRegionEntry regionEntry in data.regions)
+        {
+            if (regionEntry.cleared) { clearedCount += 1; }
+        }
+
+        return
+            (string.IsNullOrEmpty(regionName) ? "월드맵" : regionName) +
+            $" (클리어 {clearedCount}곳)";
     }
 
     private static int CountCopies(SaveData data) // 보유 카드 사본 수

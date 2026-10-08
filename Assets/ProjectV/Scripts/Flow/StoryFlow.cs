@@ -29,7 +29,7 @@ public class StoryFlow : MonoBehaviour // 스토리 화면 연결
     private List<StoryLine> storyLines = new List<StoryLine>(); // 대사 목록
 
     [SerializeField]
-    private string nextSceneName = SceneNames.StageSelect; // 종료 후 씬
+    private string nextSceneName = SceneNames.WorldMap; // 종료 후 씬 (기획서 4.3.1: 스토리를 마치면 월드맵으로)
 
     private int currentLineIndex; // 현재 대사 번호
 

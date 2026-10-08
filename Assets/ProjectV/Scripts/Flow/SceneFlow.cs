@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement; // 씬 관리 기능
 
 public static class SceneFlow // 씬 전환 관리
 {
-    public static string PreviousSceneName { get; private set; } // 이전 씬 이름
+    public static string HubSceneName { get; private set; } // 마지막으로 머문 중심 화면 (메인 메뉴, 월드맵, 지역 화면)
     public static bool SaveScreenAllowsSave { get; private set; } // 저장 화면에서 저장도 할 수 있는지 여부
 
     public static void LoadScene(string sceneName) // 씬 전환
@@ -16,9 +16,9 @@ public static class SceneFlow // 씬 전환 관리
 
         Scene currentScene = SceneManager.GetActiveScene(); // 현재 씬 확인
 
-        if (currentScene.name != SceneNames.Bootstrap)
+        if (IsHubScene(currentScene.name))
         {
-            PreviousSceneName = currentScene.name; // 돌아가기 대상 저장
+            HubSceneName = currentScene.name; // 돌아가기 대상 저장
         }
 
         PlayerProgressManager progress = PlayerProgressManager.Instance;
@@ -43,6 +43,11 @@ public static class SceneFlow // 씬 전환 관리
     public static void LoadMainMenu()
     {
         LoadScene(SceneNames.MainMenu);
+    }
+
+    public static void LoadWorldMap()
+    {
+        LoadScene(SceneNames.WorldMap);
     }
 
     public static void LoadDeckBuilder()
@@ -92,16 +97,25 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.Battle);
     }
 
-    public static void ReturnToPreviousScene() // 이전 씬으로 복귀
+    private static bool IsHubScene(string sceneName) // 다른 화면으로 나가는 출발점이 되는 화면인지 여부
     {
-        if (string.IsNullOrEmpty(PreviousSceneName) ||
-            PreviousSceneName == SceneManager.GetActiveScene().name)
+        return sceneName == SceneNames.MainMenu ||
+               sceneName == SceneNames.WorldMap ||
+               sceneName == SceneNames.StageSelect;
+    }
+
+    // 덱 편성, 강화, 상점 같은 화면의 돌아가기. 들어올 때 거친 중심 화면으로 돌아간다.
+    // 바로 앞 화면으로 돌아가면 덱 편성과 강화처럼 서로 오가는 화면에서 돌아가기가 둘 사이만 왕복한다.
+    public static void ReturnToPreviousScene()
+    {
+        if (string.IsNullOrEmpty(HubSceneName) ||
+            HubSceneName == SceneManager.GetActiveScene().name)
         {
             LoadMainMenu(); // 기록이 없으면 메인 메뉴
             return;
         }
 
-        LoadScene(PreviousSceneName);
+        LoadScene(HubSceneName);
     }
 
     public static void QuitGame() // 게임 종료

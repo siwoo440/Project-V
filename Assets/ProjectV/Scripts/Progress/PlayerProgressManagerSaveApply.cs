@@ -18,7 +18,8 @@ public partial class PlayerProgressManager
             RestoreDecks(data) +
             RestoreSummoner(data) +
             RestoreGrimoire(data) +
-            RestoreBattleItems(data);
+            RestoreBattleItems(data) +
+            RestoreRegions(data);
 
         if (skippedCount > 0)
         {

@@ -44,7 +44,7 @@ public partial class ShopFlow // 상점 화면의 상품 상세와 구매 버튼
 
         if (selectedItem.RewardType == ShopRewardType.BattleItem)
         {
-            builder.Append("\n전투에 가져갈 아이템은 지역 선택 화면에서 고릅니다.\n");
+            builder.Append("\n전투에 가져갈 아이템은 지역 화면에서 고릅니다.\n");
         }
 
         if (!canBuy)

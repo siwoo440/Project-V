@@ -2,8 +2,9 @@ using TMPro; // TextMeshPro 기능
 using UnityEngine.UI; // Unity UI 기능
 
 // 메인 메뉴의 저장 메뉴 (기획서 10.5 / 15.4)
-// 저장 파일이 있으면 이어하기나 새 게임을 고른 뒤에 다른 메뉴가 열린다.
+// 저장 파일이 있으면 이어하기나 새 게임을 고른 뒤에 월드맵이 열린다.
 // 저장 파일이 없으면 고를 것이 없으므로 바로 새 게임으로 시작한다.
+// 이어하기와 새 게임은 곧바로 월드맵으로 간다.
 public partial class MainMenuFlow
 {
     private bool isNewGameConfirming; // 새 게임 확인을 기다리는 중인지 여부
@@ -36,7 +37,11 @@ public partial class MainMenuFlow
 
         isNewGameConfirming = false;
 
-        progress.ContinueLatest(out string message);
+        if (progress.ContinueLatest(out string message))
+        {
+            SceneFlow.LoadWorldMap(); // 불러온 진행으로 월드맵에서 이어 간다.
+            return;
+        }
 
         RefreshSaveMenu(message);
         RefreshProgressText();
@@ -67,8 +72,7 @@ public partial class MainMenuFlow
 
         progress.StartNewGame();
 
-        RefreshSaveMenu("새 게임을 시작했습니다.");
-        RefreshProgressText();
+        SceneFlow.LoadWorldMap(); // 프롤로그 흐름이 생기기 전까지는 바로 월드맵으로 간다.
     }
 
     private void RefreshSaveMenu(string message)
@@ -79,13 +83,8 @@ public partial class MainMenuFlow
         SaveSlotInfo latest = SaveFileSystem.FindLatest();
 
         // 게임을 시작하기 전에는 저장 메뉴와 게임 종료만 누를 수 있다.
+        SetInteractable(worldMapButton, isActive);
         SetInteractable(storyButton, isActive);
-        SetInteractable(stageSelectButton, isActive);
-        SetInteractable(deckBuilderButton, isActive);
-        SetInteractable(enhanceButton, isActive);
-        SetInteractable(summonerButton, isActive);
-        SetInteractable(grimoireButton, isActive);
-        SetInteractable(shopButton, isActive);
 
         SetInteractable(continueButton, !isActive && latest != null);
         SetInteractable(loadButton, SaveFileSystem.HasAnyFile());

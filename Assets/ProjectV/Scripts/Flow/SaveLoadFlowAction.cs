@@ -40,7 +40,7 @@ public partial class SaveLoadFlow // 저장 화면의 저장, 불러오기, 삭�
     {
         if (!allowSave)
         {
-            reason = "저장은 지역 선택 화면에서 들어왔을 때만 할 수 있습니다.";
+            reason = "저장은 월드맵에서 들어왔을 때만 할 수 있습니다.";
             return false;
         }
 

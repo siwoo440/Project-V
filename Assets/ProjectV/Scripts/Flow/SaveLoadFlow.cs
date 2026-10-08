@@ -5,7 +5,7 @@ using UnityEngine.UI; // Unity UI 기능
 
 // 저장 화면 연결 (기획서 10.5 / 15.3 / 15.5 / 15.28)
 // 왼쪽에서 칸을 고르고, 오른쪽에서 저장, 불러오기, 삭제를 한다.
-// 메인 메뉴에서 들어오면 불러오기만, 지역 선택에서 들어오면 저장도 할 수 있다.
+// 메인 메뉴에서 들어오면 불러오기만, 월드맵에서 들어오면 저장도 할 수 있다.
 // 화면의 패널과 버튼은 씬 구성 도구(SceneUIBuilderSave.cs)가 만든다.
 public partial class SaveLoadFlow : MonoBehaviour
 {

@@ -111,6 +111,15 @@ sprite|Icon_Save_Delete_01|UI/Icons/Icon_Save_Delete_01.png|0|0|0|0|icon
 sprite|Icon_Save_Warning_01|UI/Icons/Icon_Save_Warning_01.png|0|0|0|0|icon
 sprite|Icon_Save_Time_01|UI/Icons/Icon_Save_Time_01.png|0|0|0|0|icon
 sprite|Icon_Save_Empty_01|UI/Icons/Icon_Save_Empty_01.png|0|0|0|0|icon
+sprite|Icon_Region_R01_01|UI/Icons/Icon_Region_R01_01.png|0|0|0|0|icon
+sprite|Icon_Region_R02_01|UI/Icons/Icon_Region_R02_01.png|0|0|0|0|icon
+sprite|Icon_Region_R03_01|UI/Icons/Icon_Region_R03_01.png|0|0|0|0|icon
+sprite|Icon_Region_R04_01|UI/Icons/Icon_Region_R04_01.png|0|0|0|0|icon
+sprite|Icon_Region_R05_01|UI/Icons/Icon_Region_R05_01.png|0|0|0|0|icon
+sprite|Icon_Region_R06_01|UI/Icons/Icon_Region_R06_01.png|0|0|0|0|icon
+sprite|Icon_Region_R07_01|UI/Icons/Icon_Region_R07_01.png|0|0|0|0|icon
+sprite|Icon_Region_R08_01|UI/Icons/Icon_Region_R08_01.png|0|0|0|0|icon
+sprite|Icon_Region_R09_01|UI/Icons/Icon_Region_R09_01.png|0|0|0|0|icon
 background|MainMenu_BG_01|Backgrounds/Common/MainMenu_BG_01.jpg
 background|DeckBuilder_BG_01|Backgrounds/Common/DeckBuilder_BG_01.jpg
 background|Enhance_BG_01|Backgrounds/Common/Enhance_BG_01.jpg

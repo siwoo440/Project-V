@@ -4,7 +4,8 @@ using TMPro; // TextMeshPro 기능
 using UnityEngine; // Unity 기본 기능
 using UnityEngine.UI; // Unity UI 기능
 
-public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연결
+// 지역 화면 연결: 월드맵에서 고른 지역의 스테이지 목록을 보여 준다.
+public partial class StageSelectFlow : MonoBehaviour
 {
     [Serializable]
     public class StageEntry // 스테이지 항목
@@ -25,12 +26,12 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
     [Header("화면 이동")]
     [SerializeField] private Button startBattleButton; // 전투 시작
     [SerializeField] private Button deckBuilderButton; // 덱 편성
-    [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
-    [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
-    [SerializeField] private Button shopButton;        // 상점
     [SerializeField] private Button itemSlotButton;    // 전투에 가져갈 소모성 아이템 선택
-    [SerializeField] private Button saveButton;        // 저장과 불러오기
-    [SerializeField] private Button backButton;        // 돌아가기
+    [SerializeField] private Button backButton;        // 월드맵으로 돌아가기
+
+    [Header("지역 표시")]
+    [SerializeField] private TMP_Text titleText;    // 화면 제목 (지역 이름)
+    [SerializeField] private Image backgroundImage; // 화면 배경 (지역 배경 그림이 있으면 바꾼다)
 
     [Header("스테이지 목록")]
     [SerializeField] private Transform stageListContent; // 스테이지 목록 영역
@@ -65,20 +66,14 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
         backButton =
             SceneUIBinder.Bind(backButton, "BackButton");
 
-        summonerButton =
-            SceneUIBinder.Bind(summonerButton, "SummonerButton");
-
-        grimoireButton =
-            SceneUIBinder.Bind(grimoireButton, "GrimoireButton");
-
-        shopButton =
-            SceneUIBinder.Bind(shopButton, "ShopButton");
-
         itemSlotButton =
             SceneUIBinder.Bind(itemSlotButton, "ItemSlotButton");
 
-        saveButton =
-            SceneUIBinder.Bind(saveButton, "SaveButton");
+        titleText =
+            SceneUIBinder.Bind(titleText, "TitleText");
+
+        backgroundImage =
+            SceneUIBinder.Bind(backgroundImage, "Background");
 
         stageListContent =
             SceneUIBinder.Bind(stageListContent, "StageListContent");
@@ -107,25 +102,7 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
         if (backButton != null)
         {
             backButton.onClick.RemoveAllListeners();
-            backButton.onClick.AddListener(SceneFlow.LoadMainMenu);
-        }
-
-        if (summonerButton != null)
-        {
-            summonerButton.onClick.RemoveAllListeners();
-            summonerButton.onClick.AddListener(SceneFlow.LoadSummoner);
-        }
-
-        if (grimoireButton != null)
-        {
-            grimoireButton.onClick.RemoveAllListeners();
-            grimoireButton.onClick.AddListener(SceneFlow.LoadGrimoire);
-        }
-
-        if (shopButton != null)
-        {
-            shopButton.onClick.RemoveAllListeners();
-            shopButton.onClick.AddListener(SceneFlow.LoadShop);
+            backButton.onClick.AddListener(SceneFlow.LoadWorldMap);
         }
 
         if (itemSlotButton != null)
@@ -134,12 +111,7 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
             itemSlotButton.onClick.AddListener(CycleBattleItem);
         }
 
-        if (saveButton != null)
-        {
-            saveButton.onClick.RemoveAllListeners();
-            saveButton.onClick.AddListener(() => SceneFlow.LoadSaveScreen(true)); // 지역 화면에서는 저장도 할 수 있다.
-        }
-
+        ShowRegion(); // 들어온 지역의 이름과 배경 표시
         RefreshItemSlot(); // 장착한 소모성 아이템 표시
 
         BuildStageList(); // 스테이지 목록 생성
@@ -222,8 +194,8 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
             labelObject.AddComponent<TextMeshProUGUI>();
 
         entryLabel.text = stage.IsUnlocked
-            ? $"{stage.StageName}\n{stage.StageType}   권장 레벨 {stage.RecommendedLevel}"
-            : $"{stage.StageName}\n잠김";
+            ? $"{GetStageTitle(stage)}\n{stage.StageType}   권장 레벨 {stage.RecommendedLevel}"
+            : $"{GetStageTitle(stage)}\n잠김";
 
         entryLabel.fontSize = 20f;
         entryLabel.color = stage.IsUnlocked
@@ -276,7 +248,7 @@ public partial class StageSelectFlow : MonoBehaviour // 지역 선택 화면 연
         {
             stageNameText.text = stage == null
                 ? "스테이지 데이터 없음"
-                : stage.StageName;
+                : GetStageTitle(stage);
         }
 
         if (stageDescriptionText != null)

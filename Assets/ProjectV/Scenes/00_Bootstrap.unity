@@ -700,6 +700,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a9b5cebc375881c47a5de3f3d998bc54, type: 2}
   - {fileID: 11400000, guid: bbe191178fd6ac147aa9d22ccd846096, type: 2}
   - {fileID: 11400000, guid: 491d516d499e4a64a8b92280dc1a457d, type: 2}
+  regions:
+  - {fileID: 11400000, guid: f9c990e24f5a9014a979ef3eef64db01, type: 2}
+  - {fileID: 11400000, guid: 3bd53c1ea6e7b6a499dd473079560b89, type: 2}
+  - {fileID: 11400000, guid: 8822a19943eafde49a07a149f1738e5d, type: 2}
+  - {fileID: 11400000, guid: 838a48e5568dabb4cb205b937e938180, type: 2}
+  - {fileID: 11400000, guid: fa4181149ade03443a53d22f046bfabc, type: 2}
+  - {fileID: 11400000, guid: a0be6d68791c3184c836fefc8fbf3fc0, type: 2}
+  - {fileID: 11400000, guid: e2cafe1657b802647bca7f1db491d4e8, type: 2}
+  - {fileID: 11400000, guid: e8e953145b854394a90b637ec975ab3d, type: 2}
+  - {fileID: 11400000, guid: 1d5ac68ff3e7b32448a6590fdac3692e, type: 2}
   cardCatalog:
   - {fileID: 11400000, guid: 6c6e05023667eb443b6785866fa78456, type: 2}
   - {fileID: 11400000, guid: 66b71cf733e504947b212a60d18ce941, type: 2}

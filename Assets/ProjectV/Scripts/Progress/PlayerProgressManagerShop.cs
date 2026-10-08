@@ -73,7 +73,9 @@ public partial class PlayerProgressManager
 
     public bool IsShopItemUnlocked(ShopItemData item) // 상품 해금 여부
     {
-        return ShopRules.IsUnlocked(item, PlayerLevel);
+        if (item == null) { return false; }
+
+        return item.UnlockChapter <= 0 || IsChapterCleared(item.UnlockChapter); // 기획서 9.12.2
     }
 
     public int GetShopOwnedCount(ShopItemData item) // 상품이 주는 것의 현재 보유량

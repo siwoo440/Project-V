@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-// 씬 UI 구성 도구의 메인 메뉴 저장 메뉴, 지역 선택의 저장 버튼, 저장용 카드 목록 연결 (기획서 10.5 / 15.5)
+// 씬 UI 구성 도구의 메인 메뉴 저장 메뉴와 저장용 카드 목록 연결 (기획서 10.5)
 public static partial class SceneUIBuilder
 {
     // 메인 메뉴 왼쪽의 저장 메뉴: 이어하기, 새 게임, 불러오기와 최근 저장 정보.
@@ -55,21 +55,6 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "newGameButton", newGameButton);
         AssignReference(flow, "loadButton", loadButton);
         AssignReference(flow, "saveInfoText", saveInfoText);
-    }
-
-    // 지역 선택 화면의 저장 버튼. 월드맵이 생기면 그쪽으로 옮긴다.
-    private static void BuildStageSelectSaveButton(Canvas canvas, StageSelectFlow flow)
-    {
-        Button saveButton = EnsureButton(
-            "SaveButton", canvas.transform, "저장 / 불러오기", ButtonColor);
-
-        SetAnchored(saveButton.gameObject,
-            new Vector2(1f, 1f), new Vector2(-190f, -72f), new Vector2(320f, 60f));
-
-        StyleButtonByName("SaveButton", ButtonColor, 22f);
-        EnsureButtonIcon(saveButton, UIKeys.SaveWrite);
-
-        AssignReference(flow, "saveButton", saveButton);
     }
 
     // 프로젝트의 모든 카드를 진행 데이터에 연결한다. 저장 데이터의 카드 ID를 카드로 되돌릴 때 쓴다.

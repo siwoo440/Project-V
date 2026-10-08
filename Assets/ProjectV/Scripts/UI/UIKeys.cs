@@ -87,6 +87,13 @@ public static class UIKeys
     public const string SaveTime = "Icon_Save_Time_01";         // 플레이 시간
     public const string SaveEmpty = "Icon_Save_Empty_01";       // 빈 저장 칸
 
+    // 월드맵 (지역 문양의 이름은 지역 데이터에 적는다)
+    public const string IconWorldMap = "Icon_Menu_Stage_01";    // 월드맵 메뉴는 지역 아이콘을 함께 쓴다.
+    public const string MapMarkSelect = "UI_MapMark_Select_01"; // 고른 지역의 고리
+    public const string MapMarkClear = "UI_MapMark_Clear_01";   // 클리어한 지역
+    public const string MapMarkNew = "UI_MapMark_New_01";       // 새로 열린 지역의 배지
+    public const string MapMarkHere = "UI_MapMark_Here_01";     // 마지막으로 들어간 지역의 깃발
+
     // 그리모어 강화: 분기 문양과 노드 받침
     public const string GrimoireContract = "Icon_Grimoire_Contract_01";
     public const string GrimoireSummon = "Icon_Grimoire_Summon_01";

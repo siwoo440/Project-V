@@ -42,6 +42,14 @@ public class SaveCountEntry // ID 하나에 딸린 수치 (패시브 단계, 그
 }
 
 [Serializable]
+public class SaveRegionEntry // 지역 하나의 진행
+{
+    public string id;    // 지역 ID
+    public bool visited; // 한 번이라도 들어갔는지 여부
+    public bool cleared; // 클리어 여부
+}
+
+[Serializable]
 public class SaveData
 {
     public int version;            // 저장 데이터 버전
@@ -67,6 +75,9 @@ public class SaveData
     public List<SaveCountEntry> battleItems = new List<SaveCountEntry>(); // 소모성 아이템 수량
     public string equippedBattleItemId; // 전투에 가져갈 소모성 아이템
 
+    public List<SaveRegionEntry> regions = new List<SaveRegionEntry>(); // 지역별 진행 (열림 여부는 클리어에서 계산한다)
+    public string currentRegionId; // 마지막으로 들어간 지역
+
     // 저장 파일에 없는 항목은 빈 값으로 읽힌다. (파일을 읽을 때는 위의 초기값이 적용되지 않는다)
     // 예전 버전의 파일을 읽어도 안전하도록, 읽은 뒤에 빈 목록과 빈 문자열로 채워 둔다.
     public void FillMissing()
@@ -76,18 +87,21 @@ public class SaveData
         if (equippedSkillId == null) { equippedSkillId = string.Empty; }
         if (equippedPassiveId == null) { equippedPassiveId = string.Empty; }
         if (equippedBattleItemId == null) { equippedBattleItemId = string.Empty; }
+        if (currentRegionId == null) { currentRegionId = string.Empty; }
 
         if (cards == null) { cards = new List<SaveCardEntry>(); }
         if (decks == null) { decks = new List<SaveDeckEntry>(); }
         if (passiveRanks == null) { passiveRanks = new List<SaveCountEntry>(); }
         if (grimoireLevels == null) { grimoireLevels = new List<SaveCountEntry>(); }
         if (battleItems == null) { battleItems = new List<SaveCountEntry>(); }
+        if (regions == null) { regions = new List<SaveRegionEntry>(); }
 
         cards.RemoveAll(entry => entry == null);
         decks.RemoveAll(entry => entry == null);
         passiveRanks.RemoveAll(entry => entry == null);
         grimoireLevels.RemoveAll(entry => entry == null);
         battleItems.RemoveAll(entry => entry == null);
+        regions.RemoveAll(entry => entry == null);
 
         foreach (SaveCardEntry cardEntry in cards)
         {

@@ -3,17 +3,14 @@ using UnityEngine; // Unity 기본 기능
 using UnityEngine.Events; // 버튼 이벤트 기능
 using UnityEngine.UI; // Unity UI 기능
 
-public partial class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
+// 메인 메뉴 연결
+// 덱 편성, 강화, 상점 같은 성장 메뉴는 월드맵으로 옮겼다. (기획서 4.3.1: 월드맵이 중심 화면)
+public partial class MainMenuFlow : MonoBehaviour
 {
     [Header("메뉴 버튼")]
-    [SerializeField] private Button storyButton;       // 스토리 진행
-    [SerializeField] private Button stageSelectButton; // 지역 선택
-    [SerializeField] private Button deckBuilderButton; // 덱 편성
-    [SerializeField] private Button enhanceButton;     // 마물 강화
-    [SerializeField] private Button summonerButton;    // 소환사 스킬과 패시브
-    [SerializeField] private Button grimoireButton;    // 그리모어 영구 강화
-    [SerializeField] private Button shopButton;        // 상점
-    [SerializeField] private Button quitButton;        // 게임 종료
+    [SerializeField] private Button worldMapButton; // 월드맵 (게임을 시작한 뒤에 열린다)
+    [SerializeField] private Button storyButton;    // 스토리 진행
+    [SerializeField] private Button quitButton;     // 게임 종료
 
     [Header("저장 메뉴")]
     [SerializeField] private Button continueButton; // 이어하기
@@ -26,26 +23,11 @@ public partial class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
 
     private void Awake()
     {
+        worldMapButton =
+            SceneUIBinder.Bind(worldMapButton, "WorldMapButton");
+
         storyButton =
             SceneUIBinder.Bind(storyButton, "StoryButton");
-
-        stageSelectButton =
-            SceneUIBinder.Bind(stageSelectButton, "StageSelectButton");
-
-        deckBuilderButton =
-            SceneUIBinder.Bind(deckBuilderButton, "DeckBuilderButton");
-
-        enhanceButton =
-            SceneUIBinder.Bind(enhanceButton, "EnhanceButton");
-
-        summonerButton =
-            SceneUIBinder.Bind(summonerButton, "SummonerButton");
-
-        grimoireButton =
-            SceneUIBinder.Bind(grimoireButton, "GrimoireButton");
-
-        shopButton =
-            SceneUIBinder.Bind(shopButton, "ShopButton");
 
         quitButton =
             SceneUIBinder.Bind(quitButton, "QuitButton");
@@ -68,13 +50,8 @@ public partial class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
 
     private void Start()
     {
+        AddListener(worldMapButton, SceneFlow.LoadWorldMap);
         AddListener(storyButton, SceneFlow.LoadStory);
-        AddListener(stageSelectButton, SceneFlow.LoadStageSelect);
-        AddListener(deckBuilderButton, SceneFlow.LoadDeckBuilder);
-        AddListener(enhanceButton, SceneFlow.LoadEnhance);
-        AddListener(summonerButton, SceneFlow.LoadSummoner);
-        AddListener(grimoireButton, SceneFlow.LoadGrimoire);
-        AddListener(shopButton, SceneFlow.LoadShop);
         AddListener(quitButton, SceneFlow.QuitGame);
 
         StartSaveMenu(); // 이어하기, 새 게임, 불러오기 연결
@@ -116,7 +93,7 @@ public partial class MainMenuFlow : MonoBehaviour // 메인 메뉴 연결
             $"{UISkin.IconOr(UIIcons.Gold, "골드")} {progress.Gold}    " +
             $"{UISkin.IconOr(UIIcons.Essence, "정수")} {progress.MonsterEssence}    " +
             $"{UISkin.IconOr(UIIcons.Shard, "파편")} {progress.DesireShards}    " +
-            $"보유 카드 {progress.TotalOwnedCardCount}    " +
-            $"덱 {progress.CurrentDeck.Count}"; // 진행 요약 표시
+            $"클리어 지역 {progress.ClearedRegionCount} / {progress.Regions.Count}    " +
+            $"보유 카드 {progress.TotalOwnedCardCount}"; // 진행 요약 표시
     }
 }

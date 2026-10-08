@@ -85,4 +85,31 @@ public partial class PlayerProgressManager // 저장 데이터에서 소환사, 
 
         return skippedCount;
     }
+
+    private int RestoreRegions(SaveData data) // 지역별 진행과 마지막으로 들어간 지역
+    {
+        int skippedCount = 0;
+
+        InitializeRegionProgress();
+
+        foreach (SaveRegionEntry regionEntry in data.regions)
+        {
+            RegionData region = FindRegionById(regionEntry.id);
+
+            if (region == null)
+            {
+                skippedCount += 1;
+                continue;
+            }
+
+            if (regionEntry.visited || regionEntry.cleared) { visitedRegions.Add(region); }
+            if (regionEntry.cleared) { clearedRegions.Add(region); }
+        }
+
+        currentRegion = FindRegionById(data.currentRegionId);
+
+        if (!IsRegionUnlocked(currentRegion)) { currentRegion = null; } // 지금 규칙으로 들어갈 수 없는 지역이면 비운다.
+
+        return skippedCount;
+    }
 }

@@ -3,7 +3,7 @@ using UnityEngine; // Unity 기본 기능
 using UnityEngine.UI; // Unity UI 기능
 
 // 전투에 가져갈 소모성 아이템 선택 (기획서 9.12.3: 전투 전에 1개 장착)
-// 기획서는 전투 준비 화면에서 장착하지만, 그 화면이 생기기 전까지 지역 선택 화면에 둔다.
+// 기획서는 전투 준비 화면에서 장착하지만, 그 화면이 생기기 전까지 지역 화면에 둔다.
 public partial class StageSelectFlow
 {
     private void CycleBattleItem() // 누를 때마다 없음 → 가진 아이템 순으로 바꾼다.

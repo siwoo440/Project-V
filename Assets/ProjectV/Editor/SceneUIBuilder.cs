@@ -71,6 +71,7 @@ public static partial class SceneUIBuilder
         BuildScene("07_Grimoire", BuildGrimoireScene);
         BuildScene("08_Shop", BuildShopScene);
         BuildScene("09_SaveLoad", BuildSaveLoadScene);
+        BuildScene("10_WorldMap", BuildWorldMapScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -144,6 +145,7 @@ public static partial class SceneUIBuilder
         ApplyGrimoireNodeList(progress); // 그리모어 강화 노드 목록 연결
         ApplyShopItemList(progress); // 상점 상품 목록 연결
         ApplyCardCatalog(progress); // 저장 데이터의 카드 ID를 되돌릴 때 쓰는 전체 카드 목록
+        ApplyRegionList(progress); // 지역 목록 연결
     }
 
     private static void BuildMainMenuScene()
@@ -190,64 +192,50 @@ public static partial class SceneUIBuilder
 
         if (hasCrest) { EnsureTextPlate(subtitle, new Vector2(24f, 2f)); }
 
+        // 성장 메뉴는 월드맵으로 옮겼다. 메인 메뉴에는 월드맵, 스토리, 게임 종료만 남긴다. (기획서 4.3.1)
+        float menuCenterY = hasCrest ? -160f : -40f; // 왼쪽 저장 메뉴와 같은 기준 높이
+
         GameObject panel = EnsurePanel("MainMenuPanel", canvas.transform, PanelColor);
 
         SetAnchored(panel, new Vector2(0.5f, 0.5f),
-            new Vector2(0f, hasCrest ? -160f : -40f),
-            new Vector2(560f, hasCrest ? 560f : 620f));
+            new Vector2(0f, menuCenterY + 265f - 150f), new Vector2(560f, 300f)); // 저장 메뉴와 윗선을 맞춘다.
 
-        ApplyVerticalLayout(panel, hasCrest ? 10f : 14f, hasCrest ? 36 : 44); // 버튼 7개가 들어가도록 간격을 줄였다.
+        ApplyVerticalLayout(panel, 14f, 40);
 
+        foreach (string oldButtonName in new[]
+        {
+            "StageSelectButton", "DeckBuilderButton", "EnhanceButton",
+            "SummonerButton", "GrimoireButton", "ShopButton",
+        })
+        {
+            DestroyByName(oldButtonName); // 예전 구성에서 만든 버튼 제거
+        }
+
+        Button worldMapButton = EnsureButton("WorldMapButton", panel.transform, "월드맵", AccentColor);
         Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리", ButtonColor);
-        Button stageButton = EnsureButton("StageSelectButton", panel.transform, "지역 선택", ButtonColor);
-        Button deckButton = EnsureButton("DeckBuilderButton", panel.transform, "덱 편성", ButtonColor);
-        Button enhanceButton = EnsureButton("EnhanceButton", panel.transform, "마물 강화", ButtonColor);
-        Button summonerButton = EnsureButton("SummonerButton", panel.transform, "소환사", ButtonColor);
-        Button grimoireButton = EnsureButton("GrimoireButton", panel.transform, "그리모어 강화", ButtonColor);
-        Button shopButton = EnsureButton("ShopButton", panel.transform, "상점", ButtonColor);
         Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
 
-        storyButton.transform.SetSiblingIndex(0);
-        stageButton.transform.SetSiblingIndex(1);
-        deckButton.transform.SetSiblingIndex(2);
-        enhanceButton.transform.SetSiblingIndex(3);
-        summonerButton.transform.SetSiblingIndex(4);
-        grimoireButton.transform.SetSiblingIndex(5);
-        shopButton.transform.SetSiblingIndex(6);
-        quitButton.transform.SetSiblingIndex(7);
+        worldMapButton.transform.SetSiblingIndex(0);
+        storyButton.transform.SetSiblingIndex(1);
+        quitButton.transform.SetSiblingIndex(2);
 
-        Button[] menuButtons =
-        {
-            storyButton, stageButton, deckButton, enhanceButton,
-            summonerButton, grimoireButton, shopButton, quitButton,
-        };
+        StyleButtonByName("WorldMapButton", AccentColor, 28f);
 
-        foreach (Button menuButton in menuButtons)
+        foreach (Button menuButton in new[] { worldMapButton, storyButton, quitButton })
         {
             LayoutElement menuLayout = menuButton.GetComponent<LayoutElement>();
 
-            menuLayout.minHeight = 52f; // 버튼 8개가 패널 안에 들어가는 높이
-            menuLayout.preferredHeight = 52f;
+            menuLayout.minHeight = 62f;
+            menuLayout.preferredHeight = 62f;
 
             TextMeshProUGUI menuLabel =
                 menuButton.GetComponentInChildren<TextMeshProUGUI>(true);
 
-            if (menuLabel != null) { menuLabel.fontSize = 27f; }
+            if (menuLabel != null) { menuLabel.fontSize = 28f; }
         }
 
+        EnsureButtonIcon(worldMapButton, UIKeys.IconWorldMap);
         EnsureButtonIcon(storyButton, UIKeys.IconStory);
-        EnsureButtonIcon(stageButton, UIKeys.IconStage);
-        EnsureButtonIcon(deckButton, UIKeys.IconDeck);
-        EnsureButtonIcon(enhanceButton, UIKeys.IconEnhance);
-        EnsureButtonIcon(summonerButton, UIKeys.IconSummoner);
-        EnsureButtonIcon(
-            grimoireButton,
-            UISkin.Has(UIKeys.IconGrimoire) ? UIKeys.IconGrimoire : UIKeys.IconCollection
-        ); // 전용 아이콘이 없으면 책 아이콘을 쓴다.
-        EnsureButtonIcon(
-            shopButton,
-            UISkin.Has(UIKeys.IconShop) ? UIKeys.IconShop : UIKeys.StatGold
-        ); // 전용 아이콘이 없으면 골드 아이콘을 쓴다.
         EnsureButtonIcon(quitButton, UIKeys.IconQuit);
 
         TextMeshProUGUI progressText = EnsureText(
@@ -262,13 +250,8 @@ public static partial class SceneUIBuilder
         GameObject controller = EnsureObject("MainMenuController", null);
         MainMenuFlow flow = controller.AddComponentIfMissing<MainMenuFlow>();
 
+        AssignReference(flow, "worldMapButton", worldMapButton);
         AssignReference(flow, "storyButton", storyButton);
-        AssignReference(flow, "stageSelectButton", stageButton);
-        AssignReference(flow, "deckBuilderButton", deckButton);
-        AssignReference(flow, "enhanceButton", enhanceButton);
-        AssignReference(flow, "summonerButton", summonerButton);
-        AssignReference(flow, "grimoireButton", grimoireButton);
-        AssignReference(flow, "shopButton", shopButton);
         AssignReference(flow, "quitButton", quitButton);
         AssignReference(flow, "progressText", progressText);
 
@@ -681,7 +664,7 @@ public static partial class SceneUIBuilder
         EnsureTopBar(canvas.transform, 72f, 104f);
 
         TextMeshProUGUI title = EnsureText(
-            "TitleText", canvas.transform, "지역 선택",
+            "TitleText", canvas.transform, "지역",
             56f, AccentColor, TextAlignmentOptions.Left);
 
         PlaceSceneTitle(title, new Vector2(400f, -90f), new Vector2(700f, 80f), 56f);
@@ -723,24 +706,24 @@ public static partial class SceneUIBuilder
         SetAnchored(deckButton.gameObject,
             new Vector2(0f, 0f), new Vector2(560f, 100f), new Vector2(300f, 68f));
 
-        Button backButton = EnsureButton("BackButton", canvas.transform, "돌아가기", ButtonColor);
+        Button backButton = EnsureButton("BackButton", canvas.transform, "월드맵", ButtonColor);
         SetAnchored(backButton.gameObject,
             new Vector2(0f, 0f), new Vector2(880f, 100f), new Vector2(280f, 68f));
 
-        Button summonerButton = EnsureButton("SummonerButton", canvas.transform, "소환사", ButtonColor);
-        SetAnchored(summonerButton.gameObject,
-            new Vector2(0f, 0f), new Vector2(1190f, 100f), new Vector2(280f, 68f));
+        SetButtonLabelByName("BackButton", "월드맵");
+        EnsureButtonIcon(backButton, UIKeys.IconWorldMap);
+
+        // 소환사, 그리모어 강화, 상점, 저장은 월드맵의 상단 메뉴로 옮겼다. (기획서 11.6.2)
+        foreach (string movedButtonName in new[]
+        {
+            "SummonerButton", "GrimoireButton", "ShopButton", "SaveButton",
+        })
+        {
+            DestroyByName(movedButtonName);
+        }
 
         GameObject controller = EnsureObject("StageSelectController", null);
         StageSelectFlow flow = controller.AddComponentIfMissing<StageSelectFlow>();
-
-        Button grimoireButton = EnsureButton("GrimoireButton", canvas.transform, "그리모어 강화", ButtonColor);
-        SetAnchored(grimoireButton.gameObject,
-            new Vector2(0f, 0f), new Vector2(1500f, 100f), new Vector2(280f, 68f));
-
-        Button shopButton = EnsureButton("ShopButton", canvas.transform, "상점", ButtonColor);
-        SetAnchored(shopButton.gameObject,
-            new Vector2(0f, 0f), new Vector2(1790f, 100f), new Vector2(240f, 68f));
 
         // 전투에 가져갈 소모성 아이템. 전투 준비 화면이 생기기 전까지 여기에서 고른다. (기획서 9.12.3)
         Button itemSlotButton = EnsureButton(
@@ -752,12 +735,15 @@ public static partial class SceneUIBuilder
         StyleButtonByName("ItemSlotButton", ButtonColor, 22f);
         EnsureButtonIcon(itemSlotButton, UIKeys.ItemEmpty);
 
-        AssignReference(flow, "summonerButton", summonerButton);
-        AssignReference(flow, "grimoireButton", grimoireButton);
-        AssignReference(flow, "shopButton", shopButton);
         AssignReference(flow, "itemSlotButton", itemSlotButton);
+        AssignReference(flow, "titleText", title); // 실행 중에 들어온 지역의 이름으로 바뀐다.
 
-        BuildStageSelectSaveButton(canvas, flow); // 저장 화면으로 가는 버튼
+        GameObject regionBackground = Locate("Background");
+
+        if (regionBackground != null)
+        {
+            AssignReference(flow, "backgroundImage", regionBackground.GetComponent<Image>()); // 지역 배경 그림이 있으면 바뀐다.
+        }
 
         AssignReference(flow, "startBattleButton", startButton);
         AssignReference(flow, "deckBuilderButton", deckButton);
@@ -846,6 +832,16 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "speakerNameText", speakerNameText);
         AssignReference(flow, "dialogueText", dialogueText);
 
+        // 스토리를 마치면 월드맵으로 간다. (기획서 4.3.1)
+        SerializedObject serializedStory = new SerializedObject(flow);
+        SerializedProperty nextSceneProperty = serializedStory.FindProperty("nextSceneName");
+
+        if (nextSceneProperty != null)
+        {
+            nextSceneProperty.stringValue = SceneNames.WorldMap;
+            serializedStory.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         ApplyDefaultStoryLines(flow);
     }
 
@@ -862,7 +858,7 @@ public static partial class SceneUIBuilder
         BuildBattleLayout(canvas);
 
         // 손패 아래 좁은 띠에 돌아가기 버튼과 진행 정보를 둔다. (손패와 겹치지 않게)
-        Button returnButton = EnsureButton("ReturnButton", canvas.transform, "지역 선택", ButtonColor);
+        Button returnButton = EnsureButton("ReturnButton", canvas.transform, "지역으로", ButtonColor);
         SetAnchored(returnButton.gameObject,
             new Vector2(0f, 0f), new Vector2(120f, 34f), new Vector2(200f, 50f));
         StyleButtonByName("ReturnButton", ButtonColor, 22f);
