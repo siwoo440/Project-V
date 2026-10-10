@@ -5,7 +5,7 @@ using UnityEngine.UI;
 // 씬 UI 구성 도구의 스토리 화면 부분 (기획서 10.21 / 12.12)
 public static partial class SceneUIBuilder
 {
-    // 인물 그림 세 자리(왼쪽, 가운데, 오른쪽), 자동 진행 버튼, 건너뛰기 확인 창을 만든다.
+    // 인물 그림 세 자리(왼쪽, 가운데, 오른쪽), 자동 진행 버튼, 선택지 버튼, 건너뛰기 확인 창을 만든다.
     // 인물 그림은 대화창 뒤에 그려 아랫부분이 대화창에 가려지게 한다.
     private static void BuildStoryStage(Canvas canvas, StoryFlow flow)
     {
@@ -59,6 +59,8 @@ public static partial class SceneUIBuilder
         StyleButtonByName("AutoButton", ButtonColor, 24f);
         AssignReference(flow, "autoButton", autoButton);
 
+        BuildStoryChoices(canvas, flow); // 선택지 버튼 묶음 (기획서 2.10)
+
         // 건너뛰기 확인 창. 처음 보는 장면도 건너뛸 수 있지만 확인을 먼저 받는다. (기획서 10.21.1)
         GameObject confirmPanel = EnsurePanel("SkipConfirmPanel", canvas.transform, PanelDeepColor);
         SetAnchored(confirmPanel, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(680f, 250f));
@@ -66,12 +68,17 @@ public static partial class SceneUIBuilder
         TextMeshProUGUI confirmText = EnsureText(
             "SkipConfirmText", confirmPanel.transform,
             "이 장면을 건너뛸까요?",
-            26f, TextColor, TextAlignmentOptions.Center);
+            23f, TextColor, TextAlignmentOptions.Center);
 
-        confirmText.text = "이 장면을 건너뛸까요?" + System.Environment.NewLine + "건너뛴 장면도 본 장면으로 기록됩니다.";
+        confirmText.text =
+            "이 장면을 건너뛸까요?" + System.Environment.NewLine +
+            "건너뛴 장면도 본 장면으로 기록됩니다." + System.Environment.NewLine +
+            "선택지가 남아 있으면 그 앞에서 멈춥니다.";
+
+        confirmText.fontSize = 23f;
 
         SetAnchored(confirmText.gameObject,
-            new Vector2(0.5f, 1f), new Vector2(0f, -84f), new Vector2(600f, 100f));
+            new Vector2(0.5f, 1f), new Vector2(0f, -88f), new Vector2(620f, 116f));
 
         Button yesButton = EnsureButton("SkipConfirmYesButton", confirmPanel.transform, "건너뛰기", AccentColor);
         SetAnchored(yesButton.gameObject, new Vector2(0.5f, 0f), new Vector2(-160f, 58f), new Vector2(260f, 60f));

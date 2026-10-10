@@ -22,6 +22,8 @@ MonoBehaviour:
     centerArt: ''
     rightArt: ''
     backgroundKey: 'Region01_Battle_BG_01'
+    branch: ''
+    choices: []
   - speakerName: '도윤'
     text: '여기가 엘프의 숲이라는 거지? 마왕이 될 남자의 첫 영토로 딱 좋은데.'
     speakerSlot: 1
@@ -29,6 +31,8 @@ MonoBehaviour:
     centerArt: ''
     rightArt: ''
     backgroundKey: ''
+    branch: ''
+    choices: []
   - speakerName: '그리모어'
     text: '영토는 무슨. 경계를 지키는 기사단부터 넘고 말해.'
     speakerSlot: 2
@@ -36,6 +40,8 @@ MonoBehaviour:
     centerArt: 'Grimoire'
     rightArt: ''
     backgroundKey: ''
+    branch: ''
+    choices: []
   - speakerName: '아리아'
     text: '거기 서라. 왕국 기사단장 아리아다. 이 숲에 마물을 끌고 들어온 자가 너냐.'
     speakerSlot: 3
@@ -43,20 +49,110 @@ MonoBehaviour:
     centerArt: ''
     rightArt: 'Aria'
     backgroundKey: ''
+    branch: ''
+    choices:
+    - label: '소환사 도윤이야. 마물들은 내 동료고, 숲을 해칠 생각은 없어.'
+      type: 0
+      branch: 'A'
+    - label: '끌고 온 게 아니라 산책 중이야. 얘들도 숲 공기를 좋아하거든.'
+      type: 1
+      branch: 'B'
+    - label: '소문난 미인 기사단장을 보러 왔다고 하면 믿어 줄래?'
+      type: 2
+      branch: 'C'
+    - label: '그리모어, 네가 설명해 줘.'
+      type: 3
+      branch: 'D'
   - speakerName: '도윤'
-    text: '끌고 온 게 아니라 같이 다니는 거야. 소환사거든.'
+    text: '소환사 도윤이야. 마물들은 내 동료고, 숲을 해칠 생각은 없어.'
+    speakerSlot: 1
+    leftArt: 'Doyoon:Serious'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'A'
+    choices: []
+  - speakerName: '아리아'
+    text: '말은 반듯하군. 하지만 말만으로 경계를 열어 줄 수는 없다.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'A'
+    choices: []
+  - speakerName: '도윤'
+    text: '끌고 온 게 아니라 산책 중이야. 얘들도 숲 공기를 좋아하거든.'
     speakerSlot: 1
     leftArt: 'Doyoon:Bluff'
     centerArt: ''
     rightArt: ''
     backgroundKey: ''
+    branch: 'B'
+    choices: []
   - speakerName: '아리아'
-    text: '마물 소환사라. 위험한 자를 그냥 보낼 수는 없다. 검으로 확인하겠다.'
+    text: '마물과 산책이라. 농담을 들으러 나온 것이 아니다.'
     speakerSlot: 3
     leftArt: ''
     centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'B'
+    choices: []
+  - speakerName: '도윤'
+    text: '소문난 미인 기사단장을 보러 왔다고 하면 믿어 줄래?'
+    speakerSlot: 1
+    leftArt: 'Doyoon:Smile'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'C'
+    choices: []
+  - speakerName: '아리아'
+    text: '...경계 근무 중이다. 그런 말은 다른 곳에서 해라.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: 'Aria:Shaken'
+    backgroundKey: ''
+    branch: 'C'
+    choices: []
+  - speakerName: '그리모어'
+    text: '이 녀석은 마왕이 되겠다는 계약자야. 만나는 상대는 전부 제 편으로 만들겠다더라.'
+    speakerSlot: 2
+    leftArt: ''
+    centerArt: 'Grimoire:Smile'
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'D'
+    choices: []
+  - speakerName: '도윤'
+    text: '야, 그걸 지금 말하면 어떡해!'
+    speakerSlot: 1
+    leftArt: 'Doyoon:Flustered'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'D'
+    choices: []
+  - speakerName: '아리아'
+    text: '마왕이라고 했나. 더 들을 것도 없군.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: 'D'
+    choices: []
+  - speakerName: '아리아'
+    text: '마물 소환사를 그냥 보낼 수는 없다. 검으로 확인하겠다.'
+    speakerSlot: 3
+    leftArt: 'Doyoon'
+    centerArt: 'Grimoire'
     rightArt: 'Aria:Guard'
     backgroundKey: ''
+    branch: ''
+    choices: []
   - speakerName: '그리모어'
     text: '봐, 말보다 검이 먼저 나오잖아. 준비해, 계약자.'
     speakerSlot: 2
@@ -64,6 +160,8 @@ MonoBehaviour:
     centerArt: ''
     rightArt: ''
     backgroundKey: ''
+    branch: ''
+    choices: []
   - speakerName: ''
     text: '아리아와의 첫 대결이 시작된다.'
     speakerSlot: 0
@@ -71,3 +169,5 @@ MonoBehaviour:
     centerArt: ''
     rightArt: ''
     backgroundKey: ''
+    branch: ''
+    choices: []

@@ -87,9 +87,16 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.SaveLoad);
     }
 
-    public static void LoadStory() // 스토리 씬에 적힌 시험 대사를 본다. (메인 메뉴의 스토리 버튼)
+    public static void LoadStoryRecall() // 스토리 회상 목록 (메인 메뉴의 스토리 회상 버튼, 기획서 4.16.4)
     {
         StorySetup.Clear();
+        LoadScene(SceneNames.StoryRecall);
+    }
+
+    // 회상 목록에서 고른 장면을 다시 본다. 끝나면 목록으로 돌아오고, 진행과 보상은 바뀌지 않는다.
+    public static void LoadStoryAsRecall(StorySceneData scene)
+    {
+        StorySetup.SetRecall(scene, SceneNames.StoryRecall);
         LoadScene(SceneNames.Story);
     }
 

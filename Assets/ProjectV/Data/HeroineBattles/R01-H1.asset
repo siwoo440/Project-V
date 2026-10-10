@@ -20,6 +20,8 @@ MonoBehaviour:
   heroineTitle: '엘프 / 왕국 기사단장'
   artKey: Aria
   description: '왕국 기사단장 아리아와의 첫 대결이다. 참격과 방패 전진을 쓴다.'
+  beforeStory: {fileID: 11400000, guid: e9230c06f70152f1868ad45c6e3d5352, type: 2}
+  afterStory: {fileID: 11400000, guid: d7a03217d2735d0fbec1534e0085c4f4, type: 2}
   maxHp: 220
   attack: 8
   defense: 4

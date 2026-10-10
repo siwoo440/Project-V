@@ -74,6 +74,8 @@ public static partial class SceneUIBuilder
         BuildScene("10_WorldMap", BuildWorldMapScene);
         EnsureSceneFile("11_BattlePrepare", "BattleScene"); // 씬 파일이 없으면 만들고 빌드 목록에 넣는다.
         BuildScene("11_BattlePrepare", BuildBattlePrepareScene);
+        EnsureSceneFile("12_StoryRecall", "BattleScene");
+        BuildScene("12_StoryRecall", BuildStoryRecallScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -214,7 +216,7 @@ public static partial class SceneUIBuilder
         }
 
         Button worldMapButton = EnsureButton("WorldMapButton", panel.transform, "월드맵", AccentColor);
-        Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리", ButtonColor);
+        Button storyButton = EnsureButton("StoryButton", panel.transform, "스토리 회상", ButtonColor);
         Button quitButton = EnsureButton("QuitButton", panel.transform, "게임 종료", WarningColor);
 
         worldMapButton.transform.SetSiblingIndex(0);
@@ -780,11 +782,6 @@ public static partial class SceneUIBuilder
         SendToBack("StoryPanel");
         HideOverlayByName("StoryPanel"); // 배경 그림을 가리던 반투명 덮개
 
-        GameObject character = EnsurePanel("CharacterImage", canvas.transform,
-            new Color(0.20f, 0.16f, 0.28f, 0.55f));
-        SetAnchored(character, new Vector2(0.5f, 0f), new Vector2(0f, 340f), new Vector2(520f, 720f));
-        HideOverlayByName("CharacterImage"); // 인물 그림이 생기기 전까지 빈 자리 표시는 숨긴다.
-
         GameObject dialoguePanel = EnsurePanel("DialoguePanel", canvas.transform, PanelColor);
         SetAnchored(dialoguePanel, new Vector2(0.5f, 0f), new Vector2(0f, 190f), new Vector2(1560f, 320f));
 
@@ -838,18 +835,7 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "speakerNameText", speakerNameText);
         AssignReference(flow, "dialogueText", dialogueText);
 
-        // 스토리를 마치면 월드맵으로 간다. (기획서 4.3.1)
-        SerializedObject serializedStory = new SerializedObject(flow);
-        SerializedProperty nextSceneProperty = serializedStory.FindProperty("nextSceneName");
-
-        if (nextSceneProperty != null)
-        {
-            nextSceneProperty.stringValue = SceneNames.WorldMap;
-            serializedStory.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        ApplyDefaultStoryLines(flow);
-        BuildStoryStage(canvas, flow); // 인물 그림 세 자리, 자동 진행, 건너뛰기 확인 창
+        BuildStoryStage(canvas, flow); // 인물 그림 세 자리, 자동 진행, 선택지, 건너뛰기 확인 창
     }
 
     private static void BuildBattleSceneExtras()
@@ -1735,33 +1721,6 @@ public static partial class SceneUIBuilder
             entry.FindPropertyRelative("recommendedLevel").intValue = levels[i];
             entry.FindPropertyRelative("description").stringValue = descriptions[i];
             entry.FindPropertyRelative("isUnlocked").boolValue = unlocked[i];
-        }
-
-        serializedFlow.ApplyModifiedPropertiesWithoutUndo();
-    }
-
-    private static void ApplyDefaultStoryLines(StoryFlow flow)
-    {
-        SerializedObject serializedFlow = new SerializedObject(flow);
-        SerializedProperty lines = serializedFlow.FindProperty("storyLines");
-
-        if (lines == null || lines.arraySize > 0) { return; }
-
-        string[] speakers = { "그리모어", "도윤", "그리모어" };
-        string[] dialogues =
-        {
-            "너는 이 세계의 소환사로 불려왔다.",
-            "내가 포획한 마물이 그대로 내 전투 카드가 되는 거군.",
-            "지역을 골라 시작해라. 덱 구성이 모든 것을 결정한다.",
-        };
-
-        lines.arraySize = speakers.Length;
-
-        for (int i = 0; i < speakers.Length; i++)
-        {
-            SerializedProperty entry = lines.GetArrayElementAtIndex(i);
-            entry.FindPropertyRelative("speakerName").stringValue = speakers[i];
-            entry.FindPropertyRelative("dialogue").stringValue = dialogues[i];
         }
 
         serializedFlow.ApplyModifiedPropertiesWithoutUndo();

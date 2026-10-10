@@ -42,6 +42,9 @@ EditorBuildSettings:
     path: Assets/ProjectV/Scenes/11_BattlePrepare.unity
     guid: 40133fea05c4cf1458eb12d8329124ab
   - enabled: 1
+    path: Assets/ProjectV/Scenes/12_StoryRecall.unity
+    guid: e3fd96e16d40f9d4bbc06888d162ccef
+  - enabled: 1
     path: Assets/ProjectV/Scenes/BattleScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   m_configObjects:

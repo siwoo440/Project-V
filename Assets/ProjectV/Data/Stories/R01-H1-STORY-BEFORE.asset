@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a4e1c7d3b6f42a8b0d5e2f7c1a38d46, type: 3}
+  m_Name: R01-H1-STORY-BEFORE
+  m_EditorClassIdentifier: Assembly-CSharp::StorySceneData
+  sceneId: R01-H1-STORY-BEFORE
+  title: '첫 대결'
+  lines:
+  - speakerName: ''
+    text: '숲길 한가운데, 아리아가 검을 뽑아 들었다.'
+    speakerSlot: 0
+    leftArt: 'Doyoon'
+    centerArt: ''
+    rightArt: 'Aria:Guard'
+    backgroundKey: 'Region01_Battle_BG_01'
+    branch: ''
+    choices: []
+  - speakerName: '아리아'
+    text: '마물을 불러라, 소환사. 네가 숲에 해가 되는지 직접 보겠다.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: ''
+    choices: []
+  - speakerName: '도윤'
+    text: '좋아. 대신 내가 이기면 길을 열어 주는 거다.'
+    speakerSlot: 1
+    leftArt: 'Doyoon:Bluff'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+    branch: ''
+    choices: []
+  - speakerName: '그리모어'
+    text: '상대는 기사단장이야. 방패를 세우기 전에 몰아쳐.'
+    speakerSlot: 2
+    leftArt: ''
+    centerArt: 'Grimoire'
+    rightArt: ''
+    backgroundKey: ''
+    branch: ''
+    choices: []

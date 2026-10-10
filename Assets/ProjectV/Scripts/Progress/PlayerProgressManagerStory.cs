@@ -3,6 +3,7 @@ using System.Collections.Generic; // 리스트 기능
 // 스토리 진행 기록 (기획서 10.21 / F.3.1 / F.3.2)
 // 본 장면을 기록한다. 건너뛴 장면도 본 장면으로 친다.
 // 지역 도입 스토리를 봐야 주요 히로인 1차전이 열리고, 3차전을 이긴 뒤 마무리 스토리를 봐야 지역이 클리어된다.
+// 히로인전의 승리 뒤 장면은 이긴 뒤 지역 화면으로 돌아올 때 나온다.
 public partial class PlayerProgressManager
 {
     private readonly HashSet<string> seenStories = new HashSet<string>(); // 본 장면의 ID
@@ -25,12 +26,19 @@ public partial class PlayerProgressManager
         return scene == null || IsStorySeen(scene.SceneId);
     }
 
-    // 지역 화면에 들어갈 때 먼저 봐야 하는 장면. 도입 스토리를 아직 보지 않았거나, 3차전을 이기고 마무리 스토리가 남았을 때다.
+    // 지역 화면에 들어갈 때 먼저 봐야 하는 장면. 도입 스토리, 이긴 히로인전의 승리 뒤 장면, 마무리 스토리 순서로 찾는다.
     public StorySceneData GetPendingRegionStory(RegionData region)
     {
         if (region == null) { return null; }
 
         if (!IsStorySeen(region.IntroStory)) { return region.IntroStory; }
+
+        foreach (HeroineBattleData battle in region.HeroineBattles)
+        {
+            if (battle == null || IsStorySeen(battle.AfterStory)) { continue; }
+
+            if (IsStageCleared(battle.BattleId)) { return battle.AfterStory; } // 이긴 전투의 승리 뒤 장면
+        }
 
         if (!IsStorySeen(region.EndStory) && IsMainBattleCleared(region, HeroineBattleRules.MainStageCount))
         {

@@ -9,7 +9,7 @@ public partial class MainMenuFlow : MonoBehaviour
 {
     [Header("메뉴 버튼")]
     [SerializeField] private Button worldMapButton; // 월드맵 (게임을 시작한 뒤에 열린다)
-    [SerializeField] private Button storyButton;    // 스토리 진행
+    [SerializeField] private Button storyButton;    // 스토리 회상
     [SerializeField] private Button quitButton;     // 게임 종료
 
     [Header("저장 메뉴")]
@@ -51,7 +51,7 @@ public partial class MainMenuFlow : MonoBehaviour
     private void Start()
     {
         AddListener(worldMapButton, SceneFlow.LoadWorldMap);
-        AddListener(storyButton, SceneFlow.LoadStory);
+        AddListener(storyButton, SceneFlow.LoadStoryRecall); // 본 장면을 다시 본다.
         AddListener(quitButton, SceneFlow.QuitGame);
 
         StartSaveMenu(); // 이어하기, 새 게임, 불러오기 연결

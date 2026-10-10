@@ -25,7 +25,7 @@ public partial class StoryFlow
     {
         AddControlListener(skipButton, OpenSkipConfirm);
         AddControlListener(autoButton, ToggleAuto);
-        AddControlListener(skipConfirmYesButton, FinishStory); // 건너뛴 장면도 본 장면으로 기록한다.
+        AddControlListener(skipConfirmYesButton, SkipStory);
         AddControlListener(skipConfirmNoButton, CloseSkipConfirm);
 
         if (skipButton != null)
@@ -53,15 +53,41 @@ public partial class StoryFlow
 
     private void OpenSkipConfirm() // 처음 보는 장면도 건너뛸 수 있다. 확인 창을 먼저 띄운다.
     {
-        if (isFinished) { return; }
+        if (isFinished || IsChoosing) { return; } // 선택지 앞에서는 답을 골라야 한다.
 
         if (skipConfirmPanel == null)
         {
-            FinishStory(); // 확인 창이 없는 씬이면 바로 건너뛴다.
+            SkipStory(); // 확인 창이 없는 씬이면 바로 건너뛴다.
             return;
         }
 
         skipConfirmPanel.SetActive(true);
+    }
+
+    // 건너뛴다. 뒤에 선택지가 남아 있으면 그 줄에서 멈춰 답을 고르게 하고, 없으면 장면을 끝낸다. (기획서 10.21.1)
+    // 건너뛴 장면도 본 장면으로 기록한다. 지나친 줄의 배경과 인물 지시는 적용해 멈춘 줄의 화면이 맞게 한다.
+    private void SkipStory()
+    {
+        CloseSkipConfirm();
+
+        if (isFinished || IsChoosing) { return; }
+
+        int lineIndex = FindVisibleLine(currentLineIndex + 1);
+
+        while (lineIndex < lines.Count)
+        {
+            if (lines[lineIndex].HasChoices && choicePanel != null)
+            {
+                currentLineIndex = lineIndex;
+                ShowCurrentLine();
+                return;
+            }
+
+            ApplyStage(lines[lineIndex]);
+            lineIndex = FindVisibleLine(lineIndex + 1);
+        }
+
+        FinishStory();
     }
 
     private void CloseSkipConfirm()
@@ -95,7 +121,9 @@ public partial class StoryFlow
 
     private void Update()
     {
-        if (isFinished || IsConfirmingSkip || lines.Count == 0) { return; }
+        UpdatePortraits(Time.unscaledDeltaTime); // 인물의 등장과 퇴장
+
+        if (isFinished || IsConfirmingSkip || IsChoosing || lines.Count == 0) { return; } // 확인 창이나 선택지가 떠 있으면 멈춘다.
 
         lineTimer += Time.unscaledDeltaTime;
 

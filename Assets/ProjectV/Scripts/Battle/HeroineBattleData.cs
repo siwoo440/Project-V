@@ -22,6 +22,10 @@ public class HeroineBattleData : ScriptableObject
     [SerializeField, TextArea]
     private string description; // 전투 소개
 
+    [Header("스토리 (기획서 F.3.1)")]
+    [SerializeField] private StorySceneData beforeStory; // 전투 시작 전 장면. 처음 도전할 때 한 번 나온다.
+    [SerializeField] private StorySceneData afterStory;  // 승리 뒤 장면. 처음 이기고 지역 화면으로 돌아올 때 한 번 나온다.
+
     [Header("능력치 (보통 난이도)")]
     [SerializeField, Min(1)] private int maxHp = 220;    // 최대 HP
     [SerializeField, Min(0)] private int attack = 8;     // 공격력. 행동의 피해 배율에 곱한다.
@@ -95,6 +99,9 @@ public class HeroineBattleData : ScriptableObject
     public string HeroineTitle => heroineTitle;        // 종족과 직위 반환
     public string ArtKey => artKey;                    // 그림 이름의 앞부분 반환
     public string Description => description;          // 전투 소개 반환
+
+    public StorySceneData BeforeStory => beforeStory; // 전투 시작 전 장면 반환 (없으면 null)
+    public StorySceneData AfterStory => afterStory;   // 승리 뒤 장면 반환 (없으면 null)
 
     public int MaxHp => Mathf.Max(1, maxHp);                   // 최대 HP 반환
     public int Attack => Mathf.Max(0, attack);                 // 공격력 반환

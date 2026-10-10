@@ -141,7 +141,26 @@ public partial class BattlePrepareFlow : MonoBehaviour
     {
         if (!BattleSetup.HasBattle) { return; }
 
+        StorySceneData beforeStory = GetUnseenBeforeStory();
+
+        if (beforeStory != null)
+        {
+            SceneFlow.LoadStory(beforeStory, SceneNames.Battle); // 전투 전 장면을 보여 준 뒤 전투로 간다.
+            return;
+        }
+
         SceneFlow.LoadBattle(); // 전투 시작 직전에 자동 저장한다.
+    }
+
+    // 히로인전에 처음 도전할 때 보여 줄 전투 전 장면. 한 번 본 뒤에는 재도전해도 나오지 않는다. (기획서 F.3.1)
+    private static StorySceneData GetUnseenBeforeStory()
+    {
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+        HeroineBattleData battle = BattleSetup.IsEnemyBattle ? null : BattleSetup.Heroine;
+
+        if (progress == null || battle == null || battle.BeforeStory == null) { return null; }
+
+        return progress.IsStorySeen(battle.BeforeStory) ? null : battle.BeforeStory;
     }
 
     private static void SetText(TMP_Text target, string content)

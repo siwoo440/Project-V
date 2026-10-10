@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a4e1c7d3b6f42a8b0d5e2f7c1a38d46, type: 3}
-  m_Name: R01-STORY-END
+  m_Name: R01-H1-STORY-AFTER
   m_EditorClassIdentifier: Assembly-CSharp::StorySceneData
-  sceneId: R01-STORY-END
-  title: '기사단장의 인정'
+  sceneId: R01-H1-STORY-AFTER
+  title: '물러서지 않는 기사'
   lines:
   - speakerName: ''
-    text: '세 번의 대결이 끝났다. 아리아는 검을 내렸다.'
+    text: '아리아가 한 걸음 물러섰다. 검끝은 아직 도윤을 향해 있다.'
     speakerSlot: 0
     leftArt: 'Doyoon'
     centerArt: 'Grimoire'
-    rightArt: 'Aria:Defeat'
+    rightArt: 'Aria:Hit'
     backgroundKey: 'Region01_Battle_BG_01'
     branch: ''
     choices: []
   - speakerName: '아리아'
-    text: '내가 졌다. 세 번이나 겨루고도 네 마물은 숲의 누구도 해치지 않았군.'
+    text: '한 번 밀렸을 뿐이다. 이것으로 너를 인정한 것은 아니다.'
     speakerSlot: 3
     leftArt: ''
     centerArt: ''
@@ -34,16 +34,16 @@ MonoBehaviour:
     branch: ''
     choices: []
   - speakerName: '도윤'
-    text: '말했잖아. 같이 다니는 거라고.'
+    text: '그래도 길은 열어 주는 거지?'
     speakerSlot: 1
-    leftArt: ''
+    leftArt: 'Doyoon:Smile'
     centerArt: ''
     rightArt: ''
     backgroundKey: ''
     branch: ''
     choices: []
   - speakerName: '아리아'
-    text: '너를 위험한 소환사로만 본 것은 내 잘못이다. 실력도, 책임감도 인정하지.'
+    text: '숲 안쪽의 마물들을 상대해 봐라. 네 마물이 숲을 해치지 않는지 지켜보겠다.'
     speakerSlot: 3
     leftArt: ''
     centerArt: ''
@@ -52,28 +52,10 @@ MonoBehaviour:
     branch: ''
     choices: []
   - speakerName: '그리모어'
-    text: '오, 기사단장이 사과를 다 하네. 기록해 둬야겠어.'
+    text: '숲 안쪽부터 정리하라는 소리네. 가자, 계약자.'
     speakerSlot: 2
     leftArt: ''
-    centerArt: ''
-    rightArt: ''
-    backgroundKey: ''
-    branch: ''
-    choices: []
-  - speakerName: '아리아'
-    text: '기록하지 마라. 나는 경계를 지켜야 하니 숲에 남겠다. 다만 필요할 때는 부르도록.'
-    speakerSlot: 3
-    leftArt: ''
-    centerArt: ''
-    rightArt: 'Aria:Shaken'
-    backgroundKey: ''
-    branch: ''
-    choices: []
-  - speakerName: ''
-    text: '아리아가 동료가 되었다. 다음 지역으로 가는 길이 열렸다.'
-    speakerSlot: 0
-    leftArt: ''
-    centerArt: ''
+    centerArt: 'Grimoire:Smile'
     rightArt: ''
     backgroundKey: ''
     branch: ''
