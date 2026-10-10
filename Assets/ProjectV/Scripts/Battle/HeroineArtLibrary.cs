@@ -41,8 +41,35 @@ public static class HeroineArtLibrary
 
     private static Sprite LoadExact(string artKey, HeroineArtState state)
     {
-        string path = $"Characters/{artKey}/{artKey}_Battle_{GetFileState(state)}";
+        return LoadPath($"Characters/{artKey}/{artKey}_Battle_{GetFileState(state)}");
+    }
 
+    // 스토리 화면의 인물 그림. 대화용 그림(<이름>_Talk_<표정>_01)을 먼저 찾고, 없으면 전투 그림을 대신 쓴다.
+    public static Sprite GetStoryArt(string artKey, string stateName)
+    {
+        if (string.IsNullOrEmpty(artKey)) { return null; }
+
+        string talkState = string.IsNullOrEmpty(stateName) ? "Normal" : stateName;
+
+        Sprite talkSprite = LoadPath($"Characters/{artKey}/{artKey}_Talk_{talkState}_01");
+
+        if (talkSprite == null && talkState != "Normal")
+        {
+            talkSprite = LoadPath($"Characters/{artKey}/{artKey}_Talk_Normal_01"); // 그 표정이 없으면 기본 표정
+        }
+
+        if (talkSprite != null) { return talkSprite; }
+
+        if (!System.Enum.TryParse(talkState, true, out HeroineArtState battleState))
+        {
+            battleState = HeroineArtState.Normal;
+        }
+
+        return Get(artKey, battleState);
+    }
+
+    private static Sprite LoadPath(string path)
+    {
         if (cache.TryGetValue(path, out Sprite cached)) { return cached; }
 
         Sprite sprite = Resources.Load<Sprite>(path);

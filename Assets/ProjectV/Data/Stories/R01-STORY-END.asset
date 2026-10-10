@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a4e1c7d3b6f42a8b0d5e2f7c1a38d46, type: 3}
+  m_Name: R01-STORY-END
+  m_EditorClassIdentifier: Assembly-CSharp::StorySceneData
+  sceneId: R01-STORY-END
+  title: '기사단장의 인정'
+  lines:
+  - speakerName: ''
+    text: '세 번의 대결이 끝났다. 아리아는 검을 내렸다.'
+    speakerSlot: 0
+    leftArt: 'Doyoon'
+    centerArt: 'Grimoire'
+    rightArt: 'Aria:Defeat'
+    backgroundKey: 'Region01_Battle_BG_01'
+  - speakerName: '아리아'
+    text: '내가 졌다. 세 번이나 겨루고도 네 마물은 숲의 누구도 해치지 않았군.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '도윤'
+    text: '말했잖아. 같이 다니는 거라고.'
+    speakerSlot: 1
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '아리아'
+    text: '너를 위험한 소환사로만 본 것은 내 잘못이다. 실력도, 책임감도 인정하지.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: 'Aria'
+    backgroundKey: ''
+  - speakerName: '그리모어'
+    text: '오, 기사단장이 사과를 다 하네. 기록해 둬야겠어.'
+    speakerSlot: 2
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '아리아'
+    text: '기록하지 마라. 나는 경계를 지켜야 하니 숲에 남겠다. 다만 필요할 때는 부르도록.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: 'Aria:Shaken'
+    backgroundKey: ''
+  - speakerName: ''
+    text: '아리아가 동료가 되었다. 다음 지역으로 가는 길이 열렸다.'
+    speakerSlot: 0
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''

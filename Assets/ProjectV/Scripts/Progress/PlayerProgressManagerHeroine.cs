@@ -24,7 +24,7 @@ public partial class PlayerProgressManager
 
         switch (stage)
         {
-            case 1: return true; // 도입 스토리가 생기면 스토리 완료를 조건으로 둔다.
+            case 1: return IsStorySeen(region.IntroStory); // 도입 스토리를 봐야 열린다. 스토리가 없는 지역은 바로 열린다.
             case 2: return IsMainBattleCleared(region, 1) && areNormalStagesCleared;
             default: return IsMainBattleCleared(region, 2);
         }

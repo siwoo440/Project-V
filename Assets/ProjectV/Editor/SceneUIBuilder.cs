@@ -849,6 +849,7 @@ public static partial class SceneUIBuilder
         }
 
         ApplyDefaultStoryLines(flow);
+        BuildStoryStage(canvas, flow); // 인물 그림 세 자리, 자동 진행, 건너뛰기 확인 창
     }
 
     private static void BuildBattleSceneExtras()

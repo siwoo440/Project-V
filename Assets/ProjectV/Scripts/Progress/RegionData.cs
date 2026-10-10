@@ -33,6 +33,13 @@ public class RegionData : ScriptableObject
 
     public IReadOnlyList<MonsterData> CaptureMonsters => captureMonsters; // 포획전 출현 마물 반환
 
+    [Header("스토리")]
+    [SerializeField] private StorySceneData introStory; // 지역 도입 스토리. 봐야 주요 히로인 1차전이 열린다. (기획서 F.3.1)
+    [SerializeField] private StorySceneData endStory;   // 지역 마무리 스토리. 3차전을 이긴 뒤에 보고, 보면 지역이 클리어된다.
+
+    public StorySceneData IntroStory => introStory; // 도입 스토리 반환 (없으면 null)
+    public StorySceneData EndStory => endStory;     // 마무리 스토리 반환 (없으면 null)
+
     [Header("히로인전")]
     [SerializeField]
     private List<HeroineBattleData> heroineBattles =

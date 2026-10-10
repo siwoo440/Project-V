@@ -86,9 +86,10 @@ public partial class PlayerProgressManager // 저장 데이터에서 소환사, 
         return skippedCount;
     }
 
-    private void RestoreStageClears(SaveData data) // 스테이지 승리 기록
+    private void RestoreStageClears(SaveData data) // 스테이지 승리 기록과 본 스토리 장면
     {
         InitializeStageProgress();
+        RestoreSeenStories(data.seenStories);
 
         foreach (SaveCountEntry clearEntry in data.stageClears)
         {

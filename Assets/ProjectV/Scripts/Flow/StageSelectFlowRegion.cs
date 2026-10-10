@@ -48,6 +48,26 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 스테
         }
     }
 
+    // 지역 화면에 들어왔을 때 먼저 봐야 하는 스토리가 있으면 스토리 화면으로 넘어간다. (기획서 F.3.1)
+    // 도입 스토리는 본 뒤 지역 화면으로 돌아오고, 마무리 스토리는 본 뒤 월드맵으로 나가 새 지역을 보여 준다.
+    private bool TryPlayPendingStory()
+    {
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        if (progress == null || region == null) { return false; }
+
+        StorySceneData pendingStory = progress.GetPendingRegionStory(region);
+
+        if (pendingStory == null) { return false; }
+
+        SceneFlow.LoadStory(
+            pendingStory,
+            pendingStory == region.EndStory ? SceneNames.WorldMap : SceneNames.StageSelect
+        );
+
+        return true;
+    }
+
     private bool IsDataStage(StageEntry stage) // 데이터로 만든 줄인지 여부 (씬에 저장된 시험 항목이 아닌 줄)
     {
         return stageFormations.ContainsKey(stage) ||
@@ -275,7 +295,7 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 스테
         {
             BattleSetup.SetHeroineBattle(
                 battle, regionOrder, stageTitle, selectedDifficulty,
-                ClearsRegion(battle) // 주요 히로인 3차전을 이기면 지역 클리어
+                ClearsRegion(battle) && region.EndStory == null // 3차전을 이기면 지역 클리어. 마무리 스토리가 있으면 그것을 본 뒤에 클리어한다.
             );
 
             return;

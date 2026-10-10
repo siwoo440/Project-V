@@ -82,9 +82,13 @@ public partial class WorldMapFlow : MonoBehaviour
                 ? unlockedRegion
                 : progress.CurrentRegion != null ? progress.CurrentRegion : progress.GetFirstRegion();
 
-            ShowMessage(unlockedRegion != null
+            string clearNotice = progress.TakeRegionClearNotice(); // 마무리 스토리로 방금 클리어한 지역과 보상
+
+            string unlockNotice = unlockedRegion != null
                 ? $"새 지역이 열렸습니다: {unlockedRegion.DisplayName}"
-                : "지역을 고르고 들어가세요.");
+                : "지역을 고르고 들어가세요.";
+
+            ShowMessage(string.IsNullOrEmpty(clearNotice) ? unlockNotice : $"{clearNotice}  {unlockNotice}");
         }
 
         Refresh();

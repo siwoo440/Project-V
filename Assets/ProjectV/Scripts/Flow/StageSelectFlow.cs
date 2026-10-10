@@ -125,6 +125,9 @@ public partial class StageSelectFlow : MonoBehaviour
         }
 
         ShowRegion(); // 들어온 지역의 이름과 배경 표시
+
+        if (TryPlayPendingStory()) { return; } // 도입이나 마무리 스토리가 남아 있으면 먼저 본다.
+
         StartTabButtons(); // 메인 진행과 서브 콘텐츠 탭 연결
         StartRerollButton(); // 포획 목록 다시 뽑기 버튼 연결
 

@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a4e1c7d3b6f42a8b0d5e2f7c1a38d46, type: 3}
+  m_Name: R01-STORY-INTRO
+  m_EditorClassIdentifier: Assembly-CSharp::StorySceneData
+  sceneId: R01-STORY-INTRO
+  title: '왕국과 숲의 경계'
+  lines:
+  - speakerName: ''
+    text: '왕국과 엘프의 숲이 맞닿은 경계. 도윤은 그리모어를 들고 숲길에 들어섰다.'
+    speakerSlot: 0
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: 'Region01_Battle_BG_01'
+  - speakerName: '도윤'
+    text: '여기가 엘프의 숲이라는 거지? 마왕이 될 남자의 첫 영토로 딱 좋은데.'
+    speakerSlot: 1
+    leftArt: 'Doyoon'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '그리모어'
+    text: '영토는 무슨. 경계를 지키는 기사단부터 넘고 말해.'
+    speakerSlot: 2
+    leftArt: ''
+    centerArt: 'Grimoire'
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '아리아'
+    text: '거기 서라. 왕국 기사단장 아리아다. 이 숲에 마물을 끌고 들어온 자가 너냐.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: 'Aria'
+    backgroundKey: ''
+  - speakerName: '도윤'
+    text: '끌고 온 게 아니라 같이 다니는 거야. 소환사거든.'
+    speakerSlot: 1
+    leftArt: 'Doyoon:Bluff'
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: '아리아'
+    text: '마물 소환사라. 위험한 자를 그냥 보낼 수는 없다. 검으로 확인하겠다.'
+    speakerSlot: 3
+    leftArt: ''
+    centerArt: ''
+    rightArt: 'Aria:Guard'
+    backgroundKey: ''
+  - speakerName: '그리모어'
+    text: '봐, 말보다 검이 먼저 나오잖아. 준비해, 계약자.'
+    speakerSlot: 2
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''
+  - speakerName: ''
+    text: '아리아와의 첫 대결이 시작된다.'
+    speakerSlot: 0
+    leftArt: ''
+    centerArt: ''
+    rightArt: ''
+    backgroundKey: ''

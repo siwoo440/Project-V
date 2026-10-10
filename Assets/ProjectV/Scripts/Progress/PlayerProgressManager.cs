@@ -829,6 +829,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         InitializeShopProgress(); // 소모성 아이템 초기화
         InitializeRegionProgress(); // 지역 진행 초기화
         InitializeStageProgress(); // 스테이지 승리 기록 초기화
+        InitializeStoryProgress(); // 본 스토리 장면 초기화
         InitializeCaptureProgress(); // 포획 목록 초기화
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화

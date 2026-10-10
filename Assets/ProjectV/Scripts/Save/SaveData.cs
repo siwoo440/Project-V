@@ -92,6 +92,8 @@ public class SaveData
 
     public List<SaveCaptureEntry> captures = new List<SaveCaptureEntry>(); // 지역별 포획 목록과 전설 보정 횟수
 
+    public List<string> seenStories = new List<string>(); // 본 스토리 장면의 ID (건너뛴 장면 포함)
+
     // 저장 파일에 없는 항목은 빈 값으로 읽힌다. (파일을 읽을 때는 위의 초기값이 적용되지 않는다)
     // 예전 버전의 파일을 읽어도 안전하도록, 읽은 뒤에 빈 목록과 빈 문자열로 채워 둔다.
     public void FillMissing()
@@ -111,6 +113,7 @@ public class SaveData
         if (regions == null) { regions = new List<SaveRegionEntry>(); }
         if (stageClears == null) { stageClears = new List<SaveCountEntry>(); }
         if (captures == null) { captures = new List<SaveCaptureEntry>(); }
+        if (seenStories == null) { seenStories = new List<string>(); }
 
         cards.RemoveAll(entry => entry == null);
         decks.RemoveAll(entry => entry == null);

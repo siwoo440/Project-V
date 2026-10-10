@@ -87,8 +87,15 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.SaveLoad);
     }
 
-    public static void LoadStory()
+    public static void LoadStory() // 스토리 씬에 적힌 시험 대사를 본다. (메인 메뉴의 스토리 버튼)
     {
+        StorySetup.Clear();
+        LoadScene(SceneNames.Story);
+    }
+
+    public static void LoadStory(StorySceneData scene, string returnSceneName) // 스토리 장면 하나를 보고 정한 화면으로 간다.
+    {
+        StorySetup.Set(scene, returnSceneName);
         LoadScene(SceneNames.Story);
     }
 

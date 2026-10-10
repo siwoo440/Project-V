@@ -109,6 +109,8 @@ public partial class PlayerProgressManager // 진행 데이터를 저장 데이�
             data.stageClears.Add(new SaveCountEntry { id = pair.Key, value = pair.Value });
         }
 
+        data.seenStories = CreateSeenStoryList(); // 본 스토리 장면
+
         BattleItemData equippedItem = EquippedBattleItem; // 다 쓴 아이템은 장착하지 않은 것으로 적는다.
 
         data.equippedBattleItemId = equippedItem == null ? string.Empty : equippedItem.ItemId;

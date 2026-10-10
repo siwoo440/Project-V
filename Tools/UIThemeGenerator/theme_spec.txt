@@ -103,3 +103,14 @@ char | Pranaya_Battle_LustHit_02.png | Pranaya
 char | Pranaya_Battle_Defeat_01.png | Pranaya
 char | Pranaya_Battle_Climax_01.png | Pranaya
 char | Pranaya_Battle_Attack_01.png | Pranaya
+
+# 스토리 대화용 그림 (GPT_Request_Story_01.md). 배경만 지우고 자르지 않는다.
+char | Doyoon_Talk_Normal_01.png | Doyoon
+char | Doyoon_Talk_Smile_01.png | Doyoon
+char | Doyoon_Talk_Flustered_01.png | Doyoon
+char | Doyoon_Talk_Serious_01.png | Doyoon
+char | Doyoon_Talk_Bluff_01.png | Doyoon
+char | Grimoire_Talk_Normal_01.png | Grimoire
+char | Grimoire_Talk_Smile_01.png | Grimoire
+char | Grimoire_Talk_Surprised_01.png | Grimoire
+char | Grimoire_Talk_Angry_01.png | Grimoire
