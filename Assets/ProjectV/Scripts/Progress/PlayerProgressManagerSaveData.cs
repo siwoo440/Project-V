@@ -100,6 +100,8 @@ public partial class PlayerProgressManager // 진행 데이터를 저장 데이�
 
         data.currentRegionId = currentRegion == null ? string.Empty : currentRegion.RegionId;
 
+        SaveCaptureBoards(data); // 지역별 포획 목록
+
         foreach (KeyValuePair<string, int> pair in stageClearMasks) // 스테이지 승리 기록
         {
             if (string.IsNullOrEmpty(pair.Key) || pair.Value == 0) { continue; }

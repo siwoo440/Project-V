@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public class BattleResultData
@@ -28,7 +29,26 @@ public class BattleResultData
         OutcomeLabel = label ?? string.Empty;
     }
 
-    public string StageId { get; private set; } = string.Empty; // 승리 기록에 쓰는 스테이지 ID (일반전만 있다)
+    private readonly List<MonsterData> capturedMonsters = new List<MonsterData>(); // 포획전에서 쓰러뜨린 마물
+
+    public bool IsCaptureBattle { get; private set; } // 포획전인지 여부 (끝나면 포획 목록이 새로 뽑힌다)
+    public IReadOnlyList<MonsterData> CapturedMonsters => capturedMonsters; // 포획한 마물 (승리했을 때만 채워진다)
+
+    // 포획전 결과 기록. 승리하면 쓰러뜨린 마물을 모두 얻고 패배하면 얻지 못한다. (기획서 9.13.1)
+    public void SetCaptureResult(IReadOnlyList<MonsterData> monsters)
+    {
+        IsCaptureBattle = true;
+        capturedMonsters.Clear();
+
+        if (monsters == null) { return; }
+
+        foreach (MonsterData monster in monsters)
+        {
+            if (monster != null) { capturedMonsters.Add(monster); }
+        }
+    }
+
+    public string StageId { get; private set; } = string.Empty; // 승리 기록에 쓰는 스테이지 ID (일반전과 포획전)
     public BattleDifficulty Difficulty { get; private set; } = BattleDifficulty.Normal; // 전투 난이도
     public bool IsFirstClear { get; private set; } // 이 스테이지의 최초 승리인지 여부
     public bool ClearsRegion { get; private set; } // 이 승리로 지역을 클리어하는지 여부

@@ -882,6 +882,8 @@ public static partial class SceneUIBuilder
 
         AssignReference(flow, "returnButton", returnButton);
         AssignReference(flow, "progressText", progressText);
+
+        BuildBattleIconButtons(); // 보조 버튼을 그림 버튼으로 바꾸고 전투 로그를 닫아 둔다.
     }
 
     // 전투 화면 전체 배치 (기획서 11.7 기준)

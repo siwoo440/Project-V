@@ -50,6 +50,16 @@ public class SaveRegionEntry // 지역 하나의 진행
 }
 
 [Serializable]
+public class SaveCaptureEntry // 한 지역의 포획 목록 (기획서 9.17)
+{
+    public string regionId;          // 지역 ID
+    public int rerollsWithoutLegend; // 전설 없이 유료 리롤을 한 횟수
+    public List<string> slot1 = new List<string>(); // 목록마다 등장 마물의 ID
+    public List<string> slot2 = new List<string>();
+    public List<string> slot3 = new List<string>();
+}
+
+[Serializable]
 public class SaveData
 {
     public int version;            // 저장 데이터 버전
@@ -80,6 +90,8 @@ public class SaveData
 
     public List<SaveCountEntry> stageClears = new List<SaveCountEntry>(); // 스테이지별로 승리한 난이도 (쉬움 1, 보통 2, 어려움 4의 합)
 
+    public List<SaveCaptureEntry> captures = new List<SaveCaptureEntry>(); // 지역별 포획 목록과 전설 보정 횟수
+
     // 저장 파일에 없는 항목은 빈 값으로 읽힌다. (파일을 읽을 때는 위의 초기값이 적용되지 않는다)
     // 예전 버전의 파일을 읽어도 안전하도록, 읽은 뒤에 빈 목록과 빈 문자열로 채워 둔다.
     public void FillMissing()
@@ -98,6 +110,7 @@ public class SaveData
         if (battleItems == null) { battleItems = new List<SaveCountEntry>(); }
         if (regions == null) { regions = new List<SaveRegionEntry>(); }
         if (stageClears == null) { stageClears = new List<SaveCountEntry>(); }
+        if (captures == null) { captures = new List<SaveCaptureEntry>(); }
 
         cards.RemoveAll(entry => entry == null);
         decks.RemoveAll(entry => entry == null);
@@ -106,6 +119,14 @@ public class SaveData
         battleItems.RemoveAll(entry => entry == null);
         regions.RemoveAll(entry => entry == null);
         stageClears.RemoveAll(entry => entry == null);
+        captures.RemoveAll(entry => entry == null);
+
+        foreach (SaveCaptureEntry captureEntry in captures)
+        {
+            if (captureEntry.slot1 == null) { captureEntry.slot1 = new List<string>(); }
+            if (captureEntry.slot2 == null) { captureEntry.slot2 = new List<string>(); }
+            if (captureEntry.slot3 == null) { captureEntry.slot3 = new List<string>(); }
+        }
 
         foreach (SaveCardEntry cardEntry in cards)
         {

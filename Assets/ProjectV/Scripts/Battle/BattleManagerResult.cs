@@ -14,9 +14,11 @@ public partial class BattleManager // 분리된 전투 기능
 
         bool isFirstClear = isEnemyBattle && IsFirstStageClear(); // 보상을 반영하기 전에 확인한다.
 
-        BattleResultData resultData = isEnemyBattle
-            ? CreateNormalStageResult(outcome, isVictory, isFirstClear)
-            : CreateRewardDataResult(outcome, isVictory);
+        BattleResultData resultData = !isEnemyBattle
+            ? CreateRewardDataResult(outcome, isVictory)
+            : BattleSetup.IsCaptureBattle
+                ? CreateCaptureResult(outcome, isVictory, isFirstClear)
+                : CreateNormalStageResult(outcome, isVictory, isFirstClear);
 
         resultData.SetStageInfo(
             isEnemyBattle ? BattleSetup.StageId : string.Empty,
@@ -43,7 +45,7 @@ public partial class BattleManager // 분리된 전투 기능
         bool isFirstClear
     )
     {
-        int stage = enemyFormation.Stage;
+        int stage = BattleSetup.StageNumber;
         int regionOrder = BattleSetup.RegionOrder;
         BattleDifficulty difficulty = BattleSetup.Difficulty;
 
@@ -66,6 +68,10 @@ public partial class BattleManager // 분리된 전투 기능
             GrimoireEffectType.BattleRecord
         ); // 전투 기록 반영
 
+        int essenceReward =
+            StageRules.GetNormalEssence(stage, regionOrder, difficulty, isFirstClear) +
+            Grimoire(GrimoireEffectType.EssenceCondense); // 일반전 정수 보상 (기획서 9.10.2) + 정수 응축
+
         return new BattleResultData(
             outcome,
             goldReward,
@@ -74,8 +80,48 @@ public partial class BattleManager // 분리된 전투 기능
             false,
             null,
             0,
-            Grimoire(GrimoireEffectType.EssenceCondense)
-        ); // 정수 응축 포함
+            essenceReward
+        );
+    }
+
+    // 포획전 보상: 골드는 없고 경험치와 정수를 준다. 이기면 쓰러뜨린 마물을 모두 얻는다. (기획서 9.7.4 / 9.8.2 / 9.10.3 / 9.13)
+    private BattleResultData CreateCaptureResult(
+        BattleOutcome outcome,
+        bool isVictory,
+        bool isFirstClear
+    )
+    {
+        int regionOrder = BattleSetup.RegionOrder;
+        BattleResultData resultData;
+
+        if (!isVictory)
+        {
+            int defeatExperience = StageRules.GetDefeatExperience(
+                StageRules.GetCaptureExperience(regionOrder, true)
+            ); // 승리 경험치의 25% (기획서 9.8.3)
+
+            resultData = new BattleResultData(outcome, 0, defeatExperience, false, false, null);
+            resultData.SetCaptureResult(null); // 패배하면 포획 결과가 전부 취소된다.
+
+            return resultData;
+        }
+
+        int experienceReward = ApplyGrimoirePercent(
+            StageRules.GetCaptureExperience(regionOrder, isFirstClear),
+            GrimoireEffectType.BattleRecord
+        ); // 전투 기록 반영
+
+        int essenceReward =
+            StageRules.GetCaptureEssence(BattleSetup.Enemies.Count, isFirstClear) +
+            Grimoire(GrimoireEffectType.EssenceCondense); // 기본 정수 + 쓰러뜨린 마물 수 + 정수 응축
+
+        resultData = new BattleResultData(
+            outcome, 0, experienceReward, false, false, null, 0, essenceReward
+        );
+
+        resultData.SetCaptureResult(BattleSetup.Enemies); // 적 전멸이 승리 조건이므로 편성의 마물 전부다.
+
+        return resultData;
     }
 
     // 히로인 전투 보상: 보상 데이터의 값을 쓴다. 히로인전의 보상 공식은 히로인전을 만드는 일차에 넣는다.
@@ -104,35 +150,16 @@ public partial class BattleManager // 분리된 전투 기능
             GrimoireEffectType.BattleRecord
         ); // 전투 기록 반영
 
-        bool captureAttempted =
-            battleRewardData.HasCaptureCandidate &&
-            battleRewardData.CaptureChance > 0f;
-
-        bool captureSucceeded =
-            captureAttempted &&
-            battleRewardData.RollCapture(
-                Grimoire(GrimoireEffectType.CaptureSkill) / 100f
-            ); // 포획술 반영
-
-        MonsterData capturedMonster = captureSucceeded
-            ? battleRewardData.GetRandomCaptureCandidate()
-            : null;
-
-        if (capturedMonster == null)
-        {
-            captureSucceeded = false;
-        }
-
         return new BattleResultData(
             outcome,
             goldReward,
             experienceReward,
-            captureAttempted,
-            captureSucceeded,
-            capturedMonster,
+            false,
+            false,
+            null,
             battleRewardData.DesireShards,
             Grimoire(GrimoireEffectType.EssenceCondense)
-        ); // 욕망의 파편과 정수 응축 포함
+        ); // 욕망의 파편과 정수 응축 포함. 포획은 포획전에서만 한다. (기획서 9.13.1)
     }
 
     private string GetBattleOutcomeDisplayName( BattleOutcome outcome)

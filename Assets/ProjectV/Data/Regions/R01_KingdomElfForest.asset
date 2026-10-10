@@ -22,3 +22,21 @@ MonoBehaviour:
   iconKey: Icon_Region_R01_01
   backgroundKey: Region01_Battle_BG_01
   mapPosition: {x: 0.095, y: 0.69}
+  captureMonsters:
+  - {fileID: 11400000, guid: 6573435d329bf1045bf430248212723c, type: 2}
+  - {fileID: 11400000, guid: eb5f6d17d7e8ffc4fb2a4f1bb7e6e4b0, type: 2}
+  - {fileID: 11400000, guid: e02222738b02de54fa8a3e925a0d0771, type: 2}
+  - {fileID: 11400000, guid: 456c1123496133c4fa45c66eee51423e, type: 2}
+  - {fileID: 11400000, guid: 56e235bb1120a1f4b900276e9bec3781, type: 2}
+  - {fileID: 11400000, guid: 0582fa6d199557b4eac0cd937caf454a, type: 2}
+  - {fileID: 11400000, guid: 7260fb9a181d4e36b63cf9a6790d3ecb, type: 2}
+  - {fileID: 11400000, guid: 36951d49e6ad48fa9c5aef9a3252a578, type: 2}
+  - {fileID: 11400000, guid: afb1eb48d9584061b00834ceba2a539c, type: 2}
+  - {fileID: 11400000, guid: ed7e552304f14b7e9b829b45ec7ad082, type: 2}
+  - {fileID: 11400000, guid: 921f30bfb66d4119a9f643c8dcbccfd7, type: 2}
+  - {fileID: 11400000, guid: 0c6a44b7928b43588087ad13a7a25412, type: 2}
+  - {fileID: 11400000, guid: 83bbebf13bc849a7b7175c786b740d1a, type: 2}
+  - {fileID: 11400000, guid: 3a45bb53ebd4474d8d39967ec8d29280, type: 2}
+  - {fileID: 11400000, guid: 0b6f4234e9664c5b9c472ba26cff003e, type: 2}
+  - {fileID: 11400000, guid: c3a5942efaf94b8a8176fad7ec739c15, type: 2}
+  - {fileID: 11400000, guid: ede08bc4744a49a6a282b0f1d674f4ae, type: 2}

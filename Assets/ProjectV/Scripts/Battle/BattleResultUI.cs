@@ -1,3 +1,4 @@
+using System.Collections.Generic; // 리스트 기능
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -269,18 +270,55 @@ public class BattleResultUI : MonoBehaviour
         }
     }
 
+    // 포획전 결과: 이기면 쓰러뜨린 마물을 모두 얻는다. 보유 한도를 넘는 마물은 정수로 바뀐다. (기획서 9.14)
+    private string GetCaptureListText(BattleResultData resultData)
+    {
+        if (!resultData.IsVictory)
+        {
+            return "포획 실패: 패배하면 마물을 얻지 못합니다.";
+        }
+
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+        Dictionary<CardData, int> addedCounts = new Dictionary<CardData, int>(); // 이번 결과에서 먼저 얻은 수량
+        List<string> lines = new List<string>();
+
+        foreach (MonsterData monster in resultData.CapturedMonsters)
+        {
+            CardData card = monster.CaptureRewardCard;
+            string resultLabel = "포획";
+
+            if (card != null && progress != null && !resultData.RewardsApplied)
+            {
+                addedCounts.TryGetValue(card, out int addedCount);
+
+                bool hasRoom =
+                    progress.GetOwnedCardCount(card) + addedCount < card.MaxCopies;
+
+                resultLabel = hasRoom ? "카드 획득" : "정수로 변환"; // 수령 전에 미리 보여 준다.
+
+                if (hasRoom) { addedCounts[card] = addedCount + 1; }
+            }
+
+            lines.Add($"{monster.MonsterName} ({resultLabel})");
+        }
+
+        return lines.Count == 0
+            ? "포획: 없음"
+            : "포획: " + string.Join(", ", lines);
+    }
+
     private string GetCaptureDisplayText(
         BattleResultData resultData
     )
     {
-        if (!resultData.IsVictory)
+        if (resultData.IsCaptureBattle)
         {
-            return "포획: 시도 없음";
+            return GetCaptureListText(resultData); // 포획전: 쓰러뜨린 마물 전부
         }
 
-        if (!resultData.CaptureAttempted)
+        if (!resultData.IsVictory || !resultData.CaptureAttempted)
         {
-            return "포획: 대상 없음";
+            return string.Empty; // 포획은 포획전에서만 한다. (기획서 9.13.1)
         }
 
         if (!resultData.CaptureSucceeded)

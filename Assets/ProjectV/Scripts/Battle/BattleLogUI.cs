@@ -9,7 +9,7 @@ public class BattleLogUI : MonoBehaviour // 전투 로그 UI 관리
     [Header("패널")] // 전투 로그 패널 설정
     [SerializeField] private GameObject logPanel; // 전투 로그 패널 오브젝트
     [SerializeField] private GameObject openButtonObject; // 전투 로그 열기 버튼 오브젝트
-    [SerializeField] private bool startOpened = true; // 게임 시작 시 패널 열림 여부
+    [SerializeField] private bool startOpened = false; // 전투 시작 시 패널 열림 여부 (기본은 닫힘, 로그 버튼으로 연다)
 
     [Header("로그 UI")] // 전투 로그 표시 설정
     [SerializeField] private TMP_Text logText; // 전체 전투 로그 텍스트

@@ -130,6 +130,7 @@ public partial class StageSelectFlow : MonoBehaviour
 
         ShowRegion(); // 들어온 지역의 이름과 배경 표시
         StartDifficultyButtons(); // 난이도 버튼 연결
+        StartRerollButton(); // 포획 목록 다시 뽑기 버튼 연결
         RefreshItemSlot(); // 장착한 소모성 아이템 표시
 
         BuildStageList(); // 스테이지 목록 생성
@@ -185,8 +186,8 @@ public partial class StageSelectFlow : MonoBehaviour
         LayoutElement entryLayout =
             entryObject.AddComponent<LayoutElement>();
 
-        entryLayout.minHeight = 76f;
-        entryLayout.preferredHeight = 76f;
+        entryLayout.minHeight = 68f; // 일반전 3, 포획전 3, 히로인전이 한 화면에 들어가는 높이
+        entryLayout.preferredHeight = 68f;
 
         // 전투 종류 아이콘. 잠긴 스테이지는 자물쇠를 보여준다.
         Sprite iconSprite = UISkin.Get(
@@ -290,8 +291,10 @@ public partial class StageSelectFlow : MonoBehaviour
                 stageDescriptionText.text =
                     stageFormations.TryGetValue(stage, out EnemyFormationData formation)
                         ? GetNormalStageDetail(stage, formation) + deckInfo // 일반전: 적, 난이도, 보상, 승리 기록
-                        : $"{GetStageSubtitle(stage)}\n" +
-                          $"{stage.Description}\n{deckInfo}";
+                        : captureSlots.ContainsKey(stage) && stage.IsUnlocked
+                            ? GetCaptureStageDetail(stage) + deckInfo // 포획전: 마물, 보유 수량, 보상
+                            : $"{GetStageSubtitle(stage)}\n" +
+                              $"{stage.Description}\n{deckInfo}";
             }
         }
 
@@ -301,6 +304,7 @@ public partial class StageSelectFlow : MonoBehaviour
         }
 
         RefreshDifficultyButtons(); // 일반전을 골랐을 때만 난이도 버튼을 보여 준다.
+        RefreshRerollButton(); // 포획 목록을 골랐을 때만 다시 뽑기 버튼을 보여 준다.
     }
 
     public void StartSelectedStage()

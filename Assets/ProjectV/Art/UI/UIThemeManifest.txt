@@ -141,6 +141,7 @@ background|Prologue_Story_BG_01|Backgrounds/Prologue/Prologue_Story_BG_01.jpg
 background|Region01_Battle_BG_01|Backgrounds/Region01/Region01_Battle_BG_01.jpg
 background|Grimoire_BG_01|Backgrounds/Common/Grimoire_BG_01.jpg
 background|Shop_BG_01|Backgrounds/Common/Shop_BG_01.jpg
+background|SaveLoad_BG_01|Backgrounds/Common/SaveLoad_BG_01.jpg
 atlas|UI/Atlases/UI_IconAtlas_01.png|1024|1024
 glyph|hp|4|4|120|120
 glyph|atk|132|4|120|120

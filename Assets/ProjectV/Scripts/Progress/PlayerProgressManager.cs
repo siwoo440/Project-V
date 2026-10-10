@@ -226,7 +226,12 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
             // 기획서 6.9의 성장 수단은 강화뿐이므로 전투 경험치로는 마물이 성장하지 않는다.
 
-            RecordStageClear(resultData.StageId, resultData.Difficulty); // 스테이지 승리 기록 (일반전만 ID가 있다)
+            foreach (MonsterData capturedMonster in resultData.CapturedMonsters)
+            {
+                essenceGained += AddCapturedMonster(capturedMonster); // 포획전: 카드 지급 또는 초과 변환 (기획서 9.14)
+            }
+
+            RecordStageClear(resultData.StageId, resultData.Difficulty); // 스테이지 승리 기록 (일반전과 포획전)
 
             if (resultData.ClearsRegion)
             {
@@ -236,6 +241,11 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         else
         {
             experienceGained = AddExperience(resultData.ExperienceReward); // 패배 경험치 (기획서 9.8.3)
+        }
+
+        if (resultData.IsCaptureBattle)
+        {
+            RefreshCaptureBoard(currentRegion); // 포획전이 끝나면 이기든 지든 목록을 새로 뽑는다. (기획서 9.14)
         }
 
         resultData.MarkRewardsApplied(
@@ -818,6 +828,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         InitializeShopProgress(); // 소모성 아이템 초기화
         InitializeRegionProgress(); // 지역 진행 초기화
         InitializeStageProgress(); // 스테이지 승리 기록 초기화
+        InitializeCaptureProgress(); // 포획 목록 초기화
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화

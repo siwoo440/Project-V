@@ -297,6 +297,8 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 581bd155ede8cc8478314904b85e766b, type: 3}
   - key: Shop_BG_01
     sprite: {fileID: 21300000, guid: 88a6e8569fc6f01458ed053aa71e26f5, type: 3}
+  - key: SaveLoad_BG_01
+    sprite: {fileID: 21300000, guid: b40421ea3f62cec40b642816cd3434bc, type: 3}
   iconAsset: {fileID: 11400000, guid: 5d55bf306c4cf3e46b2f15c56dae72fb, type: 2}
   iconNames:
   - hp

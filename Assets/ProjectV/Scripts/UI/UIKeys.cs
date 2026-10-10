@@ -44,6 +44,7 @@ public static class UIKeys
     public const string IconLog = "Icon_Menu_Log_01";
     public const string IconCollection = "Icon_Menu_Collection_01";
     public const string IconLock = "Icon_Menu_Lock_01";
+    public const string IconClose = "Icon_Misc_Close_01"; // 닫기
     public const string IconGrimoire = "Icon_Menu_Grimoire_01"; // 그리모어 강화 메뉴
     public const string IconShop = "Icon_Menu_Shop_01";         // 상점 메뉴
 
@@ -101,6 +102,8 @@ public static class UIKeys
     public const string RewardChestClosed = "Icon_Reward_ChestClosed_01"; // 최초 보상을 아직 받지 않음
     public const string RewardChestOpen = "Icon_Reward_ChestOpen_01";     // 최초 보상을 이미 받음
     public const string RewardRepeat = "Icon_Reward_Repeat_01";           // 반복 보상
+    public const string CaptureOrb = "Icon_Capture_Orb_01";               // 포획 콘텐츠
+    public const string CaptureReroll = "Icon_Capture_Reroll_01";         // 포획 목록 다시 뽑기
 
     // 그리모어 강화: 분기 문양과 노드 받침
     public const string GrimoireContract = "Icon_Grimoire_Contract_01";

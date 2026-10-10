@@ -54,8 +54,8 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 일반
         if (stage == null) { return string.Empty; }
         if (region == null) { return stage.StageName; }
 
-        return stageFormations.ContainsKey(stage)
-            ? $"{region.DisplayName} {stage.StageName}" // 일반전 1단계처럼 단계가 들어간 이름
+        return stageFormations.ContainsKey(stage) || captureSlots.ContainsKey(stage)
+            ? $"{region.DisplayName} {stage.StageName}" // 일반전 1단계, 포획전 2처럼 번호가 들어간 이름
             : $"{region.DisplayName} {stage.StageType}";
     }
 
@@ -109,10 +109,15 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 일반
             previousFormation = formation;
         }
 
+        AddCaptureStages(shownStages); // 포획 목록 3개
+
+        bool hasCaptureStages = captureSlots.Count > 0;
+
         foreach (StageEntry stage in stages)
         {
             if (stage == null) { continue; }
             if (regionFormations.Count > 0 && stage.StageType == NormalBattleType) { continue; } // 편성으로 대체
+            if (hasCaptureStages && stage.StageType == CaptureBattleType) { continue; } // 포획 목록으로 대체
 
             shownStages.Add(stage);
         }
@@ -124,6 +129,11 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 일반
     private string GetStageSubtitle(StageEntry stage)
     {
         if (stage == null) { return string.Empty; }
+
+        if (captureSlots.ContainsKey(stage))
+        {
+            return GetCaptureSubtitle(stage);
+        }
 
         if (!stageFormations.TryGetValue(stage, out EnemyFormationData formation))
         {
@@ -146,9 +156,19 @@ public partial class StageSelectFlow // 지역 화면의 지역 표시와 일반
 
         if (stageFormations.TryGetValue(stage, out EnemyFormationData formation))
         {
-            BattleSetup.SetEnemyBattle(
+            BattleSetup.SetNormalBattle(
                 formation, regionOrder, stageTitle, selectedDifficulty,
                 formation.Stage >= lastNormalStage // 임시 규칙: 일반전 마지막 단계를 이기면 지역 클리어
+            );
+
+            return;
+        }
+
+        if (captureSlots.TryGetValue(stage, out int captureSlot))
+        {
+            BattleSetup.SetCaptureBattle(
+                RegionRules.GetCaptureStageId(region.RegionId, captureSlot),
+                GetCaptureMonsters(stage), regionOrder, stageTitle
             );
 
             return;

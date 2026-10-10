@@ -18,8 +18,7 @@ public partial class BattleManager
     private readonly Dictionary<MonsterUnit, MonsterUnit> enemyTargets =
         new Dictionary<MonsterUnit, MonsterUnit>(); // 적 마물별 예고 대상 (값이 없으면 플레이어)
 
-    private EnemyFormationData enemyFormation; // 이번 전투의 적 편성
-    private bool isEnemyBattle;                // 적 마물 전투 여부
+    private bool isEnemyBattle; // 적 마물 전투 여부 (일반전과 포획전)
 
     private bool hasTurnPanelHome;     // 턴 표시의 원래 자리를 기억했는지 여부
     private Vector2 turnPanelHomeAnchor;
@@ -30,10 +29,9 @@ public partial class BattleManager
     {
         ClearEnemyField();
 
-        enemyFormation = BattleSetup.Formation;
-
         isEnemyBattle =
-            enemyFormation != null &&
+            BattleSetup.IsEnemyBattle &&
+            BattleSetup.Enemies.Count > 0 &&
             enemyFieldContainer != null &&
             monsterUnitPrefab != null; // 씬을 다시 구성하기 전이면 히로인 전투로 진행한다.
 
@@ -54,7 +52,7 @@ public partial class BattleManager
         AddBattleLog(
             BattleLogCategory.System,
             $"{BattleSetup.StageTitle} [{StageRules.GetDifficultyName(BattleSetup.Difficulty)}]: " +
-            $"적 마물 {enemyUnits.Count}체 ({enemyFormation.EnemyListText})"
+            $"적 마물 {enemyUnits.Count}체 ({BattleSetup.EnemyListText})"
         );
     }
 
@@ -85,7 +83,7 @@ public partial class BattleManager
         int regionPercent = EnemyBattleRules.GetRegionStatPercent(BattleSetup.RegionOrder);
         int regionDefense = EnemyBattleRules.GetRegionDefenseBonus(BattleSetup.RegionOrder);
 
-        foreach (MonsterData enemyData in enemyFormation.Enemies)
+        foreach (MonsterData enemyData in BattleSetup.Enemies)
         {
             if (enemyData == null) { continue; }
             if (enemyUnits.Count >= EnemyBattleRules.MaxEnemyCount) { break; }
@@ -102,9 +100,9 @@ public partial class BattleManager
 
             enemyUnit.SetupAsEnemy(
                 regionPercent,
-                enemyFormation.HpPercent,
-                enemyFormation.AttackPercent,
-                regionDefense + enemyFormation.DefenseBonus,
+                BattleSetup.HpPercent,
+                BattleSetup.AttackPercent,
+                regionDefense + BattleSetup.DefenseBonus,
                 BattleSetup.Difficulty
             );
 

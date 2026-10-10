@@ -15,6 +15,10 @@ public static class StageRules
     private static readonly int[] NormalFirstGold = { 100, 140, 200 };
     private static readonly int[] NormalRepeatGold = { 60, 90, 120 }; // 2단계는 표의 값(90)을 따른다. 60%로 계산하면 84다.
     private static readonly int[] NormalExperience = { 40, 60, 80 };
+    private static readonly int[] NormalEssence = { 5, 8, 12 }; // 마물의 정수 (기획서 9.10.2)
+
+    public const int CaptureExperience = 60; // 포획전 경험치 (기획서 9.8.2)
+    public const int CaptureBaseEssence = 3; // 포획전 기본 정수. 쓰러뜨린 마물 수만큼 더한다. (기획서 9.10.3)
 
     public static string GetDifficultyName(BattleDifficulty difficulty) // 난이도 표시 이름
     {
@@ -97,7 +101,33 @@ public static class StageRules
         int index = Mathf.Clamp(stage - 1, 0, NormalExperience.Length - 1);
         int firstAmount = ApplyMultipliers(NormalExperience[index], regionOrder, difficulty);
 
+        return ApplyRepeat(firstAmount, isFirstClear);
+    }
+
+    public static int ApplyRepeat(int firstAmount, bool isFirstClear) // 반복 승리면 최초 보상의 60% (소수점 버림)
+    {
         return isFirstClear ? firstAmount : firstAmount * RepeatRewardPercent / 100;
+    }
+
+    public static int GetNormalEssence(int stage, int regionOrder, BattleDifficulty difficulty, bool isFirstClear)
+    {
+        int index = Mathf.Clamp(stage - 1, 0, NormalEssence.Length - 1);
+
+        return ApplyRepeat(ApplyMultipliers(NormalEssence[index], regionOrder, difficulty), isFirstClear);
+    }
+
+    // 포획전은 난이도가 지역마다 고정이라 난이도 배율이 없다. 골드도 주지 않는다. (기획서 8.12 / 9.7.4)
+    public static int GetCaptureExperience(int regionOrder, bool isFirstClear)
+    {
+        return ApplyRepeat(
+            ApplyMultipliers(CaptureExperience, regionOrder, BattleDifficulty.Normal),
+            isFirstClear
+        );
+    }
+
+    public static int GetCaptureEssence(int defeatedCount, bool isFirstClear) // 기본 3개 + 쓰러뜨린 마물 수
+    {
+        return ApplyRepeat(CaptureBaseEssence + Mathf.Max(0, defeatedCount), isFirstClear);
     }
 
     // 패배 경험치. 지역과 난이도 배율은 적용하고 반복 감소는 적용하지 않은 승리 경험치를 넣는다.

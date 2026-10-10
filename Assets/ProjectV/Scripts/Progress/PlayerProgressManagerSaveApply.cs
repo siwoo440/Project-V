@@ -22,6 +22,7 @@ public partial class PlayerProgressManager
             RestoreRegions(data);
 
         RestoreStageClears(data); // 스테이지 ID는 에셋을 찾지 않고 그대로 되살린다.
+        RestoreCaptureBoards(data); // 저장된 포획 목록을 그대로 되살린다. (기획서 9.14: 불러오면 목록 유지)
 
         if (skippedCount > 0)
         {

@@ -63,4 +63,4 @@ A bright, quiet fantasy record room seen from the front in warm morning light. A
 ## 수령 기록
 
 - 2026-10-10: `Icon_Battle_Sheet_01.png` 수령 (원본 PNG, 1254x1254, 투명 배경). 9조각 모두 정상으로 잘림.
-- `SaveLoad_BG_01.png`은 아직 받지 않음.
+- 2026-10-10: `SaveLoad_BG_01.png` 수령 (다운로드 폴더의 원본 PNG, 1536x1024). 16:9로 잘라 `Backgrounds/Common/SaveLoad_BG_01.jpg`로 저장.

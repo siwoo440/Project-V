@@ -71,6 +71,17 @@ public static partial class SceneUIBuilder
             new Vector2(0.5f, 1f), new Vector2(340f, -62f), 76f);
 
         AssignReference(flow, "rewardIconImage", rewardIcon);
+
+        // 포획 목록 다시 뽑기 버튼. 난이도 버튼과 같은 줄을 쓰고, 포획 목록을 골랐을 때만 보인다. (기획서 9.14)
+        Button rerollButton = EnsureButton("RerollButton", detailPanel, "목록 다시 뽑기", ButtonColor);
+
+        SetAnchored(rerollButton.gameObject,
+            new Vector2(0.5f, 0f), new Vector2(0f, 232f), new Vector2(460f, 50f));
+
+        StyleButtonByName("RerollButton", ButtonColor, 21f);
+        EnsureButtonIcon(rerollButton, UIKeys.CaptureReroll);
+
+        AssignReference(flow, "rerollButton", rerollButton);
     }
 
     // 프로젝트의 적 편성 데이터를 지역 화면에 연결한다. 지역 ID와 단계로 찾아 쓴다.

@@ -1,3 +1,4 @@
+using System.Collections.Generic; // 리스트 기능
 using UnityEngine; // Unity 기본 기능
 
 // 메인 지역 하나의 데이터 (기획서 F.2)
@@ -24,6 +25,13 @@ public class RegionData : ScriptableObject
 
     [SerializeField]
     private Vector2 mapPosition = new Vector2(0.5f, 0.5f); // 지도 위 위치 (왼쪽 아래 0,0 ~ 오른쪽 위 1,1)
+
+    [Header("포획")]
+    [SerializeField]
+    private List<MonsterData> captureMonsters =
+        new List<MonsterData>(); // 이 지역의 포획전에 나올 수 있는 마물 (기획서 7.14의 지역 출현표)
+
+    public IReadOnlyList<MonsterData> CaptureMonsters => captureMonsters; // 포획전 출현 마물 반환
 
     public string RegionId => regionId;           // 지역 ID 반환
     public string DisplayName => displayName;     // 지역 이름 반환

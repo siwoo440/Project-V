@@ -1,5 +1,6 @@
 using TMPro; // TextMeshPro 기능
 using UnityEngine; // Unity 기본 기능
+using UnityEngine.UI; // Unity UI 기능
 
 public partial class BattleManager // 소모성 전투 아이템의 효과와 표시
 {
@@ -109,6 +110,23 @@ public partial class BattleManager // 소모성 전투 아이템의 효과와 �
         if (buttonLabel != null)
         {
             buttonLabel.text = GetBattleItemButtonLabel();
+        }
+
+        // 그림 버튼: 장착한 아이템의 그림을 보여 주고, 쓸 수 없으면 흐리게 한다.
+        Transform iconTransform = battleItemButton.transform.Find("Icon");
+        Image iconImage = iconTransform == null ? null : iconTransform.GetComponent<Image>();
+
+        if (iconImage != null)
+        {
+            iconImage.enabled = UISkin.ApplySimple(
+                iconImage,
+                battleItem == null ? UIKeys.ItemEmpty : battleItem.IconKey,
+                true
+            );
+
+            iconImage.color = canUse || isSelectingItemTarget
+                ? Color.white
+                : new Color(1f, 1f, 1f, 0.4f);
         }
     }
 
