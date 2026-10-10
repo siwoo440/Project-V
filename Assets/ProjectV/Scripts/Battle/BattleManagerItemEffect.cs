@@ -102,6 +102,7 @@ public partial class BattleManager // 소모성 전투 아이템의 효과와 �
         battleItemButton.interactable =
             isPlayerTurn &&
             !isBattleEnded &&
+            !isMulliganPhase &&
             (isSelectingItemTarget || canUse);
 
         TMP_Text buttonLabel =

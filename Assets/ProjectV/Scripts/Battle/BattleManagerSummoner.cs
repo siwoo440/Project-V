@@ -198,7 +198,8 @@ public partial class BattleManager // 소환사 액티브 스킬과 패시브 (�
             0,
             cardCopy.ManaCost -
             GetGrimoireCardDiscount(cardCopy) -
-            GetThriftyDiscount(cardCopy)
+            GetThriftyDiscount(cardCopy) -
+            GetSynergyCardDiscount(cardCopy) // 매 턴 처음 소환하는 계열 마물 할인 (고블린 2체)
         );
     }
 

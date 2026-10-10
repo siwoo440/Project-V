@@ -46,6 +46,11 @@ public partial class BattleManager
         }
     }
 
+    private void ShowHeroineEvadeArt() // 공격을 회피했을 때: 막아 낸 그림을 쓴다.
+    {
+        if (IsHeroineArtShown) { heroineArtUI.PlayReaction(HeroineArtState.Guard); }
+    }
+
     private void ShowHeroineHpLossArt(int hpDamage) // HP를 잃었을 때: 크게 잃으면 강한 피격
     {
         if (!IsHeroineArtShown || hpDamage <= 0) { return; }

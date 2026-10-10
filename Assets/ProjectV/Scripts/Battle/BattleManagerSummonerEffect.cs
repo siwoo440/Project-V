@@ -155,6 +155,7 @@ public partial class BattleManager // 소환사 액티브 스킬 효과와 표�
             summonerSkillButton.interactable =
                 isPlayerTurn &&
                 !isBattleEnded &&
+                !isMulliganPhase &&
                 (isSelectingSkillTarget || canUse);
 
             TMP_Text buttonLabel =

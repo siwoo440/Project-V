@@ -19,3 +19,8 @@ MonoBehaviour:
     amount: 2
     applyToAllAllies: 0
     description: 촉수 마물의 기본 공격 욕정 부여량 +2
+  - requiredCount: 6
+    effectType: 11
+    amount: 3
+    applyToAllAllies: 0
+    description: 플레이어 턴 시작 시 히로인에게 필드의 촉수 수만큼 욕정 부여. 동요 상태라면 추가로 3 부여

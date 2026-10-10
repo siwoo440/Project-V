@@ -412,7 +412,7 @@ public partial class BattleManager // 분리된 전투 기능
     private void AttackPlayer() // 플레이어 직접 공격
     {
         int attackPower = GetHeroineCurrentAttack(GetHeroineActionDamage(nextHeroineAction)); // 상태 효과 포함 공격력 계산
-        ApplyDamageToPlayer(attackPower, nextHeroineAction.DisplayName); // 플레이어 보호막 포함 피해 적용
+        AttackPlayerWithRoll(attackPower, nextHeroineAction.DisplayName, GetHeroineCritPercent()); // 회피와 치명타 판정 뒤 피해 적용
     }
 
 
@@ -432,6 +432,7 @@ public partial class BattleManager // 분리된 전투 기능
         playerCurrentHp = Mathf.Max(0, playerCurrentHp - damageResult.HpDamage); // 플레이어 실제 HP 피해 적용
         resultText.text = $"{actionName}: {CreateDamageResultText("플레이어", damageResult)}"; // 플레이어 피해 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 플레이어 공격 기록
+        ApplySynergyLethalGuard(); // 천사 4체: 전투당 1회 HP 1로 버틴다.
         ApplyGrimoirePlayerDamageReactions(); // 최후의 계약, 재생 계약
     }
 

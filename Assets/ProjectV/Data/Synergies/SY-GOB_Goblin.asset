@@ -14,8 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SynergyData
   monsterType: 3
   stages:
+  - requiredCount: 2
+    effectType: 15
+    amount: 1
+    applyToAllAllies: 0
+    description: 매 턴 처음 소환하는 고블린의 마나 비용 1 감소
   - requiredCount: 4
     effectType: 2
     amount: 3
     applyToAllAllies: 0
     description: 모든 고블린 ATK +3
+  - requiredCount: 6
+    effectType: 16
+    amount: 1
+    applyToAllAllies: 0
+    description: 한 턴에 고블린 3체가 행동을 마치면 카드 1장 드로우. 턴당 1회
+  - requiredCount: 8
+    effectType: 12
+    amount: 1
+    applyToAllAllies: 0
+    description: 고블린은 소환된 턴에도 기본 공격 또는 능동 스킬 사용 가능

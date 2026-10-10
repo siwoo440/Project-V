@@ -23,6 +23,7 @@ public partial class BattleManager // 타입 시너지 처리
         ApplyContinuousSynergyBonuses();
         LogSynergyStageChanges();
         UpdateSynergyText();
+        RefreshSynergyCostViews(); // 계열 수가 바뀌어 처음 소환 할인이 생기거나 없어졌으면 손패 비용을 다시 그린다.
     }
 
     private void CountFieldMonsterTypes()
@@ -306,6 +307,8 @@ public partial class BattleManager // 타입 시너지 처리
                 $"{MonsterTypeRules.GetDisplayName(summonedType)} 시너지: 마나 +{manaAmount}"
             );
         }
+
+        ApplySummonExtraSynergies(summonedMonster); // 소환된 턴에도 행동, 처음 소환 기록
     }
 
     // 마물이 사망한 직후 처리
@@ -335,6 +338,7 @@ public partial class BattleManager // 타입 시너지 처리
     {
         usedFirstSummonMana.Clear(); // 턴당 1회 기록 초기화
         usedFirstDeathDraw.Clear();
+        ResetSynergyTurnRecords(); // 처음 소환 할인과 행동 완료 드로우 기록
 
         RefreshSynergies();
 
@@ -371,7 +375,11 @@ public partial class BattleManager // 타입 시너지 처리
             {
                 ReduceCooldownForType(synergy.MonsterType, cooldownAmount);
             }
+
+            ApplyTurnStartExtraSynergies(synergy); // 촉수 6체의 성욕 증가, 정령 6체의 아군 강화
         }
+
+        RefreshSynergyCostViews(); // 처음 소환 할인이 다시 생겼으면 손패의 비용 표시를 바꾼다.
     }
 
     // 플레이어 턴 종료 시 처리

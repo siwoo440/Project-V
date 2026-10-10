@@ -240,6 +240,12 @@ public partial class BattleManager // 분리된 전투 기능
     }
     private void TryPlayCard(CardCopy cardCopy, Button cardButton) // 카드 사용 처리
     {
+        if (isMulliganPhase && !isBattleEnded)
+        {
+            ToggleMulliganCard(cardButton); // 손패 교환 중에는 카드를 쓰지 않고 교환할 카드로 고른다.
+            return;
+        }
+
         if (!isPlayerTurn || isBattleEnded) { return; } // 카드 사용 차단
         if (cardCopy == null || cardCopy.CardData == null) { return; } // 빈 카드 차단
 

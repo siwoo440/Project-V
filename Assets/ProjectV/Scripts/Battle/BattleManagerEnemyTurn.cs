@@ -141,15 +141,27 @@ public partial class BattleManager // 적 마물 전투: 적의 행동 예고와
 
         if (target == null)
         {
-            ApplyDamageToPlayer(attackPower, enemyUnit.MonsterName); // 아군 마물이 없으면 플레이어를 공격
+            AttackPlayerWithRoll(attackPower, enemyUnit.MonsterName, GetMonsterCritPercent(enemyUnit)); // 아군 마물이 없으면 플레이어를 공격
             return;
         }
 
         string targetName = target.MonsterName;
-        DamageResult damageResult = target.TakeDamage(attackPower);
+
+        AttackRoll roll = RollAttack(
+            attackPower, GetMonsterEvasionPercent(target), GetMonsterCritPercent(enemyUnit)
+        );
+
+        if (roll.IsEvaded)
+        {
+            resultText.text = $"{enemyUnit.MonsterName} → {targetName} 회피";
+            AddBattleLog(BattleLogCategory.HeroineAction, resultText.text);
+            return; // 회피하면 피해와 딸린 상태 효과가 모두 없다.
+        }
+
+        DamageResult damageResult = target.TakeDamage(roll.AttackPower);
 
         string attackText =
-            $"{enemyUnit.MonsterName} → {CreateDamageResultText(targetName, damageResult)}";
+            $"{enemyUnit.MonsterName} → {CreateDamageResultText(targetName, damageResult)}{GetCritTag(roll)}";
 
         StatusEffectData statusData = enemyUnit.AttackStatusEffect;
 

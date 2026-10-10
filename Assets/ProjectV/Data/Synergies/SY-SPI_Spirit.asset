@@ -24,3 +24,8 @@ MonoBehaviour:
     amount: 1
     applyToAllAllies: 0
     description: 턴 시작 시 모든 정령의 재사용 대기시간 추가 1 감소
+  - requiredCount: 6
+    effectType: 13
+    amount: 2
+    applyToAllAllies: 1
+    description: 플레이어 턴 시작 시 모든 아군이 해당 턴 동안 ATK +2, 욕정 부여량 +2

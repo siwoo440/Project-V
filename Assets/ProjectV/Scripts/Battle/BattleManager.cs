@@ -125,6 +125,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     private void InitializeBattle()
     {
         lastBattleResult = null;
+        HideMulligan(); // 손패 교환 창은 닫아 두고, 시작 손패를 받은 뒤에 연다.
         isForfeited = false;
         forfeitConfirmUntil = 0f;
 
@@ -190,6 +191,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
 
         if (shuffleDeckAtBattleStart) {ShuffleCards(drawPile); }
         AddBattleLog( BattleLogCategory.System, $"덱 준비 완료: {drawPile.Count}장"  );
+        ResetSynergyBattleRecords(); // 전투당, 턴당 시너지 기록 초기화
         RefreshSynergies(); // 시너지 초기화
         DrawCards(
             startingHandCount +
@@ -199,10 +201,11 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
         UpdateBattleUI();
+        BeginMulligan(); // 시작 손패 교환 (기획서 5.4.2)
     }
     public void EndPlayerTurn() // 플레이어 턴 종료
     {
-        if (!isPlayerTurn || isBattleEnded) { return; } // 중복 실행 차단
+        if (!isPlayerTurn || isBattleEnded || isMulliganPhase) { return; } // 중복 실행 차단, 손패 교환 중에는 턴을 넘기지 않는다.
 
         CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
         CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택 중이면 취소

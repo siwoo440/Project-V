@@ -399,6 +399,7 @@ public partial class BattleManager // 마물 고유 효과 처리
 
         skillMonster.StartCooldown(); // 재사용 대기시간 적용
         skillMonster.MarkActed(); // 행동 완료 처리
+        OnMonsterActedForSynergy(skillMonster); // 행동 완료 시너지 (고블린 6체)
         ClearMonsterSelection();
 
         CheckHeroinePhase(); // HP가 기준 이하로 내려갔으면 페이즈 전환

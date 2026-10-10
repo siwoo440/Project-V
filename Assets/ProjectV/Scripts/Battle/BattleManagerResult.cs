@@ -368,6 +368,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         isBattleEnded = true;
         isPlayerTurn = false;
+        HideMulligan(); // 손패 교환 중에 포기했으면 교환 창을 닫는다.
 
         CancelSummonerSkillTargeting(string.Empty); // 스킬 대상 선택 중이면 취소
         CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택 중이면 취소

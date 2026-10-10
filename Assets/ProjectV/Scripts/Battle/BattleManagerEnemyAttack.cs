@@ -50,21 +50,38 @@ public partial class BattleManager // 적 마물 전투: 아군 마물이 적 �
         if (attackingMonster == null || enemyUnit == null) { return; }
 
         string enemyName = enemyUnit.MonsterName;
-        DamageResult damageResult = enemyUnit.TakeDamage(attackingMonster.Attack); // 보호막과 방어력 포함 피해 처리
 
-        string attackText =
-            $"[공격] {attackingMonster.MonsterName} → {CreateDamageResultText(enemyName, damageResult)}";
+        AttackRoll roll = RollAttack(
+            attackingMonster.Attack,
+            GetMonsterEvasionPercent(enemyUnit),
+            GetMonsterCritPercent(attackingMonster)
+        ); // 회피를 먼저 보고, 맞았을 때 치명타를 본다. (기획서 A.7)
+
+        string attackText;
+
+        if (roll.IsEvaded)
+        {
+            attackText = $"[공격] {attackingMonster.MonsterName} → {enemyName} 회피";
+        }
+        else
+        {
+            DamageResult damageResult = enemyUnit.TakeDamage(roll.AttackPower); // 보호막과 방어력 포함 피해 처리
+
+            attackText =
+                $"[공격] {attackingMonster.MonsterName} → {CreateDamageResultText(enemyName, damageResult)}{GetCritTag(roll)}";
+        }
 
         string statusText = string.Empty;
         StatusEffectData statusData = attackingMonster.AttackStatusEffect;
 
-        if (statusData != null && !enemyUnit.IsDead)
+        if (statusData != null && !roll.IsEvaded && !enemyUnit.IsDead)
         {
             enemyUnit.ApplyOrRefreshStatus(statusData); // 공격에 딸린 상태 효과
             statusText = $"{enemyName}: {statusData.DisplayName} {GetStatusAmountDisplay(statusData)}";
         }
 
         attackingMonster.MarkActed();
+        OnMonsterActedForSynergy(attackingMonster); // 행동 완료 시너지 (고블린 6체)
         ClearMonsterSelection();
 
         resultText.text = string.IsNullOrEmpty(statusText)

@@ -44,9 +44,12 @@ public partial class BattleManager // 분리된 전투 기능
             ? ExecuteMonsterHpAttack(attackingMonster)
             : ExecuteMonsterLustAttack(attackingMonster);
 
-        string statusText = TryApplyMonsterAttackStatus(attackingMonster);
+        string statusText = lastAttackEvaded
+            ? string.Empty
+            : TryApplyMonsterAttackStatus(attackingMonster); // 회피되면 딸린 상태 효과도 들어가지 않는다.
 
         attackingMonster.MarkActed();
+        OnMonsterActedForSynergy(attackingMonster); // 행동 완료 시너지 (고블린 6체)
         ClearMonsterSelection();
 
         resultText.text = string.IsNullOrEmpty(statusText)
@@ -60,7 +63,9 @@ public partial class BattleManager // 분리된 전투 기능
             AddBattleLog(BattleLogCategory.StatusEffect, statusText);
         }
 
-        string counterText = TryHeroineCounter(attackingMonster); // 반격을 준비한 히로인이면 공격한 마물이 반격을 받는다.
+        string counterText = lastAttackEvaded
+            ? string.Empty
+            : TryHeroineCounter(attackingMonster); // 반격을 준비한 히로인이 공격에 맞았으면 공격한 마물이 반격을 받는다.
 
         if (!string.IsNullOrEmpty(counterText))
         {
@@ -79,10 +84,25 @@ public partial class BattleManager // 분리된 전투 기능
 
     private string ExecuteMonsterHpAttack(MonsterUnit attackingMonster)
     {
+        AttackRoll roll = RollAttack(
+            attackingMonster.Attack,
+            GetHeroineEvasionPercent(),
+            GetMonsterCritPercent(attackingMonster)
+        ); // 회피를 먼저 보고, 맞았을 때 치명타를 본다. (기획서 A.7)
+
+        lastAttackEvaded = roll.IsEvaded;
+
+        if (roll.IsEvaded)
+        {
+            ShowHeroineEvadeArt();
+
+            return $"[HP 공격] {attackingMonster.MonsterName}: 히로인이 회피했습니다";
+        }
+
         int currentHeroineDefense = GetHeroineCurrentDefense();
 
         DamageResult damageResult = DamageCalculator.CalculateDamageWithShield(
-            attackingMonster.Attack,
+            roll.AttackPower,
             currentHeroineDefense,
             heroineCurrentShield
         );
@@ -96,11 +116,23 @@ public partial class BattleManager // 분리된 전투 기능
             damageResult
         );
 
-        return $"[HP 공격] {damageText}";
+        return $"[HP 공격] {damageText}{GetCritTag(roll)}";
     }
 
     private string ExecuteMonsterLustAttack(MonsterUnit attackingMonster)
     {
+        // 성욕 공격도 회피될 수 있다. 치명타는 HP 피해에만 적용하므로 보지 않는다. (기획서 A.9)
+        lastAttackEvaded = CombatRollRules.Roll(
+            CombatRollRules.ClampEvasion(GetHeroineEvasionPercent())
+        );
+
+        if (lastAttackEvaded)
+        {
+            ShowHeroineEvadeArt();
+
+            return $"[성욕 공격] {attackingMonster.MonsterName}: 히로인이 회피했습니다";
+        }
+
         int requestedLustDamage =
             attackingMonster.LustDamage + ConsumeGrimoireFirstLustBonus(); // 첫 유혹 포함
         int appliedLustDamage = AddHeroineLust(requestedLustDamage);
@@ -320,18 +352,33 @@ public partial class BattleManager // 분리된 전투 기능
 
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         {
-            ApplyDamageToPlayer(attackPower, nextHeroineAction.DisplayName); // 플레이어 보호막 포함 피해 적용
+            AttackPlayerWithRoll(attackPower, nextHeroineAction.DisplayName, GetHeroineCritPercent()); // 플레이어를 대신 공격
             return; // 광역 공격 종료
         }
 
         int defeatedMonsterCount = 0; // 사망 마물 수 초기화
         int totalShieldAbsorbed = 0; // 전체 보호막 흡수량 초기화
         int totalHpDamage = 0; // 전체 HP 피해량 초기화
+        int evadedCount = 0; // 회피한 마물 수
+        int criticalCount = 0; // 치명타를 맞은 마물 수
 
         for (int i = fieldMonsters.Count - 1; i >= 0; i--) // 필드 마물 역순 반복
         {
             MonsterUnit targetMonster = fieldMonsters[i]; // 현재 공격 대상 저장
-            DamageResult damageResult = targetMonster.TakeDamage(attackPower); // 마물별 보호막 포함 피해 계산
+
+            AttackRoll roll = RollAttack(
+                attackPower, GetMonsterEvasionPercent(targetMonster), GetHeroineCritPercent()
+            ); // 마물마다 따로 판정한다.
+
+            if (roll.IsEvaded)
+            {
+                evadedCount += 1;
+                continue;
+            }
+
+            if (roll.IsCritical) { criticalCount += 1; }
+
+            DamageResult damageResult = targetMonster.TakeDamage(roll.AttackPower); // 마물별 보호막 포함 피해 계산
             totalShieldAbsorbed += damageResult.ShieldAbsorbed; // 보호막 흡수량 합산
             totalHpDamage += damageResult.HpDamage; // HP 피해량 합산
 
@@ -342,12 +389,13 @@ public partial class BattleManager // 분리된 전투 기능
             }
         }
 
-        resultText.text = $"{nextHeroineAction.DisplayName}: 보호막 -{totalShieldAbsorbed}, HP -{totalHpDamage}, 사망 {defeatedMonsterCount}"; // 광역 공격 결과 표시
+        resultText.text =
+            $"{nextHeroineAction.DisplayName}: 보호막 -{totalShieldAbsorbed}, HP -{totalHpDamage}, 사망 {defeatedMonsterCount}" +
+            (criticalCount > 0 ? $", 치명타 {criticalCount}" : string.Empty) +
+            (evadedCount > 0 ? $", 회피 {evadedCount}" : string.Empty); // 광역 공격 결과 표시
+
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 광역 공격 기록
     }
-
-
-
 
     private void AttackTargetMonster(MonsterUnit targetMonster) // 선택된 마물 공격
     {
@@ -359,21 +407,31 @@ public partial class BattleManager // 분리된 전투 기능
 
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
         int attackPower = GetHeroineCurrentAttack(GetHeroineActionDamage(nextHeroineAction)); // 상태 효과 포함 행동 공격력 계산
-        DamageResult damageResult = targetMonster.TakeDamage(attackPower); // 마물 보호막 포함 피해 처리
 
-        resultText.text = CreateDamageResultText(targetName, damageResult); // 마물 피해 결과 표시
+        AttackRoll roll = RollAttack(
+            attackPower, GetMonsterEvasionPercent(targetMonster), GetHeroineCritPercent()
+        );
+
+        if (roll.IsEvaded)
+        {
+            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} 회피";
+            AddBattleLog(BattleLogCategory.HeroineAction, resultText.text);
+            return;
+        }
+
+        DamageResult damageResult = targetMonster.TakeDamage(roll.AttackPower); // 마물 보호막 포함 피해 처리
+
+        resultText.text =
+            $"{nextHeroineAction.DisplayName}: {CreateDamageResultText(targetName, damageResult)}{GetCritTag(roll)}"; // 마물 피해 결과 표시
 
         if (targetMonster.IsDead) // 대상 마물 사망 확인
         {
             HandleMonsterDefeated(targetMonster); // 사망 효과 실행 후 제거
-            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} 사망"; // 마물 사망 결과 표시
+            resultText.text = $"{nextHeroineAction.DisplayName}: {targetName} 사망{GetCritTag(roll)}"; // 마물 사망 결과 표시
         }
 
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 단일 공격 기록
     }
-
-
-
 
     private void PrepareMonstersForNewTurn() // 필드 마물 새 턴 준비
     {

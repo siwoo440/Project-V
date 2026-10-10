@@ -24,3 +24,8 @@ MonoBehaviour:
     amount: 3
     applyToAllAllies: 1
     description: 모든 아군 DEF +3
+  - requiredCount: 4
+    effectType: 14
+    amount: 10
+    applyToAllAllies: 0
+    description: 전투당 1회, 플레이어가 치명적인 피해를 받으면 HP 1로 생존하고 모든 천사가 보호막 10 획득

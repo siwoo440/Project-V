@@ -24,3 +24,8 @@ MonoBehaviour:
     amount: 5
     applyToAllAllies: 0
     description: 슬라임이 소환될 때 보호막 5 획득
+  - requiredCount: 8
+    effectType: 12
+    amount: 1
+    applyToAllAllies: 0
+    description: 슬라임은 소환된 턴에도 기본 공격 또는 능동 스킬 사용 가능
