@@ -120,11 +120,13 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     private void Start() // 전투 초기화 진입
     {
         StartComfortButtons(); // 전투 속도, 포기, 재도전 버튼 연결
+        StartDebugButtons(); // 시험용 버튼 (에디터에서만 보인다)
         InitializeBattle(); // 기본 전투 초기화
     }
     private void InitializeBattle()
     {
         lastBattleResult = null;
+        isBattleStarted = false;
         HideMulligan(); // 손패 교환 창은 닫아 두고, 시작 손패를 받은 뒤에 연다.
         isForfeited = false;
         forfeitConfirmUntil = 0f;
@@ -201,6 +203,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         RefreshHeroineTargetPreview();
         ShowPlayerTurn();
         UpdateBattleUI();
+        isBattleStarted = true;
         BeginMulligan(); // 시작 손패 교환 (기획서 5.4.2)
     }
     public void EndPlayerTurn() // 플레이어 턴 종료

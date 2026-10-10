@@ -13,6 +13,7 @@ public partial class BattleManager
 
     private float forfeitConfirmUntil; // 이 시각 전에 다시 누르면 포기한다.
     private bool isForfeited;          // 포기로 끝난 전투인지 여부
+    private bool isBattleStarted;      // 전투가 정상으로 시작됐는지 여부 (덱 오류로 시작하지 못하면 false)
 
     private void StartComfortButtons() // 버튼 연결. 전투 씬이 열릴 때 한 번 부른다.
     {
@@ -69,7 +70,7 @@ public partial class BattleManager
         if (Time.unscaledTime > forfeitConfirmUntil)
         {
             forfeitConfirmUntil = Time.unscaledTime + ForfeitConfirmSeconds;
-            resultText.text = "포기 버튼을 한 번 더 누르면 전투를 포기합니다. 보상과 경험치를 받지 못합니다.";
+            resultText.text = "한 번 더 누르면 전투를 포기하고 지역으로 돌아갑니다. 보상과 경험치를 받지 못합니다.";
             return;
         }
 

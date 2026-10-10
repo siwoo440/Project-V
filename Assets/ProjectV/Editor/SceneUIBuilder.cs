@@ -1053,6 +1053,7 @@ public static partial class SceneUIBuilder
                 BuildHeroineArt(canvas, battleManager); // 히로인 그림 칸
                 BuildBattleComfortButtons(canvas, battleManager); // 전투 속도, 전투 포기, 재도전
                 BuildMulliganPanel(canvas, battleManager); // 시작 손패 교환 창
+                BuildBattleDebugPanel(canvas, battleManager); // 시험용 버튼 (에디터 전용)
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);

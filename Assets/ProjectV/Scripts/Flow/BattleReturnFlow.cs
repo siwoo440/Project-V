@@ -47,6 +47,11 @@ public class BattleReturnFlow : MonoBehaviour // 전투 씬 복귀 처리
 
     public void ReturnToStageSelect()
     {
+        BattleManager battleManager = FindFirstObjectByType<BattleManager>();
+
+        // 진행 중인 전투는 포기 확인을 거쳐야 나갈 수 있고, 받지 않은 결과가 있으면 받고 나간다.
+        if (battleManager != null && !battleManager.PrepareToLeave()) { return; }
+
         SceneFlow.LoadStageSelect(); // 지역 화면 복귀
     }
 
