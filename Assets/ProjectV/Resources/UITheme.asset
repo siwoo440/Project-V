@@ -237,6 +237,32 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 74af4e901c7779c4bacdf7be20fe50bb, type: 3}
   - key: Icon_Save_Empty_01
     sprite: {fileID: 21300000, guid: 1a0918f4bddcb87498131a91b4b8d830, type: 3}
+  - key: Icon_Region_R01_01
+    sprite: {fileID: 21300000, guid: f88c8c7eace27e94a9d88339db4c26ed, type: 3}
+  - key: Icon_Region_R02_01
+    sprite: {fileID: 21300000, guid: 0425a6108347d9449b493ccedc1b7f9c, type: 3}
+  - key: Icon_Region_R03_01
+    sprite: {fileID: 21300000, guid: c61fc3b252bd7c4428404fd0379634b1, type: 3}
+  - key: Icon_Region_R04_01
+    sprite: {fileID: 21300000, guid: 1586bd7beb5a934459b93e99337a1f43, type: 3}
+  - key: Icon_Region_R05_01
+    sprite: {fileID: 21300000, guid: 1e8bcc2fea3771c429cebb1b17a23296, type: 3}
+  - key: Icon_Region_R06_01
+    sprite: {fileID: 21300000, guid: 0fceef4a127922d4da8340ff8226b673, type: 3}
+  - key: Icon_Region_R07_01
+    sprite: {fileID: 21300000, guid: d1d11195ec25c6c46b231f162d7b2174, type: 3}
+  - key: Icon_Region_R08_01
+    sprite: {fileID: 21300000, guid: 7bcebb7a2df7e3041a432cb320f245b9, type: 3}
+  - key: Icon_Region_R09_01
+    sprite: {fileID: 21300000, guid: f311f308680f2f243bee1b6b15c37134, type: 3}
+  - key: UI_MapMark_Select_01
+    sprite: {fileID: 21300000, guid: edbe6c3247e16ce4db4b2d8916eaddd3, type: 3}
+  - key: UI_MapMark_Clear_01
+    sprite: {fileID: 21300000, guid: a3ebc2f75d5781a4bb639dbad03cae97, type: 3}
+  - key: UI_MapMark_New_01
+    sprite: {fileID: 21300000, guid: f77d30213bf1f5940822d5f36b1a4954, type: 3}
+  - key: UI_MapMark_Here_01
+    sprite: {fileID: 21300000, guid: 8ef4305596e46b5438d798a537e680dd, type: 3}
   - key: MainMenu_BG_01
     sprite: {fileID: 21300000, guid: 4bec37a65f67db34c925404e25bf6f70, type: 3}
   - key: DeckBuilder_BG_01

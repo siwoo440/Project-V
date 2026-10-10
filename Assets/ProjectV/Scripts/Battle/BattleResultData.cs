@@ -21,6 +21,13 @@ public class BattleResultData
     public int LostEssence { get; private set; } // 보유 한도 때문에 받지 못한 정수
     public int LostShards { get; private set; }  // 보유 한도 때문에 받지 못한 파편
 
+    public string OutcomeLabel { get; private set; } = string.Empty; // 결과 화면에 적을 승패 문구 (비어 있으면 기본 문구)
+
+    public void SetOutcomeLabel(string label) // 전투 종류에 맞는 승패 문구 지정 (일반전의 적 전멸 등)
+    {
+        OutcomeLabel = label ?? string.Empty;
+    }
+
     public void SetLimitLoss(int lostGold, int lostEssence, int lostShards)
     {
         LostGold = Math.Max(0, lostGold);

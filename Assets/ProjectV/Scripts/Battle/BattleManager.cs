@@ -176,6 +176,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         discardPile.Clear(); // 버린 카드 더미 초기화
         ClearHand(); // 기존 손패 초기화
         ClearMonsterField(); // 기존 마물 필드 초기화
+        PrepareEnemyBattle(); // 전투 종류에 맞게 화면을 바꾸고 적 마물을 놓는다
 
 
         drawPile.AddRange(battleDeck);
@@ -210,8 +211,9 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         SetAttackButtonsInteractable(false); // 공격 버튼 비활성화
         SetHandInteractable(false); // 손패 버튼 비활성화
         SetMonsterInteractable(false); // 마물 선택 비활성화
-        turnText.text = "히로인 턴"; // 히로인 턴 표시
-        StartCoroutine(HeroineTurnRoutine()); // 히로인 행동 시작
+        SetEnemyInteractable(false); // 적 마물 선택 비활성화
+        turnText.text = isEnemyBattle ? "적 턴" : "히로인 턴"; // 상대 턴 표시
+        StartCoroutine(isEnemyBattle ? EnemyTurnRoutine() : HeroineTurnRoutine()); // 상대 행동 시작
     }
     private IEnumerator HeroineTurnRoutine() // 히로인 턴 순차 처리
     {

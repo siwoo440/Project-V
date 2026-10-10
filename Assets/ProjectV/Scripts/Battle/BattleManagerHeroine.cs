@@ -8,7 +8,7 @@ public partial class BattleManager // 분리된 전투 기능
 {
     private int AddHeroineLust(int amount)
     {
-        if (amount <= 0) { return 0; }
+        if (amount <= 0 || isEnemyBattle) { return 0; } // 일반전에는 성욕 게이지가 없다. (기획서 F.6)
 
         int previousLust = heroineLust;
         heroineLust = Mathf.Clamp(heroineLust + amount, 0, heroineMaxLust);
@@ -555,6 +555,12 @@ public partial class BattleManager // 분리된 전투 기능
     private void UpdateHeroineIntentUI()
     {
         if (heroineIntentText == null) { return; }
+
+        if (isEnemyBattle)
+        {
+            UpdateEnemyIntentText(); // 적 마물 전투에서는 적 전체의 다음 행동을 적는다.
+            return;
+        }
 
         if (nextHeroineAction == null || isBattleEnded)
         {

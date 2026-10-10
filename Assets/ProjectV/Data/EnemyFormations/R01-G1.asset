@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e8a2f17d3b4096b1a4e7c9d2f60b83, type: 3}
+  m_Name: R01-G1
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyFormationData
+  formationId: R01-G1
+  regionId: R01
+  stage: 1
+  description: '공격, 대상 선택, 마물 처치를 익히는 전투다.'
+  enemies:
+  - {fileID: 11400000, guid: afb1eb48d9584061b00834ceba2a539c, type: 2}
+  - {fileID: 11400000, guid: 83bbebf13bc849a7b7175c786b740d1a, type: 2}
+  hpPercent: 90
+  attackPercent: 90
+  defenseBonus: 0

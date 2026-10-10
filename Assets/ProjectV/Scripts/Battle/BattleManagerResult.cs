@@ -35,6 +35,7 @@ public partial class BattleManager // 분리된 전투 기능
         ); // 전투 기록 반영
 
         bool captureAttempted =
+            !isEnemyBattle && // 일반전에서는 마물을 포획할 수 없다. (기획서 8.10)
             battleRewardData.HasCaptureCandidate &&
             battleRewardData.CaptureChance > 0f;
 
@@ -68,7 +69,7 @@ public partial class BattleManager // 분리된 전투 기능
     {
         switch (outcome)
         {
-            case BattleOutcome.VictoryHp: return "승리 - HP 소진";
+            case BattleOutcome.VictoryHp: return isEnemyBattle ? "승리 - 적 전멸" : "승리 - HP 소진";
             case BattleOutcome.VictoryLust: return "승리 - 성욕 최대";
             case BattleOutcome.Defeat: return "패배";
             default: return "알 수 없는 결과";
@@ -211,6 +212,8 @@ public partial class BattleManager // 분리된 전투 기능
 
         string resultMessage =
             GetBattleOutcomeDisplayName(outcome);
+
+        lastBattleResult.SetOutcomeLabel(resultMessage); // 결과 화면에도 같은 문구를 쓴다.
 
         if (turnText != null)
         {

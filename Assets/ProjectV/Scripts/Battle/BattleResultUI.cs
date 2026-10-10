@@ -40,7 +40,9 @@ public class BattleResultUI : MonoBehaviour
         if (outcomeText != null)
         {
             outcomeText.text =
-                GetOutcomeDisplayName(resultData.Outcome); // 승패 표시
+                string.IsNullOrEmpty(resultData.OutcomeLabel)
+                    ? GetOutcomeDisplayName(resultData.Outcome)
+                    : resultData.OutcomeLabel; // 승패 표시 (전투 종류에 맞는 문구가 있으면 그 문구)
         }
 
         if (emblemImage != null)

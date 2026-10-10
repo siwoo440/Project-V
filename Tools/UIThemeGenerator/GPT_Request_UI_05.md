@@ -66,4 +66,4 @@ A 2x2 grid of four map markers in a square image, listed left to right, top to b
 ## 수령 기록
 
 - 2026-10-08: `Icon_Region_Sheet_01.png` 수령 (zip 없이 원본 PNG, 1254x1254, 투명 배경). 9조각 모두 정상으로 잘림.
-- `UI_MapMark_Sheet_01.png`은 아직 받지 않음. 받기 전까지 선택은 크기로, 클리어는 받침 그림으로 구분한다.
+- 2026-10-08: `UI_MapMark_Sheet_01.png` 수령 (요청문 6으로 다시 요청해 받음). 4조각 모두 정상.

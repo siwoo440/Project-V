@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MonsterUnit : MonoBehaviour
+public partial class MonsterUnit : MonoBehaviour
 {
     [Header("마물 UI")]
     [SerializeField] private TMP_Text monsterNameText;
@@ -479,9 +479,10 @@ public class MonsterUnit : MonoBehaviour
     {
         if (selectButton == null) { return; }
 
-        selectButton.interactable =
-            playerTurnInteraction &&
-            (CanAttack || isSkillTargetable); // 스킬 대상 후보는 행동을 마쳤어도 누를 수 있다.
+        selectButton.interactable = isEnemy
+            ? playerTurnInteraction && isAttackTargetable // 적 마물은 공격 대상 후보일 때만 눌린다.
+            : playerTurnInteraction &&
+              (CanAttack || isSkillTargetable); // 스킬 대상 후보는 행동을 마쳤어도 누를 수 있다.
     }
 
     public void SetSelected(bool selected)
@@ -553,6 +554,12 @@ public class MonsterUnit : MonoBehaviour
             return;
         }
 
+        if (isEnemy && isAttackTargetable)
+        {
+            backgroundImage.color = heroineTargetColor; // 공격할 수 있는 적 마물
+            return;
+        }
+
         if (isSkillTargetable)
         {
             backgroundImage.color = skillTargetColor;
@@ -570,6 +577,12 @@ public class MonsterUnit : MonoBehaviour
 
     private void HandleSelectButton()
     {
+        if (isEnemy)
+        {
+            if (isAttackTargetable) { onSelected?.Invoke(this); } // 공격 대상으로 선택
+            return;
+        }
+
         if (!CanAttack && !isSkillTargetable) { return; }
 
         onSelected?.Invoke(this);
@@ -582,7 +595,9 @@ public class MonsterUnit : MonoBehaviour
         if (monsterNameText != null)
         {
             monsterNameText.text =
-                $"{monsterData.MonsterName} Lv.{enhanceLevel}"; // 강화 단계 표시
+                isEnemy
+                    ? monsterData.MonsterName
+                    : $"{monsterData.MonsterName} Lv.{enhanceLevel}"; // 강화 단계 표시 (적 마물은 이름만)
         }
 
         if (hpGauge != null)
@@ -602,7 +617,7 @@ public class MonsterUnit : MonoBehaviour
         {
             monsterAttackText.text =
                 $"{UISkin.IconOr(UIIcons.Attack, "공격")} {Attack}  " +
-                $"{UISkin.IconOr(UIIcons.Lust, "성욕")} {LustDamage}";
+                (isEnemy ? string.Empty : $"{UISkin.IconOr(UIIcons.Lust, "성욕")} {LustDamage}");
         }
 
         if (monsterDefenseText != null)
@@ -629,12 +644,16 @@ public class MonsterUnit : MonoBehaviour
                 : string.Empty;
 
             monsterStateText.text =
-                $"{UISkin.Icon(UISkin.StateIconName(actionState))} {GetStateLabel()}{tauntText}".Trim();
+                (isEnemy
+                    ? $"{enemyIntentLabel}{tauntText}" // 적 마물은 다음 행동을 예고한다.
+                    : $"{UISkin.Icon(UISkin.StateIconName(actionState))} {GetStateLabel()}{tauntText}").Trim();
         }
 
         if (monsterSkillText != null)
         {
-            monsterSkillText.text = CreateSkillLabel(); // 스킬과 대기시간 표시
+            monsterSkillText.text = isEnemy
+                ? string.Empty
+                : CreateSkillLabel(); // 스킬과 대기시간 표시 (적 마물은 기본 공격만 한다)
         }
     }
 

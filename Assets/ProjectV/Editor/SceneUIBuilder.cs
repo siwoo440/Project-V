@@ -753,6 +753,7 @@ public static partial class SceneUIBuilder
         AssignReference(flow, "stageDescriptionText", stageDescriptionText);
 
         ApplyDefaultStages(flow);
+        ApplyFormationList(flow); // 일반전 적 편성 연결
     }
 
     private static void BuildStoryScene()
@@ -1040,6 +1041,7 @@ public static partial class SceneUIBuilder
                 ApplySynergyDataList(battleManager);
                 BuildBattleSummonerPanel(canvas, battleManager); // 소환사 스킬과 패시브 표시
                 BuildBattleItemButton(canvas, battleManager); // 소모성 아이템 버튼
+                BuildEnemyField(canvas, battleManager); // 적 마물 필드 (일반전)
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);

@@ -120,6 +120,10 @@ sprite|Icon_Region_R06_01|UI/Icons/Icon_Region_R06_01.png|0|0|0|0|icon
 sprite|Icon_Region_R07_01|UI/Icons/Icon_Region_R07_01.png|0|0|0|0|icon
 sprite|Icon_Region_R08_01|UI/Icons/Icon_Region_R08_01.png|0|0|0|0|icon
 sprite|Icon_Region_R09_01|UI/Icons/Icon_Region_R09_01.png|0|0|0|0|icon
+sprite|UI_MapMark_Select_01|UI/Frames/UI_MapMark_Select_01.png|0|0|0|0|emblem
+sprite|UI_MapMark_Clear_01|UI/Frames/UI_MapMark_Clear_01.png|0|0|0|0|emblem
+sprite|UI_MapMark_New_01|UI/Frames/UI_MapMark_New_01.png|0|0|0|0|emblem
+sprite|UI_MapMark_Here_01|UI/Frames/UI_MapMark_Here_01.png|0|0|0|0|emblem
 background|MainMenu_BG_01|Backgrounds/Common/MainMenu_BG_01.jpg
 background|DeckBuilder_BG_01|Backgrounds/Common/DeckBuilder_BG_01.jpg
 background|Enhance_BG_01|Backgrounds/Common/Enhance_BG_01.jpg

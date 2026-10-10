@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e8a2f17d3b4096b1a4e7c9d2f60b83, type: 3}
+  m_Name: R01-G3
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyFormationData
+  formationId: R01-G3
+  regionId: R01
+  stage: 3
+  description: '강화, 회복, 보호막을 다루는 전투다.'
+  enemies:
+  - {fileID: 11400000, guid: 921f30bfb66d4119a9f643c8dcbccfd7, type: 2}
+  - {fileID: 11400000, guid: 0b6f4234e9664c5b9c472ba26cff003e, type: 2}
+  - {fileID: 11400000, guid: 7260fb9a181d4e36b63cf9a6790d3ecb, type: 2}
+  hpPercent: 110
+  attackPercent: 105
+  defenseBonus: 1

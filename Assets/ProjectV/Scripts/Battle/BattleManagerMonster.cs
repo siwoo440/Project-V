@@ -26,6 +26,12 @@ public partial class BattleManager // 분리된 전투 기능
             return;
         }
 
+        if (isEnemyBattle)
+        {
+            AttackEnemyWithButton(); // 적 마물 전투에서는 공격할 적을 고른다.
+            return;
+        }
+
         if (attackMode == MonsterAttackMode.Lust && selectedMonster.LustDamage <= 0)
         {
             resultText.text = "선택한 마물은 성욕 피해가 없습니다";
@@ -216,6 +222,12 @@ public partial class BattleManager // 분리된 전투 기능
 
     private void RefreshHeroineTargetPreview()
     {
+        if (isEnemyBattle)
+        {
+            RefreshEnemyIntents(); // 적 마물 전투에서는 적마다 공격 대상을 예고한다.
+            return;
+        }
+
         ClearHeroineTargetPreview();
 
         if (nextHeroineAction == null) { return; }
@@ -368,6 +380,12 @@ public partial class BattleManager // 분리된 전투 기능
         selectedMonster.SetSelected(true);
         SetAttackButtonsInteractable(true);
         resultText.text = $"{selectedMonster.MonsterName}을 선택했습니다";
+
+        if (isEnemyBattle)
+        {
+            MarkEnemyTargets(true); // 공격할 수 있는 적 마물 표시
+            resultText.text = $"{selectedMonster.MonsterName} 선택: 공격할 적 마물을 누르세요";
+        }
     }
 
     private void ClearMonsterSelection()
@@ -375,6 +393,7 @@ public partial class BattleManager // 분리된 전투 기능
         if (selectedMonster != null) { selectedMonster.SetSelected(false); }
 
         selectedMonster = null;
+        MarkEnemyTargets(false); // 적 마물의 공격 대상 표시 해제
         SetAttackButtonsInteractable(false);
     }
 
@@ -433,6 +452,8 @@ public partial class BattleManager // 분리된 전투 기능
                 monsterUnit.SetPlayerTurnInteraction(isInteractable); // 마물 선택 상태 적용
             }
         }
+
+        SetEnemyInteractable(isInteractable); // 적 마물도 플레이어 턴에만 누를 수 있다.
     }
 
     private void ClearMonsterField()

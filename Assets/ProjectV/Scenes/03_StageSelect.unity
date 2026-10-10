@@ -539,6 +539,10 @@ MonoBehaviour:
     description: "\uBA54\uC778 \uD788\uB85C\uC778\uC804\uC774\uB2E4. \uC9C0\uC5ED
       \uD574\uAE08 \uC870\uAC74\uC744 \uCDA9\uC871\uD558\uBA74 \uC5F4\uB9B0\uB2E4."
     isUnlocked: 0
+  formations:
+  - {fileID: 11400000, guid: 5be14fbb6079a5a4489290a16b93ba87, type: 2}
+  - {fileID: 11400000, guid: 53c0c602f936f494886ed48c23be3dee, type: 2}
+  - {fileID: 11400000, guid: 44187e426ac9fc04cbd3c12ed075d173, type: 2}
 --- !u!224 &488412838
 RectTransform:
   m_ObjectHideFlags: 0

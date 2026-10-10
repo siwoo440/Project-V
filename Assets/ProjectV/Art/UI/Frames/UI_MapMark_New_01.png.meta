@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 0425a6108347d9449b493ccedc1b7f9c
+guid: f77d30213bf1f5940822d5f36b1a4954
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 250710801591797829
-    second: Icon_Region_R02_01_0
+      213: 8095961912558329646
+    second: UI_MapMark_New_01_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Icon_Region_R02_01_0
+      name: UI_MapMark_New_01_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 7
-        width: 243
-        height: 242
+        x: 0
+        y: 0
+        width: 475
+        height: 459
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5488b3e4524ba7300800000000000000
-      internalID: 250710801591797829
+      spriteID: e2f91291772aa5070800000000000000
+      internalID: 8095961912558329646
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Icon_Region_R02_01_0: 250710801591797829
+      UI_MapMark_New_01_0: 8095961912558329646
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

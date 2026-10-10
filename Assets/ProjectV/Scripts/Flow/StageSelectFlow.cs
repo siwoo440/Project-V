@@ -21,6 +21,23 @@ public partial class StageSelectFlow : MonoBehaviour
         public int RecommendedLevel => recommendedLevel;
         public string Description => description;
         public bool IsUnlocked => isUnlocked;
+
+        public StageEntry() { } // 씬에 저장된 항목용
+
+        public StageEntry( // 실행 중에 지역의 적 편성으로 만드는 항목용
+            string name,
+            string type,
+            int level,
+            string text,
+            bool unlocked
+        )
+        {
+            stageName = name;
+            stageType = type;
+            recommendedLevel = Mathf.Max(1, level);
+            description = text;
+            isUnlocked = unlocked;
+        }
     }
 
     [Header("화면 이동")]
@@ -129,20 +146,22 @@ public partial class StageSelectFlow : MonoBehaviour
         generatedEntries.Clear();
         stageImages.Clear();
 
-        if (stages.Count == 0)
+        List<StageEntry> shownStages = GetShownStages(); // 이 지역에서 고를 수 있는 스테이지
+
+        if (shownStages.Count == 0)
         {
             ShowStageDetail(null); // 데이터 없음 표시
             return;
         }
 
-        foreach (StageEntry stage in stages)
+        foreach (StageEntry stage in shownStages)
         {
             if (stage == null) { continue; }
 
             CreateStageButton(stage);
         }
 
-        SelectStage(stages[0]); // 첫 스테이지 선택
+        SelectStage(shownStages[0]); // 첫 스테이지 선택
     }
 
     private void CreateStageButton(StageEntry stage)
@@ -194,7 +213,7 @@ public partial class StageSelectFlow : MonoBehaviour
             labelObject.AddComponent<TextMeshProUGUI>();
 
         entryLabel.text = stage.IsUnlocked
-            ? $"{GetStageTitle(stage)}\n{stage.StageType}   권장 레벨 {stage.RecommendedLevel}"
+            ? $"{GetStageTitle(stage)}\n{GetStageSubtitle(stage)}"
             : $"{GetStageTitle(stage)}\n잠김";
 
         entryLabel.fontSize = 20f;
@@ -268,7 +287,7 @@ public partial class StageSelectFlow : MonoBehaviour
                     : $"덱 {progress.CurrentDeck.Count} / {progress.RequiredDeckSize}";
 
                 stageDescriptionText.text =
-                    $"{stage.StageType}   권장 레벨 {stage.RecommendedLevel}\n" +
+                    $"{GetStageSubtitle(stage)}\n" +
                     $"{stage.Description}\n{deckInfo}";
             }
         }
@@ -293,6 +312,7 @@ public partial class StageSelectFlow : MonoBehaviour
             return;
         }
 
+        PrepareBattleSetup(selectedStage); // 전투 종류와 상대를 정한다.
         SceneFlow.LoadBattle(); // 전투 씬 로드
     }
 }
