@@ -80,7 +80,7 @@ public class HeroineArtUI : MonoBehaviour
 
     private IEnumerator ReturnToIdle()
     {
-        yield return new WaitForSeconds(reactionSeconds);
+        yield return BattleSpeed.Wait(reactionSeconds); // 전투 속도에 맞춰 짧아진다.
 
         reactionRoutine = null;
 

@@ -92,6 +92,11 @@ public static class SceneFlow // 씬 전환 관리
         LoadScene(SceneNames.Story);
     }
 
+    public static void LoadBattlePrepare() // 전투 준비 화면. 지역 화면이 전투를 정한 뒤에 부른다.
+    {
+        LoadScene(SceneNames.BattlePrepare);
+    }
+
     public static void LoadBattle()
     {
         LoadScene(SceneNames.Battle);
@@ -101,7 +106,8 @@ public static class SceneFlow // 씬 전환 관리
     {
         return sceneName == SceneNames.MainMenu ||
                sceneName == SceneNames.WorldMap ||
-               sceneName == SceneNames.StageSelect;
+               sceneName == SceneNames.StageSelect ||
+               sceneName == SceneNames.BattlePrepare; // 덱 편성과 소환사 화면에서 준비 화면으로 돌아온다.
     }
 
     // 덱 편성, 강화, 상점 같은 화면의 돌아가기. 들어올 때 거친 중심 화면으로 돌아간다.

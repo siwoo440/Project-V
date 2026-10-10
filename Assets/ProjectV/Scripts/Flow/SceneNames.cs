@@ -11,5 +11,6 @@ public static class SceneNames // 씬 이름 정의
     public const string Shop = "08_Shop";               // 상점
     public const string SaveLoad = "09_SaveLoad";       // 저장과 불러오기
     public const string WorldMap = "10_WorldMap";       // 월드맵
+    public const string BattlePrepare = "11_BattlePrepare"; // 전투 준비
     public const string Battle = "BattleScene";         // 전투
 }

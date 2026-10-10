@@ -39,6 +39,25 @@ public static class EnemyBattleRules
         return Mathf.Max(0, Mathf.FloorToInt(scaled + 0.5f));
     }
 
+    // 적 마물의 실제 능력치. 전투의 마물 판과 전투 준비 화면이 같은 계산을 쓴다.
+    public static int GetHp(MonsterData monster, int regionPercent, int stagePercent, BattleDifficulty difficulty)
+    {
+        return Mathf.Max(
+            1,
+            ScaleStat(monster.MaxHp, regionPercent, stagePercent, StageRules.GetEnemyHpPercent(difficulty))
+        );
+    }
+
+    public static int GetAttack(MonsterData monster, int regionPercent, int stagePercent, BattleDifficulty difficulty)
+    {
+        return ScaleStat(monster.Attack, regionPercent, stagePercent, StageRules.GetEnemyAttackPercent(difficulty));
+    }
+
+    public static int GetDefense(MonsterData monster, int defenseBonus)
+    {
+        return ClampDefense(monster.Defense + defenseBonus);
+    }
+
     public static int ClampDefense(int defense) // DEF는 0 ~ 20 사이로 맞춘다.
     {
         return Mathf.Clamp(defense, 0, DefenseLimit);

@@ -21,6 +21,22 @@ public static class BattleSetup
     public static BattleDifficulty Difficulty { get; private set; } = BattleDifficulty.Normal; // 고른 난이도
     public static bool ClearsRegion { get; private set; }                 // 이 전투에서 이기면 지역을 클리어하는지 여부
 
+    public static bool HasBattle { get; private set; } // 지역 화면이 전투를 정해 두었는지 여부 (전투 준비 화면이 확인한다)
+
+    public static BattleDifficulty PreferredDifficulty { get; private set; } =
+        BattleDifficulty.Normal; // 마지막으로 고른 난이도. 다음 전투를 정할 때도 이 난이도로 시작한다.
+
+    // 난이도를 고를 수 있는 전투인지 여부. 포획전은 지역마다 고정이고 시험 히로인 전투에는 난이도가 없다.
+    public static bool CanChangeDifficulty =>
+        Kind == BattleKind.Normal || (Kind == BattleKind.Heroine && Heroine != null);
+
+    public static void SetDifficulty(BattleDifficulty difficulty) // 전투 준비 화면에서 난이도를 바꾼다.
+    {
+        PreferredDifficulty = difficulty;
+
+        if (CanChangeDifficulty) { Difficulty = difficulty; }
+    }
+
     public static bool IsEnemyBattle => Kind != BattleKind.Heroine;   // 적 마물과 싸우는 전투인지 여부
     public static bool IsCaptureBattle => Kind == BattleKind.Capture; // 포획전인지 여부
 
@@ -107,6 +123,7 @@ public static class BattleSetup
     {
         enemies.Clear();
         Heroine = null;
+        HasBattle = true;
 
         Kind = kind;
         RegionOrder = regionOrder < 1 ? 1 : regionOrder;

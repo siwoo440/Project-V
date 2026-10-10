@@ -47,9 +47,8 @@ public partial class StageSelectFlow : MonoBehaviour
     }
 
     [Header("화면 이동")]
-    [SerializeField] private Button startBattleButton; // 전투 시작
+    [SerializeField] private Button startBattleButton; // 전투 준비 화면으로
     [SerializeField] private Button deckBuilderButton; // 덱 편성
-    [SerializeField] private Button itemSlotButton;    // 전투에 가져갈 소모성 아이템 선택
     [SerializeField] private Button backButton;        // 월드맵으로 돌아가기
 
     [Header("지역 표시")]
@@ -89,9 +88,6 @@ public partial class StageSelectFlow : MonoBehaviour
         backButton =
             SceneUIBinder.Bind(backButton, "BackButton");
 
-        itemSlotButton =
-            SceneUIBinder.Bind(itemSlotButton, "ItemSlotButton");
-
         titleText =
             SceneUIBinder.Bind(titleText, "TitleText");
 
@@ -128,17 +124,9 @@ public partial class StageSelectFlow : MonoBehaviour
             backButton.onClick.AddListener(SceneFlow.LoadWorldMap);
         }
 
-        if (itemSlotButton != null)
-        {
-            itemSlotButton.onClick.RemoveAllListeners();
-            itemSlotButton.onClick.AddListener(CycleBattleItem);
-        }
-
         ShowRegion(); // 들어온 지역의 이름과 배경 표시
         StartTabButtons(); // 메인 진행과 서브 콘텐츠 탭 연결
-        StartDifficultyButtons(); // 난이도 버튼 연결
         StartRerollButton(); // 포획 목록 다시 뽑기 버튼 연결
-        RefreshItemSlot(); // 장착한 소모성 아이템 표시
 
         BuildStageList(); // 스테이지 목록 생성
     }
@@ -295,7 +283,7 @@ public partial class StageSelectFlow : MonoBehaviour
             startBattleButton.interactable = hasStage;
         }
 
-        RefreshDifficultyButtons(); // 일반전과 히로인전을 골랐을 때만 난이도 버튼을 보여 준다.
+        RefreshRewardIcon(); // 최초 보상이 남아 있는지 상자 그림으로 보여 준다.
         RefreshRerollButton(); // 포획 목록을 골랐을 때만 다시 뽑기 버튼을 보여 준다.
         RefreshHeroinePortrait(); // 히로인전을 골랐을 때만 얼굴 그림을 보여 준다.
     }
@@ -372,6 +360,6 @@ public partial class StageSelectFlow : MonoBehaviour
         }
 
         PrepareBattleSetup(selectedStage); // 전투 종류와 상대를 정한다.
-        SceneFlow.LoadBattle(); // 전투 씬 로드
+        SceneFlow.LoadBattlePrepare(); // 전투 준비 화면에서 난이도와 덱, 소모품을 정하고 시작한다.
     }
 }

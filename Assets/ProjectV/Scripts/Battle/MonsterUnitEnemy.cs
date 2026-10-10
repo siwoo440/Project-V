@@ -25,21 +25,9 @@ public partial class MonsterUnit
         isAttackTargetable = false;
         enemyIntentLabel = string.Empty;
 
-        runtimeMaxHp = Mathf.Max(
-            1,
-            EnemyBattleRules.ScaleStat(
-                monsterData.MaxHp, regionPercent, hpPercent,
-                StageRules.GetEnemyHpPercent(difficulty)
-            )
-        );
-
-        runtimeAttack = EnemyBattleRules.ScaleStat(
-            monsterData.Attack, regionPercent, attackPercent,
-            StageRules.GetEnemyAttackPercent(difficulty)
-        );
-
-        runtimeDefense =
-            EnemyBattleRules.ClampDefense(monsterData.Defense + defenseBonus);
+        runtimeMaxHp = EnemyBattleRules.GetHp(monsterData, regionPercent, hpPercent, difficulty);
+        runtimeAttack = EnemyBattleRules.GetAttack(monsterData, regionPercent, attackPercent, difficulty);
+        runtimeDefense = EnemyBattleRules.GetDefense(monsterData, defenseBonus);
 
         runtimeLustDamage = 0; // 일반전에는 성욕 승리가 없다. (기획서 F.6)
 

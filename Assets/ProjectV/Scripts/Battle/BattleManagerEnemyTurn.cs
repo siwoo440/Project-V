@@ -97,7 +97,7 @@ public partial class BattleManager // 적 마물 전투: 적의 행동 예고와
 
         if (CheckEnemyBattleVictory()) { yield break; } // 독으로 마지막 적이 쓰러진 경우
 
-        yield return new WaitForSeconds(heroineActionDelay);
+        yield return BattleSpeed.Wait(heroineActionDelay);
 
         foreach (MonsterUnit enemyUnit in GetLivingEnemies())
         {
@@ -112,7 +112,7 @@ public partial class BattleManager // 적 마물 전투: 적의 행동 예고와
                 yield break;
             }
 
-            yield return new WaitForSeconds(heroineActionDelay * 0.6f);
+            yield return BattleSpeed.Wait(heroineActionDelay * 0.6f);
         }
 
         foreach (MonsterUnit enemyUnit in GetLivingEnemies())
@@ -123,7 +123,7 @@ public partial class BattleManager // 적 마물 전투: 적의 행동 예고와
         ReduceMonsterStatusDurations(StatusDurationTiming.AfterHeroineTurn);
         UpdateBattleUI();
 
-        yield return new WaitForSeconds(heroineActionDelay * 0.5f);
+        yield return BattleSpeed.Wait(heroineActionDelay * 0.5f);
 
         BeginNextPlayerTurn();
     }

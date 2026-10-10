@@ -17,6 +17,15 @@ public class BattleResultUI : MonoBehaviour
 
     [Header("결과 버튼")]
     [SerializeField] private Button continueButton;
+    [SerializeField] private Button retryButton; // 패배했을 때만 보이는 재도전 (기획서 10.19)
+
+    public void SetRetryHandler(UnityEngine.Events.UnityAction retryAction) // 재도전을 눌렀을 때 할 일 연결
+    {
+        if (retryButton == null) { return; }
+
+        retryButton.onClick.RemoveAllListeners();
+        retryButton.onClick.AddListener(retryAction);
+    }
 
     private void Awake()
     {
@@ -32,7 +41,13 @@ public class BattleResultUI : MonoBehaviour
         }
         if (resultPanel != null){ resultPanel.SetActive(true);} // 결과 패널 표시
         Refresh(resultData); // 결과 문구 갱신
-        if (continueButton != null) { continueButton.interactable = true; } // 계속 버튼 활성화  
+        if (continueButton != null) { continueButton.interactable = true; } // 계속 버튼 활성화
+
+        if (retryButton != null)
+        {
+            // 포획전은 끝나면 목록이 새로 바뀌므로 같은 전투를 다시 할 수 없다.
+            retryButton.gameObject.SetActive(!resultData.IsVictory && !resultData.IsCaptureBattle);
+        }
     }
     public void Refresh(BattleResultData resultData)
     {

@@ -40,31 +40,10 @@ public static partial class SceneUIBuilder
         }
     }
 
-    // 지역 화면의 난이도 버튼. 소모품 칸 위에 한 줄로 놓고, 일반전을 골랐을 때만 보인다. (기획서 8.11)
-    private static void BuildDifficultyButtons(Transform detailPanel, StageSelectFlow flow)
+    // 지역 화면 상세 칸의 보상 표시와 포획 목록 다시 뽑기 버튼.
+    // 난이도 버튼은 전투 준비 화면으로 옮겼다. (기획서 6.14)
+    private static void BuildStageDetailControls(Transform detailPanel, StageSelectFlow flow)
     {
-        string[] objectNames = { "DifficultyEasyButton", "DifficultyNormalButton", "DifficultyHardButton" };
-        string[] labels = { "쉬움", "보통", "어려움" };
-        string[] fieldNames = { "easyButton", "normalButton", "hardButton" };
-
-        string[] iconKeys =
-        {
-            UIKeys.DifficultyEasy, UIKeys.DifficultyNormal, UIKeys.DifficultyHard
-        };
-
-        for (int i = 0; i < objectNames.Length; i++)
-        {
-            Button difficultyButton = EnsureButton(objectNames[i], detailPanel, labels[i], ButtonColor);
-
-            SetAnchored(difficultyButton.gameObject,
-                new Vector2(0.5f, 0f), new Vector2((i - 1) * 264f, 232f), new Vector2(250f, 50f));
-
-            StyleButtonByName(objectNames[i], ButtonColor, 21f);
-            EnsureButtonIcon(difficultyButton, iconKeys[i]);
-
-            AssignReference(flow, fieldNames[i], difficultyButton);
-        }
-
         // 최초 보상 표시: 스테이지 이름 오른쪽의 상자 그림
         Image rewardIcon = EnsureIcon(
             "StageRewardIcon", detailPanel, UIKeys.RewardChestClosed,
@@ -72,11 +51,11 @@ public static partial class SceneUIBuilder
 
         AssignReference(flow, "rewardIconImage", rewardIcon);
 
-        // 포획 목록 다시 뽑기 버튼. 난이도 버튼과 같은 줄을 쓰고, 포획 목록을 골랐을 때만 보인다. (기획서 9.14)
+        // 포획 목록 다시 뽑기 버튼. 전투 준비 버튼 위에 두고, 포획 목록을 골랐을 때만 보인다. (기획서 9.14)
         Button rerollButton = EnsureButton("RerollButton", detailPanel, "목록 다시 뽑기", ButtonColor);
 
         SetAnchored(rerollButton.gameObject,
-            new Vector2(0.5f, 0f), new Vector2(0f, 232f), new Vector2(460f, 50f));
+            new Vector2(0.5f, 0f), new Vector2(0f, 165f), new Vector2(460f, 50f));
 
         StyleButtonByName("RerollButton", ButtonColor, 21f);
         EnsureButtonIcon(rerollButton, UIKeys.CaptureReroll);

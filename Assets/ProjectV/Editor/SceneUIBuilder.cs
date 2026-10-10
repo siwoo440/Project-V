@@ -72,6 +72,8 @@ public static partial class SceneUIBuilder
         BuildScene("08_Shop", BuildShopScene);
         BuildScene("09_SaveLoad", BuildSaveLoadScene);
         BuildScene("10_WorldMap", BuildWorldMapScene);
+        EnsureSceneFile("11_BattlePrepare", "BattleScene"); // 씬 파일이 없으면 만들고 빌드 목록에 넣는다.
+        BuildScene("11_BattlePrepare", BuildBattlePrepareScene);
         BuildScene("BattleScene", BuildBattleSceneExtras);
 
         if (!string.IsNullOrEmpty(originalScenePath))
@@ -694,11 +696,12 @@ public static partial class SceneUIBuilder
             24f, TextColor, TextAlignmentOptions.TopLeft);
 
         SetAnchored(stageDescriptionText.gameObject,
-            new Vector2(0.5f, 1f), new Vector2(0f, -250f), new Vector2(780f, 300f)); // 아래에 난이도 버튼 줄이 들어간다.
+            new Vector2(0.5f, 1f), new Vector2(0f, -290f), new Vector2(780f, 380f)); // 난이도와 소모품은 전투 준비 화면으로 옮겼다.
 
         stageDescriptionText.fontSize = 22f; // 일반전은 적, 난이도, 보상, 승리 기록까지 적는다.
 
-        Button startButton = EnsureButton("StartBattleButton", detailPanel.transform, "전투 시작", AccentColor);
+        Button startButton = EnsureButton("StartBattleButton", detailPanel.transform, "전투 준비", AccentColor);
+        SetButtonLabelByName("StartBattleButton", "전투 준비"); // 전투 준비 화면을 거쳐 시작한다.
         SetAnchored(startButton.gameObject,
             new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(400f, 80f));
 
@@ -727,17 +730,14 @@ public static partial class SceneUIBuilder
         GameObject controller = EnsureObject("StageSelectController", null);
         StageSelectFlow flow = controller.AddComponentIfMissing<StageSelectFlow>();
 
-        // 전투에 가져갈 소모성 아이템. 전투 준비 화면이 생기기 전까지 여기에서 고른다. (기획서 9.12.3)
-        Button itemSlotButton = EnsureButton(
-            "ItemSlotButton", detailPanel.transform, "소모품: 없음", ButtonColor);
-
-        SetAnchored(itemSlotButton.gameObject,
-            new Vector2(0.5f, 0f), new Vector2(0f, 165f), new Vector2(560f, 56f));
-
-        StyleButtonByName("ItemSlotButton", ButtonColor, 22f);
-        EnsureButtonIcon(itemSlotButton, UIKeys.ItemEmpty);
-
-        AssignReference(flow, "itemSlotButton", itemSlotButton);
+        // 소모품 칸과 난이도 버튼은 전투 준비 화면으로 옮겼다. (기획서 6.14 / 9.12.3)
+        foreach (string movedButtonName in new[]
+        {
+            "ItemSlotButton", "DifficultyEasyButton", "DifficultyNormalButton", "DifficultyHardButton",
+        })
+        {
+            DestroyByName(movedButtonName);
+        }
         AssignReference(flow, "titleText", title); // 실행 중에 들어온 지역의 이름으로 바뀐다.
 
         GameObject regionBackground = Locate("Background");
@@ -756,7 +756,7 @@ public static partial class SceneUIBuilder
 
         ApplyDefaultStages(flow);
         ApplyFormationList(flow); // 일반전 적 편성 연결
-        BuildDifficultyButtons(detailPanel.transform, flow); // 난이도 버튼 (쉬움, 보통, 어려움)
+        BuildStageDetailControls(detailPanel.transform, flow); // 보상 표시와 포획 목록 다시 뽑기
         BuildStageTabs(listPanel, listContent, flow); // 메인 진행과 서브 콘텐츠 탭
         BuildHeroinePortrait(detailPanel.transform, flow); // 히로인 얼굴 그림
     }
@@ -1051,6 +1051,7 @@ public static partial class SceneUIBuilder
                 BuildEnemyField(canvas, battleManager); // 적 마물 필드 (일반전)
                 AssignHeroineName(battleManager); // 히로인 이름 (히로인전에서 바뀐다)
                 BuildHeroineArt(canvas, battleManager); // 히로인 그림 칸
+                BuildBattleComfortButtons(canvas, battleManager); // 전투 속도, 전투 포기, 재도전
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);
@@ -1086,7 +1087,7 @@ public static partial class SceneUIBuilder
         StyleScrollViewByName("BattleLogScrollView");
 
         // 전투 결과 패널
-        PlaceByName("BattleResultPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 600f));
+        PlaceByName("BattleResultPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760f, 680f)); // 재도전 버튼 한 줄이 더 들어간다.
         StylePanelByName("BattleResultPanel", PanelColor);
         LayoutByName("BattleResultPanel", 18f, 44, TextAnchor.UpperCenter);
         EnsureResultLevelText(); // 플레이어 레벨 변화 줄

@@ -39,6 +39,69 @@ public static class HeroineBattleRules
         }
     }
 
+    public static int GetActionDamage(HeroineActionData action, int attack) // 행동의 기본 피해량 (공격력 배율이 없으면 고정 피해)
+    {
+        return action.AttackPercent > 0
+            ? ScalePercent(attack, action.AttackPercent)
+            : action.Damage;
+    }
+
+    private static string GetTargetName(HeroineTargetType targetType) // 대상 규칙 표시 이름
+    {
+        switch (targetType)
+        {
+            case HeroineTargetType.RandomMonster: return "무작위 마물";
+            case HeroineTargetType.LowestHpMonster: return "HP가 가장 낮은 마물";
+            case HeroineTargetType.HighestAttackMonster: return "공격력이 가장 높은 마물";
+            case HeroineTargetType.AllMonsters: return "모든 마물";
+            case HeroineTargetType.Player: return "플레이어";
+            case HeroineTargetType.Self: return "자신";
+            default: return "앞쪽 마물";
+        }
+    }
+
+    // 전투 준비 화면에 적는 행동 한 줄: 이름, 효과, 재사용 대기 (기획서 10.18의 적 스킬과 행동 패턴)
+    public static string GetActionText(HeroineActionData action, int attack)
+    {
+        if (action == null) { return string.Empty; }
+
+        string effect;
+
+        switch (action.ActionType)
+        {
+            case HeroineActionType.GainShield:
+                effect = $"보호막 +{action.ShieldAmount}";
+                if (action.CounterAttackPercent > 0) { effect += $", 다음에 공격한 마물에게 반격 {ScalePercent(attack, action.CounterAttackPercent)}"; }
+                break;
+
+            case HeroineActionType.Heal:
+                effect = $"HP +{action.HealAmount}";
+                break;
+
+            case HeroineActionType.ApplyStatus:
+                effect = action.AppliedStatusEffect == null
+                    ? "상태 효과"
+                    : $"{GetTargetName(action.TargetType)}에게 {action.AppliedStatusEffect.DisplayName} ({action.AppliedStatusEffect.DurationTurns}턴)";
+                break;
+
+            case HeroineActionType.Cleanse:
+                effect = $"해로운 효과 {action.CleanseCount}개 제거";
+                if (action.LustReduction > 0) { effect = $"성욕 -{action.LustReduction}, " + effect; }
+                break;
+
+            default:
+                effect = $"{GetTargetName(action.TargetType)}에게 피해 {GetActionDamage(action, attack)}";
+                if (action.ShieldAmount > 0) { effect += $", 보호막 +{action.ShieldAmount}"; }
+                break;
+        }
+
+        string cooldown = action.CooldownTurns > 0
+            ? $" (재사용 {action.CooldownTurns}턴)"
+            : string.Empty;
+
+        return $"{action.DisplayName}: {effect}{cooldown}";
+    }
+
     public static string GetActionCountText(HeroineBattleData battle) // 한 턴의 행동 횟수 안내 (기획서 D.2.3)
     {
         if (battle == null) { return string.Empty; }

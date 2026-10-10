@@ -119,11 +119,14 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
     public BattleResultData LastBattleResult => lastBattleResult;
     private void Start() // 전투 초기화 진입
     {
+        StartComfortButtons(); // 전투 속도, 포기, 재도전 버튼 연결
         InitializeBattle(); // 기본 전투 초기화
     }
     private void InitializeBattle()
     {
         lastBattleResult = null;
+        isForfeited = false;
+        forfeitConfirmUntil = 0f;
 
         if (battleResultUI != null)
         {
@@ -249,7 +252,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
                 UpdateBattleUI();
             }
 
-            yield return new WaitForSeconds(heroineActionDelay); // 행동 전 대기
+            yield return BattleSpeed.Wait(heroineActionDelay); // 행동 전 대기 (전투 속도 적용)
 
             HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
             ShowHeroineAttackArt(executedAction); // 공격 행동이면 공격 그림
@@ -270,7 +273,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
 
         UpdateBattleUI();
 
-        yield return new WaitForSeconds(heroineActionDelay); // 다음 턴 전 대기
+        yield return BattleSpeed.Wait(heroineActionDelay); // 다음 턴 전 대기
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     }
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비

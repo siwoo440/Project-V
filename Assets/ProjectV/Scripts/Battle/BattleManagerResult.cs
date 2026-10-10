@@ -17,7 +17,11 @@ public partial class BattleManager // 분리된 전투 기능
 
         BattleResultData resultData;
 
-        if (isEnemyBattle)
+        if (isForfeited)
+        {
+            resultData = CreateForfeitResult(outcome); // 포기: 보상과 경험치 없음 (기획서 10.23.1)
+        }
+        else if (isEnemyBattle)
         {
             resultData = BattleSetup.IsCaptureBattle
                 ? CreateCaptureResult(outcome, isVictory, isFirstClear)
@@ -377,8 +381,9 @@ public partial class BattleManager // 분리된 전투 기능
 
         ShowHeroineResultArt(outcome); // 히로인이 졌으면 패배 그림을 남긴다.
 
-        string resultMessage =
-            GetBattleOutcomeDisplayName(outcome);
+        string resultMessage = isForfeited
+            ? "전투 포기"
+            : GetBattleOutcomeDisplayName(outcome);
 
         lastBattleResult.SetOutcomeLabel(resultMessage); // 결과 화면에도 같은 문구를 쓴다.
 
