@@ -44,13 +44,10 @@ public partial class PlayerProgressManager
         return GetCapturePool(region).Count > 0;
     }
 
-    // 임시 규칙: 일반전 2단계를 이기면 열린다. 정식 조건은 주요 히로인 2차전 승리다. (RegionRules 참고)
+    // 포획 콘텐츠는 주요 히로인 2차전을 이기면 열린다. (기획서 8.12 / F.18.1)
     public bool IsCaptureUnlocked(RegionData region)
     {
-        return region != null &&
-               IsStageCleared(
-                   RegionRules.GetNormalStageId(region.RegionId, RegionRules.CaptureUnlockNormalStage)
-               );
+        return IsSideContentUnlocked(region);
     }
 
     public bool IsMonsterCaptured(MonsterData monster) // 카드를 한 장이라도 가지고 있는지 여부

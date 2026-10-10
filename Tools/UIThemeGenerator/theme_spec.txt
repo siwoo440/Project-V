@@ -60,3 +60,46 @@ sheet | UI_MapMark_Sheet_01.png | 2x2 | emblem | UI/Frames | UI_MapMark_Select_0
 
 # 묶음 10: 스테이지와 난이도 (47일차, GPT_Request_UI_07.md)
 sheet | Icon_Battle_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Difficulty_Easy_01, Icon_Difficulty_Normal_01, Icon_Difficulty_Hard_01, Icon_Reward_ChestClosed_01, Icon_Reward_ChestOpen_01, Icon_Reward_Repeat_01, Icon_Capture_Orb_01, Icon_Capture_Reroll_01, Icon_Stage_Crown_01
+
+# 캐릭터 그림 (GPT_Request_Heroine_01.md). 배경만 지우고 자르지 않는다.
+# char | 원본 파일 | 저장 폴더(Resources/Characters 기준)
+char | Aria_Battle_Normal_01.png | Aria
+char | Aria_Battle_Hit_01.png | Aria
+char | Aria_Battle_Hit_02.png | Aria
+char | Aria_Battle_Guard_01.png | Aria
+char | Aria_Battle_LustHit_01.png | Aria
+char | Aria_Battle_Shaken_01.png | Aria
+char | Aria_Battle_LustHit_02.png | Aria
+char | Aria_Battle_Defeat_01.png | Aria
+char | Aria_Battle_Climax_01.png | Aria
+char | Aria_Battle_Attack_01.png | Aria
+char | Silia_Battle_Normal_01.png | Silia
+char | Silia_Battle_Hit_01.png | Silia
+char | Silia_Battle_Hit_02.png | Silia
+char | Silia_Battle_Guard_01.png | Silia
+char | Silia_Battle_LustHit_01.png | Silia
+char | Silia_Battle_Shaken_01.png | Silia
+char | Silia_Battle_LustHit_02.png | Silia
+char | Silia_Battle_Defeat_01.png | Silia
+char | Silia_Battle_Climax_01.png | Silia
+char | Silia_Battle_Attack_01.png | Silia
+char | Rien_Battle_Normal_01.png | Rien
+char | Rien_Battle_Hit_01.png | Rien
+char | Rien_Battle_Hit_02.png | Rien
+char | Rien_Battle_Guard_01.png | Rien
+char | Rien_Battle_LustHit_01.png | Rien
+char | Rien_Battle_Shaken_01.png | Rien
+char | Rien_Battle_LustHit_02.png | Rien
+char | Rien_Battle_Defeat_01.png | Rien
+char | Rien_Battle_Climax_01.png | Rien
+char | Rien_Battle_Attack_01.png | Rien
+char | Pranaya_Battle_Normal_01.png | Pranaya
+char | Pranaya_Battle_Hit_01.png | Pranaya
+char | Pranaya_Battle_Hit_02.png | Pranaya
+char | Pranaya_Battle_Guard_01.png | Pranaya
+char | Pranaya_Battle_LustHit_01.png | Pranaya
+char | Pranaya_Battle_Shaken_01.png | Pranaya
+char | Pranaya_Battle_LustHit_02.png | Pranaya
+char | Pranaya_Battle_Defeat_01.png | Pranaya
+char | Pranaya_Battle_Climax_01.png | Pranaya
+char | Pranaya_Battle_Attack_01.png | Pranaya

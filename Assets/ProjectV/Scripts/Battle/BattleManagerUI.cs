@@ -104,9 +104,8 @@ public partial class BattleManager // 분리된 전투 기능
         {
             string lustLabel = UISkin.IconOr(UIIcons.Lust, "성욕");
 
-            lustText.text = heroineLust >= heroineMaxLust
-                ? $"{lustLabel} {heroineLust} / {heroineMaxLust} 최대"
-                : $"{lustLabel} {heroineLust} / {heroineMaxLust}";
+            lustText.text =
+                $"{lustLabel} {heroineLust} / {heroineMaxLust} {GetLustStageName()}"; // 정상, 동요, 절정 (기획서 11.8.1)
         }
 
         if (heroineLustSlider != null)
@@ -117,6 +116,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
         UpdateDeckStatusUI();
         UpdateHeroineIntentUI(); // 히로인 행동 예고 표시
+        RefreshHeroineArtIdle(); // 히로인 그림의 평소 상태 (기본 또는 동요)
         UpdateSummonerUI(); // 소환사 스킬 버튼과 패시브 표시
         UpdateBattleItemUI(); // 소모성 아이템 버튼
     }

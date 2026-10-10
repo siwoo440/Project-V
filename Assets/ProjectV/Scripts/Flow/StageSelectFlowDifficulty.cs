@@ -4,7 +4,7 @@ using UnityEngine; // Unity 기본 기능
 using UnityEngine.UI; // Unity UI 기능
 
 // 지역 화면의 난이도 선택과 일반전 정보 (기획서 4.17 / 8.11 / F.6)
-// 일반전은 입장 전에 난이도를 고른다. 난이도는 적 능력치와 보상량에만 영향을 준다.
+// 일반전과 히로인전은 입장 전에 난이도를 고른다. 난이도는 상대의 능력치와 보상량에만 영향을 준다.
 public partial class StageSelectFlow
 {
     [Header("난이도")]
@@ -43,13 +43,13 @@ public partial class StageSelectFlow
         ShowStageDetail(selectedStage); // 적 능력치 배율과 받을 보상을 다시 적는다.
     }
 
-    // 일반전을 골랐을 때만 난이도 버튼을 보여 주고, 고른 난이도는 금색 버튼으로 표시한다.
+    // 일반전이나 히로인전을 골랐을 때만 난이도 버튼을 보여 주고, 고른 난이도는 금색 버튼으로 표시한다.
     private void RefreshDifficultyButtons()
     {
         bool isNormalStage =
             selectedStage != null &&
             selectedStage.IsUnlocked &&
-            stageFormations.ContainsKey(selectedStage);
+            (stageFormations.ContainsKey(selectedStage) || stageHeroines.ContainsKey(selectedStage));
 
         ApplyDifficultyButton(easyButton, BattleDifficulty.Easy, isNormalStage);
         ApplyDifficultyButton(normalButton, BattleDifficulty.Normal, isNormalStage);
@@ -68,11 +68,7 @@ public partial class StageSelectFlow
             return;
         }
 
-        PlayerProgressManager progress = PlayerProgressManager.Instance;
-
-        bool isCleared =
-            progress != null &&
-            progress.IsStageCleared(stageFormations[selectedStage].FormationId);
+        bool isCleared = IsStageEntryCleared(selectedStage);
 
         rewardIconImage.enabled = UISkin.ApplySimple(
             rewardIconImage,

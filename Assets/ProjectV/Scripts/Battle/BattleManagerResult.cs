@@ -12,22 +12,97 @@ public partial class BattleManager // 분리된 전투 기능
             outcome == BattleOutcome.VictoryHp ||
             outcome == BattleOutcome.VictoryLust;
 
-        bool isFirstClear = isEnemyBattle && IsFirstStageClear(); // 보상을 반영하기 전에 확인한다.
+        bool hasStage = isEnemyBattle || heroineBattle != null; // 승리 기록을 남기는 전투인지 여부 (시험 히로인 전투는 남기지 않는다)
+        bool isFirstClear = hasStage && IsFirstStageClear(); // 보상을 반영하기 전에 확인한다.
 
-        BattleResultData resultData = !isEnemyBattle
-            ? CreateRewardDataResult(outcome, isVictory)
-            : BattleSetup.IsCaptureBattle
+        BattleResultData resultData;
+
+        if (isEnemyBattle)
+        {
+            resultData = BattleSetup.IsCaptureBattle
                 ? CreateCaptureResult(outcome, isVictory, isFirstClear)
                 : CreateNormalStageResult(outcome, isVictory, isFirstClear);
+        }
+        else
+        {
+            resultData = heroineBattle != null
+                ? CreateHeroineStageResult(outcome, isVictory, isFirstClear)
+                : CreateRewardDataResult(outcome, isVictory);
+        }
 
         resultData.SetStageInfo(
-            isEnemyBattle ? BattleSetup.StageId : string.Empty,
+            hasStage ? BattleSetup.StageId : string.Empty,
             BattleSetup.Difficulty,
             isFirstClear,
             isVictory && BattleSetup.ClearsRegion
         );
 
+        SetRegionClearInfo(resultData);
+
         return resultData;
+    }
+
+    // 이 승리로 지역을 처음 클리어하면 지역 이름과 다음 지역, 지역 클리어 보상을 결과에 적는다. (기획서 4.14 / C.28)
+    private void SetRegionClearInfo(BattleResultData resultData)
+    {
+        if (!resultData.IsVictory || !resultData.ClearsRegion) { return; }
+
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+        RegionData region = progress == null ? null : progress.CurrentRegion;
+
+        if (region == null || progress.IsRegionCleared(region)) { return; } // 다시 이겨도 보상은 한 번뿐이다.
+
+        RegionData nextRegion = progress.GetNextRegion(region);
+        bool hasReward = region.HasMainBattles; // 시험 규칙으로 클리어하는 지역은 보상을 주지 않는다.
+
+        resultData.SetRegionClear(
+            region.DisplayName,
+            nextRegion == null ? string.Empty : nextRegion.DisplayName,
+            hasReward ? HeroineBattleRules.GetRegionClearGold(region.Order) : 0,
+            hasReward ? HeroineBattleRules.GetRegionClearShards(region.Order) : 0
+        );
+    }
+
+    // 히로인전 보상: 차수별 기준 보상에 지역 배율과 난이도 배율을 곱한다. 욕망의 파편은 표의 값을 쓴다.
+    // 서브 히로인전은 같은 지역의 1차전과 같은 골드와 경험치를 준다. (기획서 9.7.2 / 9.7.3 / 9.8.2 / 9.9)
+    private BattleResultData CreateHeroineStageResult(
+        BattleOutcome outcome,
+        bool isVictory,
+        bool isFirstClear
+    )
+    {
+        int regionOrder = BattleSetup.RegionOrder;
+        BattleDifficulty difficulty = BattleSetup.Difficulty;
+
+        if (!isVictory)
+        {
+            int defeatExperience = StageRules.GetDefeatExperience(
+                HeroineBattleRules.GetExperience(heroineBattle, regionOrder, difficulty, true)
+            ); // 승리 경험치의 25%. 반복 감소는 적용하지 않는다. (기획서 9.8.3)
+
+            return new BattleResultData(outcome, 0, defeatExperience, false, false, null);
+        }
+
+        int goldReward = ApplyGrimoirePercent(
+            HeroineBattleRules.GetGold(heroineBattle, regionOrder, difficulty, isFirstClear),
+            GrimoireEffectType.LootAppraisal
+        ); // 전리품 감정 반영
+
+        int experienceReward = ApplyGrimoirePercent(
+            HeroineBattleRules.GetExperience(heroineBattle, regionOrder, difficulty, isFirstClear),
+            GrimoireEffectType.BattleRecord
+        ); // 전투 기록 반영
+
+        return new BattleResultData(
+            outcome,
+            goldReward,
+            experienceReward,
+            false,
+            false,
+            null,
+            HeroineBattleRules.GetShards(heroineBattle, difficulty, isFirstClear),
+            Grimoire(GrimoireEffectType.EssenceCondense)
+        ); // 욕망의 파편과 정수 응축 포함
     }
 
     private bool IsFirstStageClear() // 이 스테이지에서 아직 승리한 적이 없는지 여부
@@ -124,7 +199,7 @@ public partial class BattleManager // 분리된 전투 기능
         return resultData;
     }
 
-    // 히로인 전투 보상: 보상 데이터의 값을 쓴다. 히로인전의 보상 공식은 히로인전을 만드는 일차에 넣는다.
+    // 시험 히로인 전투 보상: 히로인전 데이터가 없는 전투는 보상 데이터의 값을 쓴다.
     private BattleResultData CreateRewardDataResult(BattleOutcome outcome, bool isVictory)
     {
         if (battleRewardData == null)
@@ -195,29 +270,22 @@ public partial class BattleManager // 분리된 전투 기능
                 : string.Empty)
         );
 
-        if (!resultData.CaptureAttempted)
+        foreach (MonsterData capturedMonster in resultData.CapturedMonsters)
         {
             AddBattleLog(
                 BattleLogCategory.System,
-                "포획을 시도하지 않았습니다."
-            );
-
-            return;
+                $"포획: {capturedMonster.MonsterName}"
+            ); // 포획전에서 쓰러뜨린 마물
         }
 
-        if (!resultData.CaptureSucceeded)
-        {
-            AddBattleLog(
-                BattleLogCategory.System,
-                "포획에 실패했습니다."
-            );
-
-            return;
-        }
+        if (!resultData.HasRegionClear) { return; }
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"{resultData.CapturedMonster.MonsterName}을 포획했습니다."
+            $"지역 클리어: {resultData.ClearedRegionName}" +
+            (resultData.RegionClearGold > 0 || resultData.RegionClearShards > 0
+                ? $" (골드 +{resultData.RegionClearGold}, 욕망의 파편 +{resultData.RegionClearShards})"
+                : string.Empty)
         );
     }
     public void ClaimBattleRewards()
@@ -306,6 +374,8 @@ public partial class BattleManager // 분리된 전투 기능
 
         lastBattleResult =
             CreateBattleResult(outcome);
+
+        ShowHeroineResultArt(outcome); // 히로인이 졌으면 패배 그림을 남긴다.
 
         string resultMessage =
             GetBattleOutcomeDisplayName(outcome);

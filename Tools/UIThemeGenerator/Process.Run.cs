@@ -26,6 +26,7 @@ public static partial class ThemeProc
         StringBuilder log = new StringBuilder();
         List<SheetSpec> sheets = new List<SheetSpec>();
         List<string[]> backgrounds = new List<string[]>();
+        List<string[]> characters = new List<string[]>();
 
         BorderOverrides.Clear();
         NoCompact.Clear();
@@ -56,6 +57,10 @@ public static partial class ThemeProc
             else if (f[0] == "bg" && f.Length >= 3)
             {
                 backgrounds.Add(new string[] { f[1], f[2] });
+            }
+            else if (f[0] == "char" && f.Length >= 3)
+            {
+                characters.Add(new string[] { f[1], f[2] });
             }
             else if (f[0] == "border" && f.Length >= 3)
             {
@@ -137,6 +142,43 @@ public static partial class ThemeProc
             SaveJpg(CropToAspect(source, 1920, 1080), Path.Combine(outRoot, relative), 92L);
             manifest.Add("background|" + key + "|" + relative);
             log.AppendLine("BG    " + Path.GetFileName(path) + "  " + source.W + "x" + source.H + " -> 1920x1080");
+        }
+
+        // 캐릭터 그림: 배경만 지우고 자르지 않는다. 같은 인물의 그림을 같은 자리에 바꿔 끼우려면 원본 크기와 위치가 유지되어야 한다.
+        // 필요한 인물의 그림만 불러 쓰도록 Resources/Characters/<인물> 아래에 둔다. 테마 목록에는 넣지 않는다.
+        string characterRoot = Path.GetFullPath(Path.Combine(outRoot, "../Resources/Characters"));
+        int missingCharacters = 0;
+
+        foreach (string[] character in characters)
+        {
+            string path = FindRaw(rawDir, character[0]);
+
+            if (path == null)
+            {
+                missingCharacters++;
+                continue;
+            }
+
+            Pix source = Pix.Load(path);
+            string mode = RemoveBackground(source);
+            string key = Path.GetFileNameWithoutExtension(character[0]);
+
+            if (mode == "opaque")
+            {
+                log.AppendLine("CHAR  " + Path.GetFileName(path) + "  ERROR background could not be removed");
+                continue;
+            }
+
+            string target = Path.Combine(Path.Combine(characterRoot, character[1]), key + ".png");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(target));
+            source.SavePng(target);
+            log.AppendLine("CHAR  " + Path.GetFileName(path) + "  " + source.W + "x" + source.H + "  background=" + mode + " -> " + character[1] + "/" + key + ".png");
+        }
+
+        if (missingCharacters > 0)
+        {
+            log.AppendLine("SKIP  " + missingCharacters + " of " + characters.Count + " character images (not found)");
         }
 
         BuildAtlas(pieces, outRoot, manifest, log);

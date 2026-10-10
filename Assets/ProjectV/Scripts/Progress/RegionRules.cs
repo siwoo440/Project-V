@@ -1,17 +1,20 @@
-// 지역 규칙 (기획서 4.4 / 8.3 / F.2)
+// 지역 규칙 (기획서 4.4 / 8.3 / F.2 / F.3.1)
 public static class RegionRules
 {
     public const int FinalOrder = 9; // 최종장 지역의 순서 (마계와 심연)
 
-    // 임시 규칙: 기획서 4.14.1의 지역 클리어 조건은 주요 히로인 3단계 전투 승리다.
-    // 히로인전 3단계가 생기기 전까지는 일반전 마지막 단계를 이기면 클리어로 본다.
-    // 일반전 편성이 없는 지역은 어느 전투든 한 번 이기면 클리어로 본다. (지역 화면이 전투를 시작할 때 정한다)
-    public const string TemporaryClearHint =
-        "시험 규칙: 일반전 마지막 단계를 이기면 클리어됩니다. 일반전이 없는 지역은 한 번 승리하면 클리어됩니다.";
+    public const string ClearHint =
+        "주요 히로인 3차전을 이기면 클리어됩니다."; // 기획서 4.14.1
 
-    // 임시 규칙: 기획서 8.12의 포획 콘텐츠 해금 조건은 주요 히로인 2차전 승리다.
-    // 히로인전이 생기기 전까지는 일반전 이 단계를 이기면 열린다.
-    public const int CaptureUnlockNormalStage = 2;
+    // 시험 규칙: 히로인전 데이터가 아직 없는 지역에만 쓴다.
+    // 일반전은 처음부터 열려 있고, 일반전 마지막 단계를 이기면 클리어로 본다.
+    // 일반전 편성도 없는 지역은 어느 전투든 한 번 이기면 클리어로 본다.
+    public const string TestClearHint =
+        "시험 규칙: 히로인전 데이터가 없는 지역입니다. 일반전 마지막 단계를 이기면 클리어됩니다. " +
+        "일반전이 없으면 한 번 승리하면 클리어됩니다.";
+
+    // 시험 규칙: 히로인전 데이터가 없는 지역은 일반전 이 단계를 이기면 서브 콘텐츠가 열린다.
+    public const int TestSideUnlockNormalStage = 2;
 
     public static string GetNormalStageId(string regionId, int stage) // 일반전 스테이지 ID (R01-G1)
     {

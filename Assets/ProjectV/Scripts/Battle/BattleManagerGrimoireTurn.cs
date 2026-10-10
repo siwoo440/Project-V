@@ -127,12 +127,7 @@ public partial class BattleManager // 그리모어 강화: 내 턴 시작과 종
             );
         }
 
-        if (heroineLust < heroineMaxLust) { return false; }
-
-        UpdateBattleUI();
-        EndBattle(BattleOutcome.VictoryLust); // 성욕 승리
-
-        return true;
+        return false; // 성욕이 최대가 되어도 히로인의 턴이 지난 뒤에 판정한다. (기획서 5.14.4)
     }
 
     private void HealMostDamagedMonster(int healAmount) // 치유의 인장

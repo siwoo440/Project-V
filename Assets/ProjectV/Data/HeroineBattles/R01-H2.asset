@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2c9e4b1a6f4c38b5e0a3d8f1c29b64, type: 3}
+  m_Name: R01-H2
+  m_EditorClassIdentifier: Assembly-CSharp::HeroineBattleData
+  battleId: R01-H2
+  regionId: R01
+  battleType: 0
+  stage: 2
+  heroineName: '아리아'
+  heroineTitle: '엘프 / 왕국 기사단장'
+  artKey: Aria
+  description: '아리아가 수호 자세와 전열 압박을 더해 다시 맞선다.'
+  maxHp: 310
+  attack: 9
+  defense: 6
+  startingShield: 0
+  maxShield: 60
+  lustResistance: 2
+  actions:
+  - {fileID: 11400000, guid: 6fe61ccb8ce4515f97e7e28128310424, type: 2}
+  - {fileID: 11400000, guid: d424ae3f6eee53ffa416dbae17f0a067, type: 2}
+  - {fileID: 11400000, guid: efc588801e72593f9766714239e150bc, type: 2}
+  - {fileID: 11400000, guid: 63cc2303f1b65186975348fd90c185d0, type: 2}
+  actionsPerTurn: 1
+  extraActionInterval: 3
+  phaseName: '기사단장의 각오'
+  phaseHpPercent: 50
+  phaseDefenseBonus: 2
+  phaseActionChanges:
+  - action: {fileID: 11400000, guid: efc588801e72593f9766714239e150bc, type: 2}
+    weightBonus: 15
+    attackPercent: 0
+  - action: {fileID: 11400000, guid: 63cc2303f1b65186975348fd90c185d0, type: 2}
+    weightBonus: 0
+    attackPercent: 75

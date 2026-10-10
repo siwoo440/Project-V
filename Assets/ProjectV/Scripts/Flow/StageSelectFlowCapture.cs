@@ -38,16 +38,18 @@ public partial class StageSelectFlow
     // 포획 목록 3개를 스테이지 줄로 더한다. 열리기 전에는 잠긴 줄로 보인다.
     private void AddCaptureStages(List<StageEntry> shownStages)
     {
-        captureSlots.Clear();
-
         if (!HasCaptureStages()) { return; }
 
         bool isUnlocked = PlayerProgressManager.Instance.IsCaptureUnlocked(region);
 
+        string lockHint = region.HasMainBattles
+            ? "주요 히로인 2차전을 이기면 열립니다."
+            : $"일반전 {RegionRules.TestSideUnlockNormalStage}단계를 이기면 열립니다."; // 시험 규칙 (RegionRules 참고)
+
         for (int slot = 0; slot < CaptureRules.SlotCount; slot++)
         {
             StageEntry captureStage = new StageEntry(
-                $"포획전 {slot + 1}", CaptureBattleType, 1, string.Empty, isUnlocked
+                $"포획전 {slot + 1}", CaptureBattleType, 1, string.Empty, isUnlocked, lockHint
             );
 
             captureSlots[captureStage] = slot;
@@ -62,10 +64,7 @@ public partial class StageSelectFlow
 
     private string GetCaptureSubtitle(StageEntry stage) // 줄에 적는 한 줄: 나오는 마물 이름
     {
-        if (!stage.IsUnlocked)
-        {
-            return $"{stage.StageType}   일반전 {RegionRules.CaptureUnlockNormalStage}단계를 이기면 열립니다"; // 임시 조건 (RegionRules 참고)
-        }
+        if (!stage.IsUnlocked) { return $"{stage.StageType}   {stage.LockHint}"; }
 
         List<string> names = new List<string>();
 

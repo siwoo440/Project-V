@@ -231,11 +231,12 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
                 essenceGained += AddCapturedMonster(capturedMonster); // 포획전: 카드 지급 또는 초과 변환 (기획서 9.14)
             }
 
-            RecordStageClear(resultData.StageId, resultData.Difficulty); // 스테이지 승리 기록 (일반전과 포획전)
+            RecordStageClear(resultData.StageId, resultData.Difficulty); // 스테이지 승리 기록 (일반전, 포획전, 히로인전)
 
-            if (resultData.ClearsRegion)
+            if (resultData.ClearsRegion && MarkRegionCleared(currentRegion))
             {
-                MarkRegionCleared(currentRegion); // 임시 규칙 (RegionRules 참고)
+                AddGold(resultData.RegionClearGold); // 지역 클리어 보상. 최초 한 번만 준다. (기획서 C.28)
+                AddDesireShards(resultData.RegionClearShards);
             }
         }
         else

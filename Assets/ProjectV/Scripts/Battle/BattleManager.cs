@@ -146,6 +146,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         playerCurrentShield =
             Mathf.Max(0, playerStartingShield) +
             Grimoire(GrimoireEffectType.StartingShield); // 플레이어 보호막 초기화 (보호의 문장 포함)
+        PrepareHeroineBattle(); // 히로인전 데이터가 있으면 능력치와 행동을 그 전투의 값으로 바꾼다.
         heroineCurrentHp = heroineMaxHp; // 히로인 체력 초기화
         heroineCurrentShield = Mathf.Clamp(heroineStartingShield, 0, heroineMaxShield); // 최대치 범위 내 보호막 초기화
 
@@ -162,11 +163,13 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
 
         lastHeroineAction = null; // 마지막 행동 초기화
         consecutiveHeroineActionUses = 0; // 연속 사용 횟수 초기화
-        SelectNextHeroineAction(); // 첫 번째 히로인 행동 선택
+        ResetHeroineRules(); // 행동 계획, 반격, 페이즈 전환, 절정 상태 초기화
+        PlanHeroineActions(); // 첫 히로인 턴의 행동 예고
         selectedMonster = null; // 선택 마물 초기화
         resultText.text = string.Empty; // 결과 텍스트 초기화
         if (battleLogUI != null) { battleLogUI.Clear(); } // 이전 전투 로그 초기화
         AddBattleLog(BattleLogCategory.System, "전투를 시작했습니다."); // 전투 시작 기록
+        LogHeroineBattle(); // 히로인전이면 상대의 능력치와 난이도 기록
         LogSummonerLoadout(); // 장착한 소환사 스킬과 패시브 기록
         LogGrimoireLoadout(); // 적용된 그리모어 강화 기록
         LogBattleItemLoadout(); // 가져온 소모성 아이템 기록
@@ -177,6 +180,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         ClearHand(); // 기존 손패 초기화
         ClearMonsterField(); // 기존 마물 필드 초기화
         PrepareEnemyBattle(); // 전투 종류에 맞게 화면을 바꾸고 적 마물을 놓는다
+        PrepareHeroineArt(); // 히로인 그림이 있으면 보여 준다
 
 
         drawPile.AddRange(battleDeck);
@@ -201,7 +205,7 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         CancelBattleItemTargeting(string.Empty); // 아이템 대상 선택 중이면 취소
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 종료했습니다."); // 플레이어 턴 종료 기록
 
-        if (ApplyGrimoireTurnEnd()) { return; } // 여운으로 성욕이 가득 차면 승리로 끝난다.
+        if (ApplyGrimoireTurnEnd()) { return; } // 그리모어 강화의 턴 종료 효과 (여운, 마나 비축)
 
         ApplyTurnEndSynergies(); // 턴 종료 시너지 처리
         ClearSummonerTurnEffects(); // 이번 턴 한정 스킬 효과 제거
@@ -222,43 +226,63 @@ public partial class BattleManager : MonoBehaviour // 기본 전투 흐름 관�
         ReduceMonsterStatusDurations( StatusDurationTiming.AfterPlayerTurn );
         ReduceMonsterCooldowns(); // 마물 재사용 대기시간 감소
         ApplyHeroineStartTurnStatusEffects();
+        CheckHeroinePhase(); // 독 피해로 HP가 기준 이하가 됐으면 페이즈 전환
 
         UpdateBattleUI(); // 독 피해 결과 UI 갱신
 
-        if (heroineCurrentHp <= 0) // 독 피해 히로인 사망 확인
+        if (TryEndBattleByHeroineHp()) { yield break; } // 독 피해로 쓰러졌으면 승리
+
+        heroineTurnsTaken += 1;
+
+        List<HeroineActionData> turnActions =
+            new List<HeroineActionData>(plannedHeroineActions); // 예고한 행동을 앞에서부터 실행한다. (기획서 D.2.3)
+
+        if (turnActions.Count == 0) { turnActions.Add(null); } // 쓸 수 있는 행동이 없어도 턴은 넘긴다.
+
+        for (int i = 0; i < turnActions.Count; i++)
         {
-            EndBattle(BattleOutcome.VictoryHp); // 플레이어 승리 처리
-            yield break; // 히로인 행동 중단
+            nextHeroineAction = turnActions[i];
+
+            if (i > 0)
+            {
+                RefreshHeroineTargetPreview(); // 앞선 행동으로 바뀐 상황에서 대상을 다시 정한다.
+                UpdateBattleUI();
+            }
+
+            yield return new WaitForSeconds(heroineActionDelay); // 행동 전 대기
+
+            HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
+            ShowHeroineAttackArt(executedAction); // 공격 행동이면 공격 그림
+            ResolveHeroineAttack(); // 히로인 행동 실행
+            RegisterHeroineActionUse(executedAction); // 실행 행동과 쿨타임 기록
+
+            UpdateBattleUI(); // 행동 결과 갱신
+
+            if (playerCurrentHp <= 0) // 플레이어 사망 확인
+            {
+                EndBattle(BattleOutcome.Defeat); // 패배 처리
+                yield break; // 코루틴 종료
+            }
         }
 
-        yield return new WaitForSeconds(heroineActionDelay); // 공격 전 대기
-
-        HeroineActionData executedAction = nextHeroineAction; // 이번 실행 행동 저장
-        ResolveHeroineAttack(); // 히로인 공격 실행
-        RegisterHeroineActionUse(executedAction); // 실행 행동과 쿨타임 기록
         ReduceHeroineStatusDurations(StatusDurationTiming.AfterHeroineTurn); // 히로인 행동 기준 상태 지속시간 감소
         ReduceMonsterStatusDurations(StatusDurationTiming.AfterHeroineTurn);
 
-
-        UpdateBattleUI(); // 히로인 공격 결과 갱신
-
-        if (playerCurrentHp <= 0) // 플레이어 사망 확인
-        {
-            EndBattle(BattleOutcome.Defeat); // 패배 처리
-            yield break; // 코루틴 종료
-        }
+        UpdateBattleUI();
 
         yield return new WaitForSeconds(heroineActionDelay); // 다음 턴 전 대기
         BeginNextPlayerTurn(); // 다음 플레이어 턴 시작
     }
     private void BeginNextPlayerTurn() // 다음 플레이어 턴 준비
     {
+        if (TryEndBattleByClimax()) { return; } // 히로인의 턴이 지난 뒤에도 성욕이 최대이면 절정 승리 (기획서 5.14.4)
+
         turnNumber += 1;
         AddBattleLog(BattleLogCategory.System, "플레이어 턴을 시작했습니다.");
 
         ApplyMonsterStartTurnStatusEffects();
         ApplyTurnStartSynergies(); // 턴 시작 시너지 처리
-        SelectNextHeroineAction(); // 현재 쿨타임 기준 다음 행동 선택
+        PlanHeroineActions(); // 현재 쿨타임 기준으로 다음 히로인 턴의 행동 예고
         ReduceHeroineActionCooldowns(); // 행동 선택 후 쿨타임 감소
 
         maximumMana = Mathf.Min(MaximumManaLimit, maximumMana + 1); // 최대 마나 증가

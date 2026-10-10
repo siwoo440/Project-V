@@ -40,3 +40,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0b6f4234e9664c5b9c472ba26cff003e, type: 2}
   - {fileID: 11400000, guid: c3a5942efaf94b8a8176fad7ec739c15, type: 2}
   - {fileID: 11400000, guid: ede08bc4744a49a6a282b0f1d674f4ae, type: 2}
+  heroineBattles:
+  - {fileID: 11400000, guid: a67f86b50ed85a9fa3ceb67dacb1e831, type: 2}
+  - {fileID: 11400000, guid: 66d6b977beda52f8893b0a4094e10de8, type: 2}
+  - {fileID: 11400000, guid: 0cbf5147d1195f4bad764931a9ad17a9, type: 2}
+  - {fileID: 11400000, guid: fb2f0e57b4d756caba2e36bf015cf8d2, type: 2}
+  - {fileID: 11400000, guid: 211e6ce73ce35d51a64db337dd62602e, type: 2}
+  - {fileID: 11400000, guid: 8ce11769d35253048dd11ae391970b0c, type: 2}

@@ -48,7 +48,23 @@ public class BattleResultData
         }
     }
 
-    public string StageId { get; private set; } = string.Empty; // 승리 기록에 쓰는 스테이지 ID (일반전과 포획전)
+    public string ClearedRegionName { get; private set; } = string.Empty;  // 이 승리로 처음 클리어하는 지역 (없으면 빈 문자열)
+    public string UnlockedRegionName { get; private set; } = string.Empty; // 그 클리어로 열리는 다음 지역
+    public int RegionClearGold { get; private set; }   // 지역 클리어 보상 골드 (기획서 C.28)
+    public int RegionClearShards { get; private set; } // 지역 클리어 보상 욕망의 파편
+
+    public bool HasRegionClear => !string.IsNullOrEmpty(ClearedRegionName); // 지역을 처음 클리어하는 승리인지 여부
+
+    // 지역 최초 클리어 기록. 보상은 난이도와 관계없이 한 번만 준다.
+    public void SetRegionClear(string regionName, string nextRegionName, int gold, int shards)
+    {
+        ClearedRegionName = regionName ?? string.Empty;
+        UnlockedRegionName = nextRegionName ?? string.Empty;
+        RegionClearGold = Math.Max(0, gold);
+        RegionClearShards = Math.Max(0, shards);
+    }
+
+    public string StageId { get; private set; } = string.Empty; // 승리 기록에 쓰는 스테이지 ID (일반전, 포획전, 히로인전)
     public BattleDifficulty Difficulty { get; private set; } = BattleDifficulty.Normal; // 전투 난이도
     public bool IsFirstClear { get; private set; } // 이 스테이지의 최초 승리인지 여부
     public bool ClearsRegion { get; private set; } // 이 승리로 지역을 클리어하는지 여부

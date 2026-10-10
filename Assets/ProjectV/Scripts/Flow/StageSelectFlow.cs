@@ -22,14 +22,19 @@ public partial class StageSelectFlow : MonoBehaviour
         public string Description => description;
         public bool IsUnlocked => isUnlocked;
 
+        [NonSerialized] private string lockHint = string.Empty; // 잠긴 줄에 적는 해금 조건
+
+        public string LockHint => lockHint ?? string.Empty;
+
         public StageEntry() { } // 씬에 저장된 항목용
 
-        public StageEntry( // 실행 중에 지역의 적 편성으로 만드는 항목용
+        public StageEntry( // 실행 중에 지역의 데이터로 만드는 항목용
             string name,
             string type,
             int level,
             string text,
-            bool unlocked
+            bool unlocked,
+            string hint = ""
         )
         {
             stageName = name;
@@ -37,6 +42,7 @@ public partial class StageSelectFlow : MonoBehaviour
             recommendedLevel = Mathf.Max(1, level);
             description = text;
             isUnlocked = unlocked;
+            lockHint = hint ?? string.Empty;
         }
     }
 
@@ -129,6 +135,7 @@ public partial class StageSelectFlow : MonoBehaviour
         }
 
         ShowRegion(); // 들어온 지역의 이름과 배경 표시
+        StartTabButtons(); // 메인 진행과 서브 콘텐츠 탭 연결
         StartDifficultyButtons(); // 난이도 버튼 연결
         StartRerollButton(); // 포획 목록 다시 뽑기 버튼 연결
         RefreshItemSlot(); // 장착한 소모성 아이템 표시
@@ -150,6 +157,8 @@ public partial class StageSelectFlow : MonoBehaviour
 
         List<StageEntry> shownStages = GetShownStages(); // 이 지역에서 고를 수 있는 스테이지
 
+        RefreshTabButtons(); // 고른 탭 표시
+
         if (shownStages.Count == 0)
         {
             ShowStageDetail(null); // 데이터 없음 표시
@@ -163,7 +172,7 @@ public partial class StageSelectFlow : MonoBehaviour
             CreateStageButton(stage);
         }
 
-        SelectStage(shownStages[0]); // 첫 스테이지 선택
+        SelectStage(GetDefaultStage(shownStages)); // 다음에 진행할 스테이지 선택
     }
 
     private void CreateStageButton(StageEntry stage)
@@ -186,7 +195,7 @@ public partial class StageSelectFlow : MonoBehaviour
         LayoutElement entryLayout =
             entryObject.AddComponent<LayoutElement>();
 
-        entryLayout.minHeight = 68f; // 일반전 3, 포획전 3, 히로인전이 한 화면에 들어가는 높이
+        entryLayout.minHeight = 68f; // 탭 하나에 여섯 줄이 들어가는 높이
         entryLayout.preferredHeight = 68f;
 
         // 전투 종류 아이콘. 잠긴 스테이지는 자물쇠를 보여준다.
@@ -216,7 +225,9 @@ public partial class StageSelectFlow : MonoBehaviour
 
         entryLabel.text = stage.IsUnlocked
             ? $"{GetStageTitle(stage)}\n{GetStageSubtitle(stage)}"
-            : $"{GetStageTitle(stage)}\n잠김";
+            : string.IsNullOrEmpty(stage.LockHint)
+                ? $"{GetStageTitle(stage)}\n잠김"
+                : $"{GetStageTitle(stage)}\n잠김: {stage.LockHint}";
 
         entryLabel.fontSize = 20f;
         entryLabel.color = stage.IsUnlocked
@@ -234,6 +245,8 @@ public partial class StageSelectFlow : MonoBehaviour
         labelRect.anchorMax = Vector2.one;
         labelRect.offsetMin = Vector2.zero;
         labelRect.offsetMax = Vector2.zero;
+
+        CreateClearMark(entryObject.transform, stage); // 이긴 스테이지의 왕관
 
         StageEntry targetStage = stage;
 
@@ -274,28 +287,7 @@ public partial class StageSelectFlow : MonoBehaviour
 
         if (stageDescriptionText != null)
         {
-            if (stage == null)
-            {
-                stageDescriptionText.text =
-                    "스테이지 데이터를 추가하세요.";
-            }
-            else
-            {
-                PlayerProgressManager progress =
-                    PlayerProgressManager.Instance;
-
-                string deckInfo = progress == null
-                    ? "덱: 알 수 없음"
-                    : $"덱 {progress.CurrentDeck.Count} / {progress.RequiredDeckSize}";
-
-                stageDescriptionText.text =
-                    stageFormations.TryGetValue(stage, out EnemyFormationData formation)
-                        ? GetNormalStageDetail(stage, formation) + deckInfo // 일반전: 적, 난이도, 보상, 승리 기록
-                        : captureSlots.ContainsKey(stage) && stage.IsUnlocked
-                            ? GetCaptureStageDetail(stage) + deckInfo // 포획전: 마물, 보유 수량, 보상
-                            : $"{GetStageSubtitle(stage)}\n" +
-                              $"{stage.Description}\n{deckInfo}";
-            }
+            stageDescriptionText.text = GetStageDetailText(stage);
         }
 
         if (startBattleButton != null)
@@ -303,8 +295,66 @@ public partial class StageSelectFlow : MonoBehaviour
             startBattleButton.interactable = hasStage;
         }
 
-        RefreshDifficultyButtons(); // 일반전을 골랐을 때만 난이도 버튼을 보여 준다.
+        RefreshDifficultyButtons(); // 일반전과 히로인전을 골랐을 때만 난이도 버튼을 보여 준다.
         RefreshRerollButton(); // 포획 목록을 골랐을 때만 다시 뽑기 버튼을 보여 준다.
+        RefreshHeroinePortrait(); // 히로인전을 골랐을 때만 얼굴 그림을 보여 준다.
+    }
+
+    // 상세 칸에 적는 글. 잠긴 스테이지는 해금 조건만 적는다.
+    private string GetStageDetailText(StageEntry stage)
+    {
+        if (stage == null) { return "스테이지 데이터를 추가하세요."; }
+
+        if (!stage.IsUnlocked)
+        {
+            return string.IsNullOrEmpty(stage.LockHint)
+                ? "아직 열리지 않은 스테이지입니다."
+                : $"아직 열리지 않은 스테이지입니다.\n{stage.LockHint}";
+        }
+
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        string deckInfo = progress == null
+            ? "덱: 알 수 없음"
+            : $"덱 {progress.CurrentDeck.Count} / {progress.RequiredDeckSize}";
+
+        if (stageFormations.TryGetValue(stage, out EnemyFormationData formation))
+        {
+            return GetNormalStageDetail(stage, formation) + deckInfo; // 일반전: 적, 난이도, 보상, 승리 기록
+        }
+
+        if (stageHeroines.TryGetValue(stage, out HeroineBattleData battle))
+        {
+            return GetHeroineStageDetail(stage, battle) + deckInfo; // 히로인전: 능력치, 행동, 보상, 승리 기록
+        }
+
+        if (captureSlots.ContainsKey(stage))
+        {
+            return GetCaptureStageDetail(stage) + deckInfo; // 포획전: 마물, 보유 수량, 보상
+        }
+
+        return $"{GetStageSubtitle(stage)}\n{stage.Description}\n{deckInfo}";
+    }
+
+    // 이긴 일반전과 히로인전 줄의 오른쪽 끝에 왕관을 단다. 포획전은 반복 콘텐츠라 달지 않는다.
+    private void CreateClearMark(Transform row, StageEntry stage)
+    {
+        if (!stage.IsUnlocked || captureSlots.ContainsKey(stage)) { return; }
+        if (!IsStageEntryCleared(stage)) { return; }
+
+        Sprite crownSprite = UISkin.Get(UIKeys.StageCrown);
+
+        if (crownSprite == null) { return; } // 그림이 없으면 줄의 클리어 글자로만 알린다.
+
+        Image crownImage = CardEntryFactory.CreateImage(
+            row, "ClearMark", Color.white,
+            new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+            new Vector2(-78f, -22f), new Vector2(-34f, 22f)
+        );
+
+        crownImage.sprite = crownSprite;
+        crownImage.preserveAspect = true;
+        crownImage.raycastTarget = false;
     }
 
     public void StartSelectedStage()

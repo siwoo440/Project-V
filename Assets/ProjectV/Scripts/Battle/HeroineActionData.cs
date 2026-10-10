@@ -9,8 +9,11 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     [SerializeField] private HeroineActionType actionType = HeroineActionType.SingleAttack; // 행동 종류
     [SerializeField] private HeroineTargetType targetType = HeroineTargetType.FirstMonster; // 행동 대상 규칙
     [SerializeField] private int damage = 1; // 행동 피해량
+    [SerializeField, Min(0)] private int attackPercent; // 히로인 공격력에 곱하는 피해 배율(%). 0이면 위의 고정 피해량을 쓴다. (기획서 D.4)
     [SerializeField] private int shieldAmount = 0; // 행동 보호막 획득량
+    [SerializeField, Min(0)] private int counterAttackPercent; // 보호막 행동에 딸린 반격 준비. 다음에 공격한 마물에게 공격력의 이 비율로 반격한다. (기획서 D.4 수호 자세)
     [SerializeField] private int healAmount; // 체력 회복량
+    [SerializeField, Min(0)] private int lustReduction; // 자신의 성욕 감소량. 정화 행동에서 쓴다. (기획서 D.4 정신 통일)
     [SerializeField] private StatusEffectData appliedStatusEffect; // 행동 적용 상태 효과
     [Min(1)] // 최소 정화 개수 제한
     [SerializeField] private int cleanseCount = 1; // 한 번에 제거할 상태 효과 수
@@ -36,7 +39,10 @@ public class HeroineActionData : ScriptableObject // 히로인 행동 데이터 
     public HeroineActionType ActionType => actionType; // 행동 종류 반환
     public HeroineTargetType TargetType => targetType; // 행동 대상 규칙 반환
     public int Damage => damage; // 행동 피해량 반환
+    public int AttackPercent => Mathf.Max(0, attackPercent); // 공격력 배율 반환
+    public int LustReduction => Mathf.Max(0, lustReduction); // 성욕 감소량 반환
     public int ShieldAmount => shieldAmount; // 보호막 획득량 반환
+    public int CounterAttackPercent => Mathf.Max(0, counterAttackPercent); // 반격 배율 반환
     public int HealAmount => healAmount; // 체력 회복량 반환
     public StatusEffectData AppliedStatusEffect => appliedStatusEffect; // 적용 상태 효과 반환
     public int CleanseCount => cleanseCount; // 상태 효과 제거 개수 반환

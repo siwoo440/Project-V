@@ -401,19 +401,13 @@ public partial class BattleManager // 마물 고유 효과 처리
         skillMonster.MarkActed(); // 행동 완료 처리
         ClearMonsterSelection();
 
+        CheckHeroinePhase(); // HP가 기준 이하로 내려갔으면 페이즈 전환
         RefreshSynergies(); // 히로인의 HP와 성욕에 따라 달라지는 보정 갱신
         UpdateBattleUI();
 
-        if (heroineCurrentHp <= 0)
-        {
-            EndBattle(BattleOutcome.VictoryHp); // 스킬로 승리 확인
-            return;
-        }
+        if (TryEndBattleByHeroineHp()) { return; } // 스킬로 승리 확인
 
-        if (heroineLust >= heroineMaxLust)
-        {
-            EndBattle(BattleOutcome.VictoryLust); // 성욕 승리 확인
-        }
+        ShowHeroineClimaxNotice(); // 성욕이 최대가 됐으면 절정 상태 안내
     }
 
     // 턴 종료 시 모든 마물의 재사용 대기시간 감소

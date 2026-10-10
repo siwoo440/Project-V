@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2c9e4b1a6f4c38b5e0a3d8f1c29b64, type: 3}
+  m_Name: R01-SUB2
+  m_EditorClassIdentifier: Assembly-CSharp::HeroineBattleData
+  battleId: R01-SUB2
+  regionId: R01
+  battleType: 1
+  stage: 2
+  heroineName: '리엔'
+  heroineTitle: '인간 / 마법학교 상급 조교'
+  artKey: Rien
+  description: '마물의 방어력을 낮추고 장벽으로 버틴다.'
+  maxHp: 210
+  attack: 7
+  defense: 5
+  startingShield: 0
+  maxShield: 60
+  lustResistance: 2
+  actions:
+  - {fileID: 11400000, guid: 149965ef18e95fb6817ee3aca1a118ae, type: 2}
+  - {fileID: 11400000, guid: 1b3a91dbf55c5f3688c2feed6b6a42dc, type: 2}
+  - {fileID: 11400000, guid: f5306f0ef10e5505a8a6d2aa8f89877a, type: 2}
+  actionsPerTurn: 1
+  extraActionInterval: 4
+  phaseName: 
+  phaseHpPercent: 0
+  phaseDefenseBonus: 0
+  phaseActionChanges: []

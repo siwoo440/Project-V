@@ -75,7 +75,9 @@ public partial class BattleManager
 
         turnPanel.anchoredPosition = isEnemyBattle
             ? new Vector2(-180f, turnPanelHomePosition.y)
-            : turnPanelHomePosition;
+            : IsHeroineArtShown
+                ? turnPanelHomePosition + new Vector2(HeroineArtTurnPanelShift, 0f) // 히로인 그림이 가운데를 쓴다.
+                : turnPanelHomePosition;
     }
 
     private void SpawnEnemies() // 편성의 적 마물을 왼쪽부터 놓는다. 능력치는 기획서 F.5.1의 계수를 적용한다.

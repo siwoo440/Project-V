@@ -36,3 +36,6 @@ sysinfo.txt
 # UI 테마 가공 도구의 임시 결과 (원본 시트는 raw 폴더에 보관)
 /Tools/UIThemeGenerator/preview/
 /Tools/UIThemeGenerator/*.zip
+
+# 캐릭터 그림 원본. 가공본(Resources/Characters)이 자르지 않은 같은 그림이라 원본은 저장소에 넣지 않는다.
+/Tools/UIThemeGenerator/raw/Heroines/

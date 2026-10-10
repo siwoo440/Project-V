@@ -1,15 +1,16 @@
 using System.Collections.Generic; // 리스트 기능
 
 // 다음 전투의 종류와 상대. 지역 화면이 전투 씬으로 넘어가기 전에 정하고, 전투가 시작될 때 읽는다.
-// 아무것도 정하지 않았으면 히로인 전투다. (전투 씬만 따로 실행했을 때 포함)
+// 아무것도 정하지 않았으면 전투 씬에 적힌 시험 히로인과 싸운다. (전투 씬만 따로 실행했을 때 포함)
 public static class BattleSetup
 {
     private static readonly List<MonsterData> enemies = new List<MonsterData>(); // 적 마물 (왼쪽부터)
 
     public static BattleKind Kind { get; private set; } = BattleKind.Heroine; // 전투 종류
     public static IReadOnlyList<MonsterData> Enemies => enemies;              // 적 마물 목록 반환
+    public static HeroineBattleData Heroine { get; private set; }             // 히로인 전투 데이터 (없으면 전투 씬의 시험 히로인)
 
-    public static string StageId { get; private set; } = string.Empty;    // 승리 기록에 쓰는 스테이지 ID (R01-G1, R01-CAP1)
+    public static string StageId { get; private set; } = string.Empty;    // 승리 기록에 쓰는 스테이지 ID (R01-G1, R01-CAP1, R01-H1)
     public static int StageNumber { get; private set; } = 1;              // 일반전 단계 (보상 계산용)
     public static int HpPercent { get; private set; } = 100;              // 단계 HP 계수
     public static int AttackPercent { get; private set; } = 100;          // 단계 ATK 계수
@@ -73,9 +74,27 @@ public static class BattleSetup
         StageId = stageId ?? string.Empty;
     }
 
-    public static void SetHeroineBattle(string stageTitle, int regionOrder, bool clearsRegion)
+    public static void SetHeroineBattle( // 히로인전: 전투 데이터와 고른 난이도 (기획서 4.17 / F.3.1)
+        HeroineBattleData battle,
+        int regionOrder,
+        string stageTitle,
+        BattleDifficulty difficulty,
+        bool clearsRegion
+    )
     {
-        SetCommon(BattleKind.Heroine, regionOrder, stageTitle, BattleDifficulty.Normal, clearsRegion); // 히로인 전투의 난이도는 히로인전 일차에 넣는다.
+        SetCommon(BattleKind.Heroine, regionOrder, stageTitle, difficulty, clearsRegion);
+
+        if (battle == null) { return; }
+
+        Heroine = battle;
+        StageId = battle.BattleId ?? string.Empty;
+        StageNumber = battle.Stage;
+    }
+
+    // 히로인전 데이터가 없는 지역의 시험 전투. 전투 씬에 적힌 히로인 수치와 행동을 쓴다.
+    public static void SetTestHeroineBattle(string stageTitle, int regionOrder, bool clearsRegion)
+    {
+        SetCommon(BattleKind.Heroine, regionOrder, stageTitle, BattleDifficulty.Normal, clearsRegion);
     }
 
     private static void SetCommon(
@@ -87,6 +106,7 @@ public static class BattleSetup
     )
     {
         enemies.Clear();
+        Heroine = null;
 
         Kind = kind;
         RegionOrder = regionOrder < 1 ? 1 : regionOrder;

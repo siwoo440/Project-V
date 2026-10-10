@@ -60,19 +60,21 @@ public partial class BattleManager // 분리된 전투 기능
             AddBattleLog(BattleLogCategory.StatusEffect, statusText);
         }
 
+        string counterText = TryHeroineCounter(attackingMonster); // 반격을 준비한 히로인이면 공격한 마물이 반격을 받는다.
+
+        if (!string.IsNullOrEmpty(counterText))
+        {
+            resultText.text += $"\n{counterText}";
+            AddBattleLog(BattleLogCategory.HeroineAction, counterText);
+        }
+
+        CheckHeroinePhase(); // HP가 기준 이하로 내려갔으면 페이즈 전환
         RefreshSynergies(); // 히로인의 HP와 성욕에 따라 달라지는 보정 갱신
         UpdateBattleUI();
 
-        if (heroineCurrentHp <= 0)
-        {
-            EndBattle(BattleOutcome.VictoryHp);
-            return;
-        }
+        if (TryEndBattleByHeroineHp()) { return; } // HP가 0이면 승리. 성욕도 최대이면 절정 승리
 
-        if (heroineLust >= heroineMaxLust)
-        {
-            EndBattle(BattleOutcome.VictoryLust);
-        }
+        ShowHeroineClimaxNotice(); // 성욕이 최대가 됐으면 절정 상태 안내
     }
 
     private string ExecuteMonsterHpAttack(MonsterUnit attackingMonster)
@@ -87,6 +89,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         heroineCurrentShield = damageResult.RemainingShield;
         heroineCurrentHp = Mathf.Max(0, heroineCurrentHp - damageResult.HpDamage);
+        ShowHeroineDamageArt(damageResult); // 피격 또는 방어 그림
 
         string damageText = CreateDamageResultText(
             attackingMonster.MonsterName,
@@ -204,10 +207,36 @@ public partial class BattleManager // 분리된 전투 기능
             case HeroineTargetType.LowestHpMonster:
                 return GetLowestHpMonsterFromCandidates(targetCandidates);
 
+            case HeroineTargetType.HighestAttackMonster:
+                return GetHighestAttackMonsterFromCandidates(targetCandidates);
+
             default:
                 return null;
         }
     }
+    // 공격력이 가장 높은 마물. 공격력이 같으면 현재 HP가 낮은 쪽을 고른다. (기획서 D.2.5)
+    private MonsterUnit GetHighestAttackMonsterFromCandidates(List<MonsterUnit> candidates)
+    {
+        if (candidates == null || candidates.Count == 0) { return null; }
+
+        MonsterUnit selectedTarget = candidates[0];
+
+        for (int i = 1; i < candidates.Count; i++)
+        {
+            MonsterUnit currentMonster = candidates[i];
+
+            bool isStronger = currentMonster.Attack > selectedTarget.Attack;
+
+            bool isSameButWeaker =
+                currentMonster.Attack == selectedTarget.Attack &&
+                currentMonster.CurrentHp < selectedTarget.CurrentHp;
+
+            if (isStronger || isSameButWeaker) { selectedTarget = currentMonster; }
+        }
+
+        return selectedTarget;
+    }
+
     private void ClearHeroineTargetPreview()
     {
         foreach (MonsterUnit monsterUnit in fieldMonsters)
@@ -287,7 +316,7 @@ public partial class BattleManager // 분리된 전투 기능
     private void ExecuteAreaAttack() // 히로인 광역 공격 실행
     {
         fieldMonsters.RemoveAll(monsterUnit => monsterUnit == null); // 삭제된 마물 참조 정리
-        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 광역 공격력 계산
+        int attackPower = GetHeroineCurrentAttack(GetHeroineActionDamage(nextHeroineAction)); // 상태 효과 포함 광역 공격력 계산
 
         if (fieldMonsters.Count == 0) // 필드 마물 부재 확인
         {
@@ -329,7 +358,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         string targetName = targetMonster.MonsterName; // 공격 대상 이름 저장
-        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 행동 공격력 계산
+        int attackPower = GetHeroineCurrentAttack(GetHeroineActionDamage(nextHeroineAction)); // 상태 효과 포함 행동 공격력 계산
         DamageResult damageResult = targetMonster.TakeDamage(attackPower); // 마물 보호막 포함 피해 처리
 
         resultText.text = CreateDamageResultText(targetName, damageResult); // 마물 피해 결과 표시

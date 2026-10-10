@@ -757,6 +757,8 @@ public static partial class SceneUIBuilder
         ApplyDefaultStages(flow);
         ApplyFormationList(flow); // 일반전 적 편성 연결
         BuildDifficultyButtons(detailPanel.transform, flow); // 난이도 버튼 (쉬움, 보통, 어려움)
+        BuildStageTabs(listPanel, listContent, flow); // 메인 진행과 서브 콘텐츠 탭
+        BuildHeroinePortrait(detailPanel.transform, flow); // 히로인 얼굴 그림
     }
 
     private static void BuildStoryScene()
@@ -1047,6 +1049,8 @@ public static partial class SceneUIBuilder
                 BuildBattleSummonerPanel(canvas, battleManager); // 소환사 스킬과 패시브 표시
                 BuildBattleItemButton(canvas, battleManager); // 소모성 아이템 버튼
                 BuildEnemyField(canvas, battleManager); // 적 마물 필드 (일반전)
+                AssignHeroineName(battleManager); // 히로인 이름 (히로인전에서 바뀐다)
+                BuildHeroineArt(canvas, battleManager); // 히로인 그림 칸
             }
         }
         StyleButtonByName("HpAttackButton", ButtonColor, 26f);

@@ -10,8 +10,14 @@ public partial class BattleManager // 분리된 전투 기능
     {
         if (amount <= 0 || isEnemyBattle) { return 0; } // 일반전에는 성욕 게이지가 없다. (기획서 F.6)
 
+        amount = HeroineBattleRules.ApplyLustResistance(amount, heroineLustDamagePercent); // 성욕 저항 (기획서 D.2.2)
+
         int previousLust = heroineLust;
         heroineLust = Mathf.Clamp(heroineLust + amount, 0, heroineMaxLust);
+
+        if (heroineLust > previousLust) { ShowHeroineLustArt(previousLust); } // 성욕 공격 피격 그림
+
+        UpdateHeroineClimaxState(); // 성욕이 최대가 됐으면 절정 상태
 
         return heroineLust - previousLust;
     }
@@ -59,13 +65,16 @@ public partial class BattleManager // 분리된 전투 기능
             case HeroineTargetType.FirstMonster:
             case HeroineTargetType.RandomMonster:
             case HeroineTargetType.LowestHpMonster:
+            case HeroineTargetType.HighestAttackMonster:
             case HeroineTargetType.Player:
                 ExecutePreviewedSingleTargetAttack();
+                ApplyHeroineAttackShield(); // 공격하면서 보호막도 얻는 행동
                 break;
 
             case HeroineTargetType.AllMonsters:
                 ClearHeroineTargetPreview();
                 ExecuteAreaAttack();
+                ApplyHeroineAttackShield();
                 break;
 
             case HeroineTargetType.Self:
@@ -88,6 +97,7 @@ public partial class BattleManager // 분리된 전투 기능
 
         resultText.text = $"{nextHeroineAction.DisplayName}: 보호막 +{gainedShield}"; // 보호막 행동 결과 표시
         AddBattleLog(BattleLogCategory.HeroineAction, resultText.text); // 히로인 보호막 행동 기록
+        SetHeroineCounter(nextHeroineAction.CounterAttackPercent); // 반격을 함께 준비하는 행동 (수호 자세)
     }
 
     private void ExecuteHealAction() // 히로인 체력 회복 행동 실행
@@ -202,6 +212,9 @@ public partial class BattleManager // 분리된 전투 기능
     {
         int maximumCleanseCount = Mathf.Max(1, nextHeroineAction.CleanseCount); // 안전한 최대 정화 개수 계산
         List<string> removedStatusNames = new List<string>(); // 제거 상태 이름 목록 생성
+        int reducedLust = ReduceHeroineLust(nextHeroineAction.LustReduction); // 성욕을 함께 낮추는 행동 (정신 통일 등)
+
+        if (reducedLust > 0) { removedStatusNames.Add($"성욕 -{reducedLust}"); }
 
         for (int i = 0; i < maximumCleanseCount; i++) // 정화 가능 개수 반복
         {
@@ -210,7 +223,7 @@ public partial class BattleManager // 분리된 전투 기능
             if (targetIndex < 0) { break; } // 정화 대상 없음 처리
 
             ActiveStatusEffect targetStatus = activeHeroineStatusEffects[targetIndex]; // 정화 대상 상태 확인
-            removedStatusNames.Add(targetStatus.Data.DisplayName); // 제거 상태 이름 저장
+            removedStatusNames.Add($"{targetStatus.Data.DisplayName} 제거"); // 제거 상태 이름 저장
             activeHeroineStatusEffects.RemoveAt(targetIndex); // 해로운 상태 효과 제거
         }
 
@@ -222,7 +235,7 @@ public partial class BattleManager // 분리된 전투 기능
         }
 
         string removedStatusText = string.Join(", ", removedStatusNames); // 제거 상태 이름 결합
-        resultText.text = $"{nextHeroineAction.DisplayName}: {removedStatusText} 제거"; // 정화 결과 표시
+        resultText.text = $"{nextHeroineAction.DisplayName}: {removedStatusText}"; // 정화 결과 표시
         AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 정화 결과 기록
     }
     private void ReduceHeroineStatusDurations(StatusDurationTiming durationTiming) // 지정 시점 상태 효과 지속시간 감소
@@ -248,7 +261,7 @@ public partial class BattleManager // 분리된 전투 기능
 
     private int GetHeroineCurrentDefense()
     {
-        int currentDefense = heroineDefense;
+        int currentDefense = heroineDefense + GetHeroinePhaseDefenseBonus(); // 페이즈 전환으로 오른 방어력 포함
 
         foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects)
         {
@@ -309,6 +322,7 @@ public partial class BattleManager // 분리된 전투 기능
         if (totalPoisonDamage > 0) // 독 피해 발생 확인
         {
             resultText.text = $"독: 히로인 HP -{totalPoisonDamage}"; // 독 피해 결과 표시
+            ShowHeroineHpLossArt(totalPoisonDamage); // 피격 그림
             AddBattleLog(BattleLogCategory.StatusEffect, resultText.text); // 독 피해 전투 로그 기록
         }
 
@@ -397,7 +411,7 @@ public partial class BattleManager // 분리된 전투 기능
 
     private void AttackPlayer() // 플레이어 직접 공격
     {
-        int attackPower = GetHeroineCurrentAttack(nextHeroineAction.Damage); // 상태 효과 포함 공격력 계산
+        int attackPower = GetHeroineCurrentAttack(GetHeroineActionDamage(nextHeroineAction)); // 상태 효과 포함 공격력 계산
         ApplyDamageToPlayer(attackPower, nextHeroineAction.DisplayName); // 플레이어 보호막 포함 피해 적용
     }
 
@@ -431,6 +445,7 @@ public partial class BattleManager // 분리된 전투 기능
     {
         float currentHpRatio = heroineMaxHp > 0 ? (float)heroineCurrentHp / heroineMaxHp : 0f; // 현재 히로인 HP 비율 계산
         List<HeroineActionData> availableActions = new List<HeroineActionData>(); // 사용 가능한 행동 목록 생성
+        List<int> availableWeights = new List<int>(); // 행동별 보정 가중치
         int totalWeight = 0; // 전체 가중치 초기화
 
         foreach (HeroineActionData actionData in heroineActions) // 모든 행동 데이터 반복
@@ -441,14 +456,19 @@ public partial class BattleManager // 분리된 전투 기능
 
             if (!CanUseHeroineAction(actionData)) { continue; } // 현재 전투 상태상 사용할 수 없는 행동 제외
 
-            if (actionData.Weight <= 0) { continue; } // 잘못된 가중치 행동 제외
-
             if (IsHeroineActionOnCooldown(actionData)) { continue; } // 쿨타임 행동 제외
 
             if (IsConsecutiveUseLimitReached(actionData)) { continue; } // 연속 사용 제한 행동 제외
 
+            if (IsAlreadyPlanned(actionData)) { continue; } // 기본 공격이 아닌 행동은 한 턴에 한 번만 고른다.
+
+            int actionWeight = GetHeroineActionWeight(actionData); // 상황 보정을 더한 가중치
+
+            if (actionWeight <= 0) { continue; } // 가중치 없는 행동 제외
+
             availableActions.Add(actionData); // 사용 가능 행동 등록
-            totalWeight += actionData.Weight; // 전체 가중치 합산
+            availableWeights.Add(actionWeight);
+            totalWeight += actionWeight; // 전체 가중치 합산
         }
 
         if (availableActions.Count == 0 || totalWeight <= 0) // 선택 가능 행동 확인
@@ -459,15 +479,15 @@ public partial class BattleManager // 분리된 전투 기능
 
         int randomWeight = Random.Range(0, totalWeight); // 가중치 범위 난수 생성
 
-        foreach (HeroineActionData actionData in availableActions) // 사용 가능 행동 반복
+        for (int i = 0; i < availableActions.Count; i++) // 사용 가능 행동 반복
         {
-            if (randomWeight < actionData.Weight) // 현재 행동 선택 범위 확인
+            if (randomWeight < availableWeights[i]) // 현재 행동 선택 범위 확인
             {
-                nextHeroineAction = actionData; // 다음 행동 설정
+                nextHeroineAction = availableActions[i]; // 다음 행동 설정
                 return; // 행동 선택 종료
             }
 
-            randomWeight -= actionData.Weight; // 다음 행동 범위 이동
+            randomWeight -= availableWeights[i]; // 다음 행동 범위 이동
         }
 
         nextHeroineAction = availableActions[availableActions.Count - 1]; // 마지막 행동 안전 설정
@@ -481,7 +501,9 @@ public partial class BattleManager // 분리된 전투 기능
         if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.AppliedStatusEffect == null) { return false; } // 상태 데이터 누락 행동 차단
         if (actionData.ActionType == HeroineActionType.ApplyStatus && actionData.TargetType
             == HeroineTargetType.Self && HasHeroineStatusEffect(actionData.AppliedStatusEffect)) { return false; }
-        if (actionData.ActionType == HeroineActionType.Cleanse && !HasHeroineNegativeStatus()) { return false; } // 해로운 상태 없는 정화 행동 제외
+        if (actionData.ActionType == HeroineActionType.Cleanse &&
+            !HasHeroineNegativeStatus() &&
+            (actionData.LustReduction <= 0 || heroineLust <= 0)) { return false; } // 지울 상태도 낮출 성욕도 없는 정화 행동 제외
 
         return true; // 행동 사용 허용
     }
@@ -569,6 +591,17 @@ public partial class BattleManager // 분리된 전투 기능
             return;
         }
 
+        heroineIntentText.enableAutoSizing = true; // 글이 길면 글자를 줄여 칸에 맞춘다.
+        heroineIntentText.fontSizeMin = 13f;
+        heroineIntentText.fontSizeMax = 20f;
+
+        if (plannedHeroineActions.Count > 1)
+        {
+            SetHeroineIntentIcon(null); // 여러 번 행동하는 턴은 행동을 글자로 나열한다.
+            heroineIntentText.text = GetHeroinePlanText();
+            return;
+        }
+
         SetHeroineIntentIcon(
             UISkin.Get(UISkin.ActionIconKey(nextHeroineAction.ActionType))
         ); // 행동 종류 아이콘 (기획서 11.8.2)
@@ -605,9 +638,19 @@ public partial class BattleManager // 분리된 전투 기능
     private string GetHeroineActionEffectDisplay(HeroineActionData actionData) // 행동 효과 표시 문구 반환
     {
         if (actionData == null) { return "효과: 없음"; } // 행동 데이터 누락 표시
-        if (actionData.ActionType == HeroineActionType.GainShield) { return $"보호막 +{actionData.ShieldAmount}"; } // 보호막 효과 표시
+        if (actionData.ActionType == HeroineActionType.GainShield) // 보호막 효과 표시
+        {
+            return actionData.CounterAttackPercent > 0
+                ? $"보호막 +{actionData.ShieldAmount}, 반격 준비"
+                : $"보호막 +{actionData.ShieldAmount}";
+        }
         if (actionData.ActionType == HeroineActionType.Heal) { return $"HP +{actionData.HealAmount}"; } // 체력 회복 효과 표시
-        if (actionData.ActionType == HeroineActionType.Cleanse) { return $"디버프 {actionData.CleanseCount}개 제거"; } // 정화 행동 효과 표시
+        if (actionData.ActionType == HeroineActionType.Cleanse) // 정화 행동 효과 표시
+        {
+            return actionData.LustReduction > 0
+                ? $"성욕 -{actionData.LustReduction}, 디버프 {actionData.CleanseCount}개 제거"
+                : $"디버프 {actionData.CleanseCount}개 제거";
+        }
 
         if (actionData.ActionType == HeroineActionType.ApplyStatus) // 상태 효과 행동 확인
         {
@@ -618,8 +661,11 @@ public partial class BattleManager // 분리된 전투 기능
             return $"{statusData.DisplayName} {amountText} ({statusData.DurationTurns}턴)"; // 상태 효과 문구 반환
         }
 
-        int currentAttack = GetHeroineCurrentAttack(actionData.Damage); // 상태 효과 포함 예고 공격력 계산
-        return $"피해 {currentAttack}"; // 현재 공격 피해 효과 표시
+        int currentAttack = GetHeroineCurrentAttack(GetHeroineActionDamage(actionData)); // 상태 효과 포함 예고 공격력 계산
+
+        return actionData.ShieldAmount > 0
+            ? $"피해 {currentAttack}, 보호막 +{actionData.ShieldAmount}"
+            : $"피해 {currentAttack}"; // 현재 공격 피해 효과 표시
     }
     private string GetStatusAmountDisplay(StatusEffectData statusData) // 상태 효과 수치 문구 반환
     {
@@ -648,9 +694,10 @@ public partial class BattleManager // 분리된 전투 기능
     }
     private string GetHeroineStatusDisplay() // 히로인 상태 효과 UI 문구 생성
     {
-        if (activeHeroineStatusEffects.Count == 0) { return "상태 효과: 없음"; } // 활성 상태 효과 없음 표시
-
         List<string> statusNames = new List<string>(); // 상태 효과 문구 목록 생성
+
+        if (heroineCounterPercent > 0) { statusNames.Add("반격 준비"); } // 다음에 공격한 마물이 반격을 받는다.
+        if (isHeroinePhaseActive && heroineBattle != null) { statusNames.Add(heroineBattle.PhaseName); } // 발동한 페이즈 전환
 
         foreach (ActiveStatusEffect activeStatus in activeHeroineStatusEffects) // 활성 상태 효과 반복
         {
@@ -701,6 +748,7 @@ public partial class BattleManager // 분리된 전투 기능
             case HeroineTargetType.FirstMonster: return "첫 번째 마물";    // 첫 번째 마물 대상 -> 첫 번째 마물 문구 반환
             case HeroineTargetType.RandomMonster: return "무작위 마물";   // 무작위 마물 대상 -> 무작위 마물 문구 반환
             case HeroineTargetType.LowestHpMonster: return "최저 HP 마물";// 최저 HP 마물 대상 -> 최저 HP 마물 문구 반환
+            case HeroineTargetType.HighestAttackMonster: return "최고 공격력 마물"; // 공격력이 가장 높은 마물 대상
             case HeroineTargetType.AllMonsters: return "모든 마물";     // 전체 마물 대상 p -> 전체 마물 문구 반환
             case HeroineTargetType.Player: return "플레이어";           // 플레이어 직접 대상 -> 플레이어 문구 반환
             case HeroineTargetType.Self: return "자신";             // 히로인 자신 대상 -> 자기 자신 문구 반환

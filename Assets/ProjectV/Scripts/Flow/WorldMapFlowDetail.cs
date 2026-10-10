@@ -52,7 +52,11 @@ public partial class WorldMapFlow // 월드맵의 지역 정보 창 (기획서 4
         }
         else
         {
-            builder.Append($"\n{RegionRules.TemporaryClearHint}");
+            builder.Append(
+                selectedRegion.HasMainBattles
+                    ? $"\n{RegionRules.ClearHint}"
+                    : $"\n{RegionRules.TestClearHint}"
+            );
         }
 
         SetText(regionNameText, selectedRegion.DisplayName);

@@ -33,6 +33,39 @@ public class RegionData : ScriptableObject
 
     public IReadOnlyList<MonsterData> CaptureMonsters => captureMonsters; // 포획전 출현 마물 반환
 
+    [Header("히로인전")]
+    [SerializeField]
+    private List<HeroineBattleData> heroineBattles =
+        new List<HeroineBattleData>(); // 주요 히로인 1, 2, 3차전과 서브 히로인전 (기획서 F.3.1)
+
+    public IReadOnlyList<HeroineBattleData> HeroineBattles => heroineBattles; // 히로인 전투 전체 반환
+
+    public bool HasMainBattles => GetMainBattle(1) != null; // 주요 히로인전 데이터가 있는 지역인지 여부
+
+    public HeroineBattleData GetMainBattle(int stage) // 주요 히로인 n차전 (없으면 null)
+    {
+        foreach (HeroineBattleData battle in heroineBattles)
+        {
+            if (battle != null && battle.IsMain && battle.Stage == stage) { return battle; }
+        }
+
+        return null;
+    }
+
+    public List<HeroineBattleData> GetSubBattles() // 서브 히로인전 (목록 번호 순)
+    {
+        List<HeroineBattleData> subBattles = new List<HeroineBattleData>();
+
+        foreach (HeroineBattleData battle in heroineBattles)
+        {
+            if (battle != null && !battle.IsMain) { subBattles.Add(battle); }
+        }
+
+        subBattles.Sort((left, right) => left.Stage.CompareTo(right.Stage));
+
+        return subBattles;
+    }
+
     public string RegionId => regionId;           // 지역 ID 반환
     public string DisplayName => displayName;     // 지역 이름 반환
     public int Order => Mathf.Max(1, order);      // 해금 순서 반환

@@ -5,5 +5,6 @@ public enum HeroineTargetType // 히로인 행동 대상 종류
     LowestHpMonster,// 최저 HP 마물
     AllMonsters,    // 모든 마물
     Player,         // 플레이어 직접 대상
-    Self            // 히로인 자신
+    Self,           // 히로인 자신
+    HighestAttackMonster // 공격력이 가장 높은 마물. 기본 대상 규칙이다. (기획서 D.2.5)
 }

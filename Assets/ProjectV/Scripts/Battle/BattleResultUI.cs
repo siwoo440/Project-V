@@ -307,6 +307,26 @@ public class BattleResultUI : MonoBehaviour
             : "포획: " + string.Join(", ", lines);
     }
 
+    // 지역 최초 클리어 안내: 지역 클리어 보상과 새로 열리는 지역 (기획서 4.14 / C.28)
+    private string GetRegionClearText(BattleResultData resultData)
+    {
+        string clearText = $"지역 클리어: {resultData.ClearedRegionName}";
+
+        if (resultData.RegionClearGold > 0 || resultData.RegionClearShards > 0)
+        {
+            clearText +=
+                $"\n지역 클리어 보상  {UISkin.IconOr(UIIcons.Gold, "골드")} +{resultData.RegionClearGold}    " +
+                $"{UISkin.IconOr(UIIcons.Shard, "욕망의 파편")} +{resultData.RegionClearShards}";
+        }
+
+        if (!string.IsNullOrEmpty(resultData.UnlockedRegionName))
+        {
+            clearText += $"\n새 지역 해금: {resultData.UnlockedRegionName}";
+        }
+
+        return clearText;
+    }
+
     private string GetCaptureDisplayText(
         BattleResultData resultData
     )
@@ -314,6 +334,11 @@ public class BattleResultUI : MonoBehaviour
         if (resultData.IsCaptureBattle)
         {
             return GetCaptureListText(resultData); // 포획전: 쓰러뜨린 마물 전부
+        }
+
+        if (resultData.HasRegionClear)
+        {
+            return GetRegionClearText(resultData); // 지역을 처음 클리어한 승리
         }
 
         if (!resultData.IsVictory || !resultData.CaptureAttempted)

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2c9e4b1a6f4c38b5e0a3d8f1c29b64, type: 3}
+  m_Name: R01-SUB3
+  m_EditorClassIdentifier: Assembly-CSharp::HeroineBattleData
+  battleId: R01-SUB3
+  regionId: R01
+  battleType: 1
+  stage: 3
+  heroineName: '프라나야'
+  heroineTitle: '인간 / 제국 마법 기사단 마도검사'
+  artKey: Pranaya
+  description: '불 마법과 검술을 이어 강하게 몰아친다.'
+  maxHp: 200
+  attack: 9
+  defense: 3
+  startingShield: 0
+  maxShield: 60
+  lustResistance: 1
+  actions:
+  - {fileID: 11400000, guid: 7fc4f0ff2a4957a4b02c9ca23f95fcc6, type: 2}
+  - {fileID: 11400000, guid: bb11ba91392958468f977024a6e5589e, type: 2}
+  - {fileID: 11400000, guid: c8a2234ed12a57f4bb0d5dc9d3c524d9, type: 2}
+  actionsPerTurn: 1
+  extraActionInterval: 4
+  phaseName: 
+  phaseHpPercent: 0
+  phaseDefenseBonus: 0
+  phaseActionChanges: []

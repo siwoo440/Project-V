@@ -46,6 +46,7 @@ public static partial class UIThemeSetup
     public static UITheme Refresh()
     {
         AssetDatabase.Refresh(); // 도구가 방금 넣은 파일 반영
+        ConfigureCharacterArt(); // 캐릭터 그림 가져오기 설정
 
         if (!File.Exists(ManifestPath))
         {

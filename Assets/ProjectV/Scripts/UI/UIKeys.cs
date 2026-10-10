@@ -102,6 +102,7 @@ public static class UIKeys
     public const string RewardChestClosed = "Icon_Reward_ChestClosed_01"; // 최초 보상을 아직 받지 않음
     public const string RewardChestOpen = "Icon_Reward_ChestOpen_01";     // 최초 보상을 이미 받음
     public const string RewardRepeat = "Icon_Reward_Repeat_01";           // 반복 보상
+    public const string StageCrown = "Icon_Stage_Crown_01";               // 이긴 스테이지
     public const string CaptureOrb = "Icon_Capture_Orb_01";               // 포획 콘텐츠
     public const string CaptureReroll = "Icon_Capture_Reroll_01";         // 포획 목록 다시 뽑기
 
