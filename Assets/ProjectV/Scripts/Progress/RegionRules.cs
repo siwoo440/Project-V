@@ -3,9 +3,11 @@ public static class RegionRules
 {
     public const int FinalOrder = 9; // 최종장 지역의 순서 (마계와 심연)
 
-    // 임시 규칙: 지역 안의 스테이지 구조가 생기기 전까지는 그 지역에서 한 번 승리하면 클리어로 본다.
-    // 기획서 4.14.1의 조건은 주요 히로인 3단계 전투 승리다. 히로인전 3단계를 만드는 일차에 바꾼다.
-    public static readonly bool ClearOnAnyVictory = true;
+    // 임시 규칙: 기획서 4.14.1의 지역 클리어 조건은 주요 히로인 3단계 전투 승리다.
+    // 히로인전 3단계가 생기기 전까지는 일반전 마지막 단계를 이기면 클리어로 본다.
+    // 일반전 편성이 없는 지역은 어느 전투든 한 번 이기면 클리어로 본다. (지역 화면이 전투를 시작할 때 정한다)
+    public const string TemporaryClearHint =
+        "시험 규칙: 일반전 마지막 단계를 이기면 클리어됩니다. 일반전이 없는 지역은 한 번 승리하면 클리어됩니다.";
 
     public static string GetChapterName(int order) // 지역 순서에 해당하는 챕터 이름 (기획서 8.1)
     {

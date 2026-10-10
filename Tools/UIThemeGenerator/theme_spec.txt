@@ -57,3 +57,6 @@ bg | SaveLoad_BG_01.png | Backgrounds/Common
 # 묶음 8: 월드맵 (45일차, GPT_Request_UI_05.md)
 sheet | Icon_Region_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Region_R01_01, Icon_Region_R02_01, Icon_Region_R03_01, Icon_Region_R04_01, Icon_Region_R05_01, Icon_Region_R06_01, Icon_Region_R07_01, Icon_Region_R08_01, Icon_Region_R09_01
 sheet | UI_MapMark_Sheet_01.png | 2x2 | emblem | UI/Frames | UI_MapMark_Select_01, UI_MapMark_Clear_01, UI_MapMark_New_01, UI_MapMark_Here_01
+
+# 묶음 10: 스테이지와 난이도 (47일차, GPT_Request_UI_07.md)
+sheet | Icon_Battle_Sheet_01.png | 3x3 | icon | UI/Icons | Icon_Difficulty_Easy_01, Icon_Difficulty_Normal_01, Icon_Difficulty_Hard_01, Icon_Reward_ChestClosed_01, Icon_Reward_ChestOpen_01, Icon_Reward_Repeat_01, Icon_Capture_Orb_01, Icon_Capture_Reroll_01, Icon_Stage_Crown_01

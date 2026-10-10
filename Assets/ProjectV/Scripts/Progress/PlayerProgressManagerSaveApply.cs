@@ -21,6 +21,8 @@ public partial class PlayerProgressManager
             RestoreBattleItems(data) +
             RestoreRegions(data);
 
+        RestoreStageClears(data); // 스테이지 ID는 에셋을 찾지 않고 그대로 되살린다.
+
         if (skippedCount > 0)
         {
             Debug.LogWarning(

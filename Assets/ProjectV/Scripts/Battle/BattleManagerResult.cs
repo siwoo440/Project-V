@@ -12,16 +12,86 @@ public partial class BattleManager // 분리된 전투 기능
             outcome == BattleOutcome.VictoryHp ||
             outcome == BattleOutcome.VictoryLust;
 
-        if (!isVictory || battleRewardData == null)
+        bool isFirstClear = isEnemyBattle && IsFirstStageClear(); // 보상을 반영하기 전에 확인한다.
+
+        BattleResultData resultData = isEnemyBattle
+            ? CreateNormalStageResult(outcome, isVictory, isFirstClear)
+            : CreateRewardDataResult(outcome, isVictory);
+
+        resultData.SetStageInfo(
+            isEnemyBattle ? BattleSetup.StageId : string.Empty,
+            BattleSetup.Difficulty,
+            isFirstClear,
+            isVictory && BattleSetup.ClearsRegion
+        );
+
+        return resultData;
+    }
+
+    private bool IsFirstStageClear() // 이 스테이지에서 아직 승리한 적이 없는지 여부
+    {
+        PlayerProgressManager progress = PlayerProgressManager.Instance;
+
+        return progress == null || !progress.IsStageCleared(BattleSetup.StageId);
+    }
+
+    // 일반전 보상: 단계별 기준 보상에 지역 배율과 난이도 배율을 곱한다. (기획서 9.4 ~ 9.8)
+    // 일반전에서는 마물을 포획할 수 없고 욕망의 파편도 받지 않는다. (기획서 8.10 / 9.9)
+    private BattleResultData CreateNormalStageResult(
+        BattleOutcome outcome,
+        bool isVictory,
+        bool isFirstClear
+    )
+    {
+        int stage = enemyFormation.Stage;
+        int regionOrder = BattleSetup.RegionOrder;
+        BattleDifficulty difficulty = BattleSetup.Difficulty;
+
+        if (!isVictory)
         {
-            return new BattleResultData(
-                outcome,
-                0,
-                0,
-                false,
-                false,
-                null
-            );
+            int defeatExperience = StageRules.GetDefeatExperience(
+                StageRules.GetNormalExperience(stage, regionOrder, difficulty, true)
+            ); // 승리 경험치의 25%. 반복 감소는 적용하지 않는다. (기획서 9.8.3)
+
+            return new BattleResultData(outcome, 0, defeatExperience, false, false, null);
+        }
+
+        int goldReward = ApplyGrimoirePercent(
+            StageRules.GetNormalGold(stage, regionOrder, difficulty, isFirstClear),
+            GrimoireEffectType.LootAppraisal
+        ); // 전리품 감정 반영
+
+        int experienceReward = ApplyGrimoirePercent(
+            StageRules.GetNormalExperience(stage, regionOrder, difficulty, isFirstClear),
+            GrimoireEffectType.BattleRecord
+        ); // 전투 기록 반영
+
+        return new BattleResultData(
+            outcome,
+            goldReward,
+            experienceReward,
+            false,
+            false,
+            null,
+            0,
+            Grimoire(GrimoireEffectType.EssenceCondense)
+        ); // 정수 응축 포함
+    }
+
+    // 히로인 전투 보상: 보상 데이터의 값을 쓴다. 히로인전의 보상 공식은 히로인전을 만드는 일차에 넣는다.
+    private BattleResultData CreateRewardDataResult(BattleOutcome outcome, bool isVictory)
+    {
+        if (battleRewardData == null)
+        {
+            return new BattleResultData(outcome, 0, 0, false, false, null);
+        }
+
+        if (!isVictory)
+        {
+            int defeatExperience =
+                StageRules.GetDefeatExperience(battleRewardData.RollExperience()); // 승리 경험치의 25% (기획서 9.8.3)
+
+            return new BattleResultData(outcome, 0, defeatExperience, false, false, null);
         }
 
         int goldReward = ApplyGrimoirePercent(
@@ -35,7 +105,6 @@ public partial class BattleManager // 분리된 전투 기능
         ); // 전투 기록 반영
 
         bool captureAttempted =
-            !isEnemyBattle && // 일반전에서는 마물을 포획할 수 없다. (기획서 8.10)
             battleRewardData.HasCaptureCandidate &&
             battleRewardData.CaptureChance > 0f;
 
@@ -65,6 +134,7 @@ public partial class BattleManager // 분리된 전투 기능
             Grimoire(GrimoireEffectType.EssenceCondense)
         ); // 욕망의 파편과 정수 응축 포함
     }
+
     private string GetBattleOutcomeDisplayName( BattleOutcome outcome)
     {
         switch (outcome)

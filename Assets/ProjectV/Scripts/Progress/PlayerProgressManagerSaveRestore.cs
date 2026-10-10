@@ -86,6 +86,20 @@ public partial class PlayerProgressManager // 저장 데이터에서 소환사, 
         return skippedCount;
     }
 
+    private void RestoreStageClears(SaveData data) // 스테이지 승리 기록
+    {
+        InitializeStageProgress();
+
+        foreach (SaveCountEntry clearEntry in data.stageClears)
+        {
+            if (string.IsNullOrEmpty(clearEntry.id)) { continue; }
+
+            int mask = clearEntry.value & 7; // 난이도 세 가지의 범위만 남긴다.
+
+            if (mask != 0) { stageClearMasks[clearEntry.id] = mask; }
+        }
+    }
+
     private int RestoreRegions(SaveData data) // 지역별 진행과 마지막으로 들어간 지역
     {
         int skippedCount = 0;

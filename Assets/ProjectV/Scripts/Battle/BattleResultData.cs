@@ -28,6 +28,26 @@ public class BattleResultData
         OutcomeLabel = label ?? string.Empty;
     }
 
+    public string StageId { get; private set; } = string.Empty; // 승리 기록에 쓰는 스테이지 ID (일반전만 있다)
+    public BattleDifficulty Difficulty { get; private set; } = BattleDifficulty.Normal; // 전투 난이도
+    public bool IsFirstClear { get; private set; } // 이 스테이지의 최초 승리인지 여부
+    public bool ClearsRegion { get; private set; } // 이 승리로 지역을 클리어하는지 여부
+
+    public bool HasStageInfo => !string.IsNullOrEmpty(StageId); // 스테이지 기록이 있는 전투인지 여부
+
+    public void SetStageInfo( // 스테이지와 난이도, 최초 승리 여부 기록
+        string stageId,
+        BattleDifficulty difficulty,
+        bool isFirstClear,
+        bool clearsRegion
+    )
+    {
+        StageId = stageId ?? string.Empty;
+        Difficulty = difficulty;
+        IsFirstClear = isFirstClear;
+        ClearsRegion = clearsRegion;
+    }
+
     public void SetLimitLoss(int lostGold, int lostEssence, int lostShards)
     {
         LostGold = Math.Max(0, lostGold);

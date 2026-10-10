@@ -50,9 +50,9 @@ public partial class WorldMapFlow // 월드맵의 지역 정보 창 (기획서 4
         {
             builder.Append("\n클리어한 지역입니다. 언제든 다시 들어갈 수 있습니다.");
         }
-        else if (RegionRules.ClearOnAnyVictory)
+        else
         {
-            builder.Append("\n시험 규칙: 이 지역에서 한 번 승리하면 클리어됩니다.");
+            builder.Append($"\n{RegionRules.TemporaryClearHint}");
         }
 
         SetText(regionNameText, selectedRegion.DisplayName);

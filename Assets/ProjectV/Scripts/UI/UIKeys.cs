@@ -94,6 +94,14 @@ public static class UIKeys
     public const string MapMarkNew = "UI_MapMark_New_01";       // 새로 열린 지역의 배지
     public const string MapMarkHere = "UI_MapMark_Here_01";     // 마지막으로 들어간 지역의 깃발
 
+    // 스테이지: 난이도와 보상 표시
+    public const string DifficultyEasy = "Icon_Difficulty_Easy_01";     // 쉬움
+    public const string DifficultyNormal = "Icon_Difficulty_Normal_01"; // 보통
+    public const string DifficultyHard = "Icon_Difficulty_Hard_01";     // 어려움
+    public const string RewardChestClosed = "Icon_Reward_ChestClosed_01"; // 최초 보상을 아직 받지 않음
+    public const string RewardChestOpen = "Icon_Reward_ChestOpen_01";     // 최초 보상을 이미 받음
+    public const string RewardRepeat = "Icon_Reward_Repeat_01";           // 반복 보상
+
     // 그리모어 강화: 분기 문양과 노드 받침
     public const string GrimoireContract = "Icon_Grimoire_Contract_01";
     public const string GrimoireSummon = "Icon_Grimoire_Summon_01";

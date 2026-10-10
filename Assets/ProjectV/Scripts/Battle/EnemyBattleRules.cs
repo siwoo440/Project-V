@@ -27,10 +27,14 @@ public static class EnemyBattleRules
         return 0;
     }
 
-    // 기본 수치에 두 계수를 곱한다. 최종 수치는 반올림한다.
-    public static int ScaleStat(int baseValue, int firstPercent, int secondPercent)
+    // 기본 수치에 지역 계수, 단계 계수, 난이도 배율을 곱한다. 최종 수치는 반올림한다.
+    public static int ScaleStat(int baseValue, int regionPercent, int stagePercent, int difficultyPercent)
     {
-        float scaled = baseValue * (firstPercent / 100f) * (secondPercent / 100f);
+        float scaled =
+            baseValue *
+            (regionPercent / 100f) *
+            (stagePercent / 100f) *
+            (difficultyPercent / 100f);
 
         return Mathf.Max(0, Mathf.FloorToInt(scaled + 0.5f));
     }

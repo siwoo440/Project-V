@@ -694,7 +694,9 @@ public static partial class SceneUIBuilder
             24f, TextColor, TextAlignmentOptions.TopLeft);
 
         SetAnchored(stageDescriptionText.gameObject,
-            new Vector2(0.5f, 1f), new Vector2(0f, -260f), new Vector2(780f, 320f));
+            new Vector2(0.5f, 1f), new Vector2(0f, -250f), new Vector2(780f, 300f)); // 아래에 난이도 버튼 줄이 들어간다.
+
+        stageDescriptionText.fontSize = 22f; // 일반전은 적, 난이도, 보상, 승리 기록까지 적는다.
 
         Button startButton = EnsureButton("StartBattleButton", detailPanel.transform, "전투 시작", AccentColor);
         SetAnchored(startButton.gameObject,
@@ -754,6 +756,7 @@ public static partial class SceneUIBuilder
 
         ApplyDefaultStages(flow);
         ApplyFormationList(flow); // 일반전 적 편성 연결
+        BuildDifficultyButtons(detailPanel.transform, flow); // 난이도 버튼 (쉬움, 보통, 어려움)
     }
 
     private static void BuildStoryScene()

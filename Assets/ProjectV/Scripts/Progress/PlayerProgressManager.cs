@@ -226,10 +226,16 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
 
             // 기획서 6.9의 성장 수단은 강화뿐이므로 전투 경험치로는 마물이 성장하지 않는다.
 
-            if (RegionRules.ClearOnAnyVictory)
+            RecordStageClear(resultData.StageId, resultData.Difficulty); // 스테이지 승리 기록 (일반전만 ID가 있다)
+
+            if (resultData.ClearsRegion)
             {
-                MarkRegionCleared(currentRegion); // 임시 규칙: 지역에서 승리하면 클리어 (RegionRules 참고)
+                MarkRegionCleared(currentRegion); // 임시 규칙 (RegionRules 참고)
             }
+        }
+        else
+        {
+            experienceGained = AddExperience(resultData.ExperienceReward); // 패배 경험치 (기획서 9.8.3)
         }
 
         resultData.MarkRewardsApplied(
@@ -811,6 +817,7 @@ public partial class PlayerProgressManager : MonoBehaviour, ICardOwnershipSource
         InitializeGrimoireProgress(); // 욕망의 파편과 그리모어 강화 초기화
         InitializeShopProgress(); // 소모성 아이템 초기화
         InitializeRegionProgress(); // 지역 진행 초기화
+        InitializeStageProgress(); // 스테이지 승리 기록 초기화
         EnsureDeckPresets();
         ownedCards.Clear(); // 보유 카드 초기화
         ownedMonsters.Clear(); // 보유 마물 초기화

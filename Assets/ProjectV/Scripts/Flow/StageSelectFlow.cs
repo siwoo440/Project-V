@@ -129,6 +129,7 @@ public partial class StageSelectFlow : MonoBehaviour
         }
 
         ShowRegion(); // 들어온 지역의 이름과 배경 표시
+        StartDifficultyButtons(); // 난이도 버튼 연결
         RefreshItemSlot(); // 장착한 소모성 아이템 표시
 
         BuildStageList(); // 스테이지 목록 생성
@@ -287,8 +288,10 @@ public partial class StageSelectFlow : MonoBehaviour
                     : $"덱 {progress.CurrentDeck.Count} / {progress.RequiredDeckSize}";
 
                 stageDescriptionText.text =
-                    $"{GetStageSubtitle(stage)}\n" +
-                    $"{stage.Description}\n{deckInfo}";
+                    stageFormations.TryGetValue(stage, out EnemyFormationData formation)
+                        ? GetNormalStageDetail(stage, formation) + deckInfo // 일반전: 적, 난이도, 보상, 승리 기록
+                        : $"{GetStageSubtitle(stage)}\n" +
+                          $"{stage.Description}\n{deckInfo}";
             }
         }
 
@@ -296,6 +299,8 @@ public partial class StageSelectFlow : MonoBehaviour
         {
             startBattleButton.interactable = hasStage;
         }
+
+        RefreshDifficultyButtons(); // 일반전을 골랐을 때만 난이도 버튼을 보여 준다.
     }
 
     public void StartSelectedStage()

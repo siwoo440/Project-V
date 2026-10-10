@@ -10,12 +10,13 @@ public partial class MonsterUnit
 
     public bool IsEnemy => isEnemy; // 적 마물 여부 반환
 
-    // 적 마물로 설정한다. 능력치는 기본 수치에 지역 계수와 단계 계수를 곱해 정한다. (기획서 F.5.1)
+    // 적 마물로 설정한다. 능력치는 기본 수치에 지역 계수, 단계 계수, 난이도 배율을 곱해 정한다. (기획서 F.5.1 / 8.11)
     public void SetupAsEnemy(
         int regionPercent,
         int hpPercent,
         int attackPercent,
-        int defenseBonus
+        int defenseBonus,
+        BattleDifficulty difficulty
     )
     {
         if (monsterData == null) { return; }
@@ -25,11 +26,17 @@ public partial class MonsterUnit
         enemyIntentLabel = string.Empty;
 
         runtimeMaxHp = Mathf.Max(
-            1, EnemyBattleRules.ScaleStat(monsterData.MaxHp, regionPercent, hpPercent)
+            1,
+            EnemyBattleRules.ScaleStat(
+                monsterData.MaxHp, regionPercent, hpPercent,
+                StageRules.GetEnemyHpPercent(difficulty)
+            )
         );
 
-        runtimeAttack =
-            EnemyBattleRules.ScaleStat(monsterData.Attack, regionPercent, attackPercent);
+        runtimeAttack = EnemyBattleRules.ScaleStat(
+            monsterData.Attack, regionPercent, attackPercent,
+            StageRules.GetEnemyAttackPercent(difficulty)
+        );
 
         runtimeDefense =
             EnemyBattleRules.ClampDefense(monsterData.Defense + defenseBonus);

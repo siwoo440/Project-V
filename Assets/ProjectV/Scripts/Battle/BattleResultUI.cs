@@ -61,8 +61,9 @@ public class BattleResultUI : MonoBehaviour
                 ? $"{UISkin.IconOr(UIIcons.Gold, "골드")} +{resultData.GoldReward}    " +
                   $"{UISkin.IconOr(UIIcons.Exp, "경험치")} +{GetShownExperience(resultData)}" +
                   GetExtraRewardText(resultData) +
-                  GetLimitLossText(resultData)
-                : "보상 없음"; // 전투 보상 표시
+                  GetLimitLossText(resultData) +
+                  GetStageInfoText(resultData)
+                : GetDefeatRewardText(resultData); // 전투 보상 표시
         }
 
         string levelMessage = GetLevelDisplayText(resultData); // 레벨 변화 문구
@@ -82,6 +83,27 @@ public class BattleResultUI : MonoBehaviour
                 GetCaptureDisplayText(resultData); // 포획 결과 표시
         }
     }
+    // 패배하면 승리 경험치의 25%만 받는다. (기획서 9.8.3)
+    private string GetDefeatRewardText(BattleResultData resultData)
+    {
+        return resultData.ExperienceReward > 0
+            ? $"{UISkin.IconOr(UIIcons.Exp, "경험치")} +{GetShownExperience(resultData)}\n" +
+              $"패배 시에는 승리 경험치의 {StageRules.DefeatExperiencePercent}%만 받습니다."
+            : "보상 없음";
+    }
+
+    // 일반전은 난이도와 최초 승리 여부를 한 줄로 적는다.
+    private string GetStageInfoText(BattleResultData resultData)
+    {
+        if (!resultData.HasStageInfo) { return string.Empty; }
+
+        return
+            $"\n{StageRules.GetDifficultyName(resultData.Difficulty)} 난이도, " +
+            (resultData.IsFirstClear
+                ? "최초 승리 보상"
+                : $"반복 승리 보상 (최초의 {StageRules.RepeatRewardPercent}%)");
+    }
+
     // 욕망의 파편과 마물의 정수는 받은 것이 있을 때만 둘째 줄에 표시한다.
     private string GetExtraRewardText(BattleResultData resultData)
     {

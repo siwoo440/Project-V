@@ -100,6 +100,13 @@ public partial class PlayerProgressManager // 진행 데이터를 저장 데이�
 
         data.currentRegionId = currentRegion == null ? string.Empty : currentRegion.RegionId;
 
+        foreach (KeyValuePair<string, int> pair in stageClearMasks) // 스테이지 승리 기록
+        {
+            if (string.IsNullOrEmpty(pair.Key) || pair.Value == 0) { continue; }
+
+            data.stageClears.Add(new SaveCountEntry { id = pair.Key, value = pair.Value });
+        }
+
         BattleItemData equippedItem = EquippedBattleItem; // 다 쓴 아이템은 장착하지 않은 것으로 적는다.
 
         data.equippedBattleItemId = equippedItem == null ? string.Empty : equippedItem.ItemId;

@@ -124,6 +124,15 @@ sprite|UI_MapMark_Select_01|UI/Frames/UI_MapMark_Select_01.png|0|0|0|0|emblem
 sprite|UI_MapMark_Clear_01|UI/Frames/UI_MapMark_Clear_01.png|0|0|0|0|emblem
 sprite|UI_MapMark_New_01|UI/Frames/UI_MapMark_New_01.png|0|0|0|0|emblem
 sprite|UI_MapMark_Here_01|UI/Frames/UI_MapMark_Here_01.png|0|0|0|0|emblem
+sprite|Icon_Difficulty_Easy_01|UI/Icons/Icon_Difficulty_Easy_01.png|0|0|0|0|icon
+sprite|Icon_Difficulty_Normal_01|UI/Icons/Icon_Difficulty_Normal_01.png|0|0|0|0|icon
+sprite|Icon_Difficulty_Hard_01|UI/Icons/Icon_Difficulty_Hard_01.png|0|0|0|0|icon
+sprite|Icon_Reward_ChestClosed_01|UI/Icons/Icon_Reward_ChestClosed_01.png|0|0|0|0|icon
+sprite|Icon_Reward_ChestOpen_01|UI/Icons/Icon_Reward_ChestOpen_01.png|0|0|0|0|icon
+sprite|Icon_Reward_Repeat_01|UI/Icons/Icon_Reward_Repeat_01.png|0|0|0|0|icon
+sprite|Icon_Capture_Orb_01|UI/Icons/Icon_Capture_Orb_01.png|0|0|0|0|icon
+sprite|Icon_Capture_Reroll_01|UI/Icons/Icon_Capture_Reroll_01.png|0|0|0|0|icon
+sprite|Icon_Stage_Crown_01|UI/Icons/Icon_Stage_Crown_01.png|0|0|0|0|icon
 background|MainMenu_BG_01|Backgrounds/Common/MainMenu_BG_01.jpg
 background|DeckBuilder_BG_01|Backgrounds/Common/DeckBuilder_BG_01.jpg
 background|Enhance_BG_01|Backgrounds/Common/Enhance_BG_01.jpg

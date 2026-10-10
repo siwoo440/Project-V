@@ -53,7 +53,8 @@ public partial class BattleManager
 
         AddBattleLog(
             BattleLogCategory.System,
-            $"{BattleSetup.StageTitle}: 적 마물 {enemyUnits.Count}체 ({enemyFormation.EnemyListText})"
+            $"{BattleSetup.StageTitle} [{StageRules.GetDifficultyName(BattleSetup.Difficulty)}]: " +
+            $"적 마물 {enemyUnits.Count}체 ({enemyFormation.EnemyListText})"
         );
     }
 
@@ -103,7 +104,8 @@ public partial class BattleManager
                 regionPercent,
                 enemyFormation.HpPercent,
                 enemyFormation.AttackPercent,
-                regionDefense + enemyFormation.DefenseBonus
+                regionDefense + enemyFormation.DefenseBonus,
+                BattleSetup.Difficulty
             );
 
             enemyUnits.Add(enemyUnit);

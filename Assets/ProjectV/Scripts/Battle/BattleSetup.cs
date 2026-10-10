@@ -6,19 +6,35 @@ public static class BattleSetup
     public static int RegionOrder { get; private set; } = 1;          // 전투가 벌어지는 지역의 순서
     public static string StageTitle { get; private set; } = string.Empty; // 전투 기록에 남길 스테이지 이름
 
+    public static BattleDifficulty Difficulty { get; private set; } = BattleDifficulty.Normal; // 고른 난이도
+    public static bool ClearsRegion { get; private set; } // 이 전투에서 이기면 지역을 클리어하는지 여부
+
     public static bool IsEnemyBattle => Formation != null; // 적 마물과 싸우는 전투인지 여부
 
-    public static void SetEnemyBattle(EnemyFormationData formation, int regionOrder, string stageTitle)
+    public static string StageId =>
+        Formation == null ? string.Empty : Formation.FormationId; // 승리 기록에 쓰는 스테이지 ID (일반전만)
+
+    public static void SetEnemyBattle(
+        EnemyFormationData formation,
+        int regionOrder,
+        string stageTitle,
+        BattleDifficulty difficulty,
+        bool clearsRegion
+    )
     {
         Formation = formation;
         RegionOrder = regionOrder < 1 ? 1 : regionOrder;
         StageTitle = stageTitle ?? string.Empty;
+        Difficulty = difficulty;
+        ClearsRegion = clearsRegion;
     }
 
-    public static void SetHeroineBattle(string stageTitle)
+    public static void SetHeroineBattle(string stageTitle, int regionOrder, bool clearsRegion)
     {
         Formation = null;
-        RegionOrder = 1;
+        RegionOrder = regionOrder < 1 ? 1 : regionOrder;
         StageTitle = stageTitle ?? string.Empty;
+        Difficulty = BattleDifficulty.Normal; // 히로인 전투의 난이도는 히로인전 일차에 넣는다.
+        ClearsRegion = clearsRegion;
     }
 }
